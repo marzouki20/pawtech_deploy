@@ -1,9 +1,13 @@
 {
-    admin off
-    frankenphp
+	admin off
+	frankenphp
+	servers {
+		protocols h1 h2
+	}
 }
 
 :{$PORT} {
-    root * /app/public
-    php_server
+	root * /app/public
+	encode zstd br gzip
+	php_server
 }

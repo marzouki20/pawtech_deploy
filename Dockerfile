@@ -13,6 +13,8 @@ RUN install-php-extensions \
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
+ENV COMPOSER_ALLOW_SUPERUSER=1
+
 COPY . .
 
 ARG APP_ENV=prod

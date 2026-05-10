@@ -1,0 +1,37 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Modify Station | PawTech{% endblock %}
+
+{% block main %}
+<div class="max-w-3xl mx-auto">
+    <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+        <div class="bg-gradient-to-r from-orange-500 to-orange-600 px-8 py-6">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold text-white">Modify Observation Station</h1>
+                    <p class="text-orange-100 text-sm mt-1">Update station information</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-8">
+            {{ include('observation_station/_form.html.twig', {'button_label': 'Save Changes'}) }}
+
+            <div class="mt-8 pt-6 border-t border-gray-100 flex flex-wrap gap-3">
+                <a href="{{ path('app_admin_stations') }}" class="inline-flex items-center px-5 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 hover:text-gray-800 transition-colors">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
+                    Back to list
+                </a>
+                {{ include('observation_station/_delete_form.html.twig', {'station': observation_station}) }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

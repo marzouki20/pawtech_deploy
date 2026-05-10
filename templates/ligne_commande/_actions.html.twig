@@ -1,0 +1,12 @@
+<div class="flex gap-2">
+  <a href="{{ path('app_eshop_ligne_commande_show', { id: ligne.id }) }}" 
+     class="text-paw-orange hover:underline js-modal-link" 
+     data-title="Order line #{{ ligne.id }}">View</a>
+  <a href="{{ path('app_eshop_ligne_commande_edit', { id: ligne.id }) }}" 
+     class="text-blue-600 hover:underline js-modal-link" 
+     data-title="Modify order line">Modify</a>
+  <form method="post" action="{{ path('app_eshop_ligne_commande_delete', { id: ligne.id }) }}" class="inline" onsubmit="return confirm('Delete this line item?')">
+    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ ligne.id) }}">
+    <button type="submit" class="text-red-600 hover:underline">Delete</button>
+  </form>
+</div>

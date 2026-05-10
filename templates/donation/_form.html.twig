@@ -1,0 +1,80 @@
+<style>
+    .form-error ul { margin: 0; padding-left: 1.25rem; list-style: disc; }
+    .form-error li { color: #dc2626; font-size: 0.875rem; font-weight: 600; }
+</style>
+
+{{ form_start(form, {'attr': {'id': form_id|default('donation-form'), 'novalidate': 'novalidate', 'class': 'contact-form'}}) }}
+    <div class="space-y-5">
+        <div>
+            {{ form_label(form.montant, 'Amount (TND)', {'label_attr': {'class': 'block text-xs font-semibold mb-1 ' ~ (form.montant.vars.errors|length ? 'text-red-600' : 'text-gray-700')}}) }}
+            {{ form_widget(form.montant, {'attr': {
+                'min': '1',
+                'max': '100000',
+                'step': '0.01',
+                'inputmode': 'decimal',
+                'placeholder': '50.00',
+                'class': 'w-full rounded-lg border px-3 py-2 text-sm transition ' ~ (form.montant.vars.errors|length ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200' : 'border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-200')
+            }}) }}
+            <div class="form-error mt-2">{{ form_errors(form.montant) }}</div>
+        </div>
+
+        <div>
+            {{ form_label(form.date, 'Date', {'label_attr': {'class': 'block text-xs font-semibold mb-1 ' ~ (form.date.vars.errors|length ? 'text-red-600' : 'text-gray-700')}}) }}
+            {{ form_widget(form.date, {'attr': {
+                'max': 'now'|date('Y-m-d'),
+                'class': 'w-full rounded-lg border px-3 py-2 text-sm transition ' ~ (form.date.vars.errors|length ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200' : 'border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-200')
+            }}) }}
+            <div class="form-error mt-2">{{ form_errors(form.date) }}</div>
+        </div>
+
+        <div>
+            {{ form_label(form.donateur, 'Donor', {'label_attr': {'class': 'block text-xs font-semibold mb-1 ' ~ (form.donateur.vars.errors|length ? 'text-red-600' : 'text-gray-700')}}) }}
+            {{ form_widget(form.donateur, {'attr': {
+                'maxlength': '100',
+                'placeholder': 'John Doe',
+                'class': 'w-full rounded-lg border px-3 py-2 text-sm transition ' ~ (form.donateur.vars.errors|length ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200' : 'border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-200')
+            }}) }}
+            <div class="form-error mt-2">{{ form_errors(form.donateur) }}</div>
+        </div>
+
+        <div>
+            {{ form_label(form.email, 'Email', {'label_attr': {'class': 'block text-xs font-semibold mb-1 ' ~ (form.email.vars.errors|length ? 'text-red-600' : 'text-gray-700')}}) }}
+            {{ form_widget(form.email, {'attr': {
+                'maxlength': '255',
+                'placeholder': 'donor@example.com',
+                'class': 'w-full rounded-lg border px-3 py-2 text-sm transition ' ~ (form.email.vars.errors|length ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200' : 'border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-200')
+            }}) }}
+            <div class="form-error mt-2">{{ form_errors(form.email) }}</div>
+        </div>
+
+        <div>
+            {{ form_label(form.reference, 'Reference', {'label_attr': {'class': 'block text-xs font-semibold mb-1 ' ~ (form.reference.vars.errors|length ? 'text-red-600' : 'text-gray-700')}}) }}
+            {{ form_widget(form.reference, {'attr': {
+                'maxlength': '100',
+                'placeholder': 'DON-2026-0001',
+                'class': 'w-full rounded-lg border px-3 py-2 text-sm transition ' ~ (form.reference.vars.errors|length ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200' : 'border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-200')
+            }}) }}
+            <div class="form-error mt-2">{{ form_errors(form.reference) }}</div>
+        </div>
+
+        <div class="flex items-center gap-3 pt-1">
+            {{ form_widget(form.statut, {'attr': {'class': 'h-4 w-4 rounded border-gray-300 text-paw-orange focus:ring-paw-orange'}}) }}
+            {{ form_label(form.statut, 'Validated donation', {'label_attr': {'class': 'text-sm text-gray-700'}}) }}
+            <div class="form-error">{{ form_errors(form.statut) }}</div>
+        </div>
+    </div>
+
+    <div class="flex flex-wrap items-center justify-between gap-3 mt-8 pt-6 border-t border-gray-200">
+        <a href="{{ path('app_donation_index') }}"
+           class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg border border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 transition">
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+            Back to list
+        </a>
+        <button type="submit"
+                class="px-8 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200">
+            {{ button_label|default('Save Donation') }}
+        </button>
+    </div>
+{{ form_end(form) }}

@@ -1,0 +1,200 @@
+{% extends 'base_front.html.twig' %}
+
+{% block title %}{{ page_title }} - PawTech Admin{% endblock %}
+
+{% block body %}
+<div class="min-h-screen bg-gray-50">
+    {# Header #}
+    <div class="bg-gradient-to-r from-green-600 to-green-700 text-white admin-header">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex flex-col-mobile items-start md:items-center justify-between">
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-bold">Dog Detections</h1>
+                    <p class="text-green-100 mt-1 text-sm md:text-base">View all detected behaviors and health conditions</p>
+                </div>
+                <div class="flex flex-wrap-mobile items-center gap-2 md:gap-4 mt-3 md:mt-0">
+                    <a href="{{ path('app_admin_dashboard') }}" class="bg-white/20 hover:bg-white/30 px-3 md:px-4 py-2 rounded-lg flex items-center gap-2 transition text-sm">
+                        <i class="fas fa-home"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Filters #}
+    <div class="container mx-auto px-4 py-6">
+        <div class="bg-white rounded-xl shadow-lg p-4 mb-6">
+            <div class="filters-container flex flex-wrap items-center gap-4">
+                <div class="flex items-center gap-2">
+                    <label class="text-sm text-gray-600">Severity:</label>
+                    <select id="severity-filter" class="border rounded-lg px-3 py-2 text-sm" onchange="filterDetections()">
+                        <option value="">All</option>
+                        <option value="normal">Normal</option>
+                        <option value="low">Low</option>
+                        <option value="medium">Medium</option>
+                        <option value="serious">Serious</option>
+                        <option value="critical">Critical</option>
+                    </select>
+                </div>
+                <div class="flex items-center gap-2">
+                    <label class="text-sm text-gray-600">Health:</label>
+                    <select id="health-filter" class="border rounded-lg px-3 py-2 text-sm" onchange="filterDetections()">
+                        <option value="">All</option>
+                        <option value="healthy">Healthy</option>
+                        <option value="red_eyes">Red Eyes</option>
+                        <option value="oral_discharge">Oral Discharge</option>
+                        <option value="excessive_drooling">Excessive Drooling</option>
+                        <option value="lethargy">Lethargy</option>
+                    </select>
+                </div>
+                <button onclick="loadDetections()" class="ml-auto bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition">
+                    <i class="fas fa-sync mr-2"></i> Refresh
+                </button>
+            </div>
+        </div>
+
+        {# Detections Grid #}
+        <div class="detections-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="detections-grid">
+            {% for detection in detections %}
+            <div class="bg-white rounded-xl shadow-lg p-4 detection-card" 
+                 data-severity="{{ detection.severity }}"
+                 data-health="{{ detection.healthCondition }}">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="px-2 py-1 rounded-full text-xs font-medium
+                        {% if detection.severity == 'critical' %}bg-red-600 text-white
+                        {% elseif detection.severity == 'serious' %}bg-orange-500 text-white
+                        {% elseif detection.severity == 'medium' %}bg-yellow-500 text-white
+                        {% elseif detection.severity == 'low' %}bg-blue-500 text-white
+                        {% else %}bg-green-500 text-white{% endif %}">
+                        {{ detection.severity|title }}
+                    </span>
+                    <span class="text-xs text-gray-500">{{ detection.detectedAt|date('Y-m-d H:i') }}</span>
+                </div>
+                
+                {# Behavior #}
+                <h3 class="text-lg font-bold text-gray-800">
+                    {{ detection.behaviorType|replace({'_': ' '})|title }}
+                </h3>
+                <p class="text-sm text-gray-500 mb-3">Confidence: {{ detection.confidence }}%</p>
+                
+                {# Health Condition #}
+                {% if detection.healthCondition %}
+                <div class="p-3 bg-orange-50 rounded-lg mb-3">
+                    <p class="text-sm font-medium text-orange-800">
+                        <i class="fas fa-heartbeat mr-2"></i>
+                        {{ detection.healthCondition|replace({'_': ' '})|title }}
+                    </p>
+                    {% if detection.healthSymptoms %}
+                    <div class="mt-2 flex flex-wrap gap-1">
+                        {% for symptom in detection.healthSymptoms %}
+                        <span class="px-2 py-0.5 bg-orange-100 text-orange-700 text-xs rounded">{{ symptom }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+                
+                {# Description #}
+                {% if detection.description %}
+                <p class="text-sm text-gray-600 mb-3">{{ detection.description }}</p>
+                {% endif %}
+                
+                {# Camera #}
+                {% if detection.camera %}
+                <p class="text-xs text-gray-400">
+                    <i class="fas fa-video mr-1"></i>
+                    {{ detection.camera.name }}
+                </p>
+                {% endif %}
+            </div>
+            {% else %}
+            <div class="col-span-full">
+                <div class="bg-white rounded-xl shadow-lg p-12 text-center">
+                    <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-eye text-gray-400 text-2xl"></i>
+                    </div>
+                    <h2 class="text-xl font-bold text-gray-800">No Detections Yet</h2>
+                    <p class="text-gray-500 mt-2">Dog detections will appear here when detected by the camera</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+function loadDetections() {
+    fetch('{{ path('app_admin_detections_recent') }}')
+        .then(response => response.json())
+        .then(data => {
+            renderDetections(data);
+        })
+        .catch(error => console.error('Error:', error));
+}
+
+function renderDetections(detections) {
+    const grid = document.getElementById('detections-grid');
+    
+    if (detections.length === 0) {
+        grid.innerHTML = `
+            <div class="col-span-full">
+                <div class="bg-white rounded-xl shadow-lg p-12 text-center">
+                    <h2 class="text-xl font-bold text-gray-800">No Detections Found</h2>
+                    <p class="text-gray-500 mt-2">Try adjusting your filters</p>
+                </div>
+            </div>
+        `;
+        return;
+    }
+    
+    grid.innerHTML = detections.map(d => `
+        <div class="bg-white rounded-xl shadow-lg p-4 detection-card" 
+             data-severity="${d.severity}"
+             data-health="${d.healthCondition || ''}">
+            <div class="flex items-center justify-between mb-3">
+                <span class="px-2 py-1 rounded-full text-xs font-medium
+                    ${d.severity === 'critical' ? 'bg-red-600 text-white' : 
+                      d.severity === 'serious' ? 'bg-orange-500 text-white' :
+                      d.severity === 'medium' ? 'bg-yellow-500 text-white' :
+                      d.severity === 'low' ? 'bg-blue-500 text-white' : 
+                      'bg-green-500 text-white'}">
+                    ${d.severity.charAt(0).toUpperCase() + d.severity.slice(1)}
+                </span>
+                <span class="text-xs text-gray-500">${d.detectedAt}</span>
+            </div>
+            <h3 class="text-lg font-bold text-gray-800">${d.behaviorType.replace('_', ' ')}</h3>
+            <p class="text-sm text-gray-500 mb-3">Confidence: ${d.confidence}%</p>
+            ${d.healthCondition ? `
+            <div class="p-3 bg-orange-50 rounded-lg mb-3">
+                <p class="text-sm font-medium text-orange-800">
+                    <i class="fas fa-heartbeat mr-2"></i>
+                    ${d.healthCondition.replace('_', ' ')}
+                </p>
+            </div>
+            ` : ''}
+            ${d.description ? `<p class="text-sm text-gray-600 mb-3">${d.description}</p>` : ''}
+            ${d.cameraName ? `<p class="text-xs text-gray-400"><i class="fas fa-video mr-1"></i>${d.cameraName}</p>` : ''}
+        </div>
+    `).join('');
+}
+
+function filterDetections() {
+    const severity = document.getElementById('severity-filter').value;
+    const health = document.getElementById('health-filter').value;
+    
+    document.querySelectorAll('.detection-card').forEach(card => {
+        const cardSeverity = card.dataset.severity;
+        const cardHealth = card.dataset.health;
+        
+        const severityMatch = !severity || cardSeverity === severity;
+        const healthMatch = !health || cardHealth === health;
+        
+        card.style.display = (severityMatch && healthMatch) ? 'block' : 'none';
+    });
+}
+
+// Auto-refresh every 30 seconds
+setInterval(loadDetections, 30000);
+</script>
+{% endblock %}

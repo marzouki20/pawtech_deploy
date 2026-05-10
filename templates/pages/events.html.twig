@@ -1,0 +1,499 @@
+{% extends 'base_front.html.twig' %}
+
+{% block title %}Events - PawTech{% endblock %}
+
+{% block body %}
+    {# Include Recommendation Modal #}
+    {{ include('pages/event_recommendation_modal.html.twig', {villes: villes}) }}
+
+    <section class="relative overflow-hidden">
+        <div class="absolute inset-0">
+            <div class="absolute -top-24 -right-24 h-96 w-96 rounded-full bg-orange-200/70"></div>
+            <div class="absolute top-24 right-24 h-80 w-80 rounded-full bg-orange-400/80"></div>
+        </div>
+
+        <div class="relative container mx-auto px-4 lg:px-8 py-12 lg:py-16">
+            <div class="grid lg:grid-cols-2 gap-10 items-center">
+                <div>
+                    <p class="text-orange-600 font-semibold tracking-wide uppercase text-xs mb-3">Events</p>
+                    <h1 class="text-4xl lg:text-5xl font-extrabold leading-tight text-gray-900">
+                        Where Dogs Come First
+                    </h1>
+                    <p class="mt-4 text-gray-600 max-w-xl">
+                        Join our dog-friendly events and meet the community.
+                    </p>
+                </div>
+                <div class="rounded-3xl bg-white border border-gray-100 shadow-sm overflow-hidden">
+                    <div class="aspect-[16/9] bg-gray-100">
+                        <img src="https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=800&h=450&fit=crop" 
+                             alt="Happy dogs at event" 
+                             class="w-full h-full object-cover">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="container mx-auto px-4 lg:px-8 pb-14">
+        <div class="text-center max-w-2xl mx-auto">
+            <p class="text-orange-600 font-semibold text-xs uppercase tracking-wide">New event coming</p>
+            <h2 class="text-2xl lg:text-3xl font-extrabold text-gray-900 mt-2">
+                Let your dogs meet each other
+            </h2>
+        </div>
+
+        <div class="mt-10 rounded-3xl bg-white border border-gray-100 shadow-sm overflow-hidden">
+            <div class="relative aspect-[16/7]">
+                <img src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=1200&h=525&fit=crop" 
+                     alt="Dogs meeting at park" 
+                     class="absolute inset-0 w-full h-full object-cover">
+                <div class="absolute inset-0 bg-gradient-to-t from-gray-900/70 to-gray-900/20"></div>
+                <div class="absolute left-6 bottom-6 right-6 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+                    <div>
+                        <p class="text-white/90 text-sm font-semibold">Launching in</p>
+                        <div class="mt-3 flex items-center gap-6">
+                            {% for part in [
+                                {label:'Hours', value:'05'},
+                                {label:'Minutes', value:'24'},
+                                {label:'Seconds', value:'59'}
+                            ] %}
+                                <div class="text-center">
+                                    <div class="text-4xl font-extrabold text-white">{{ part.value }}</div>
+                                    <div class="text-xs uppercase tracking-wide text-white/80">{{ part.label }}</div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="w-full md:w-96">
+                        <label class="block text-white/90 text-sm font-semibold mb-2">Register</label>
+                        <div class="flex gap-2">
+                            <input class="w-full rounded-2xl border border-white/30 bg-white/90 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300" placeholder="Email address">
+                            <button class="rounded-2xl bg-orange-500 px-5 py-3 text-white font-extrabold hover:bg-orange-600 transition whitespace-nowrap">
+                                Join
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-12 grid md:grid-cols-2 gap-6 items-center">
+            <div class="rounded-3xl bg-white border border-gray-100 shadow-sm p-8 flex items-center gap-6">
+                <div class="h-24 w-24 rounded-full overflow-hidden flex-shrink-0">
+                    <img src="https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=200&h=200&fit=crop" 
+                         alt="Dog training" class="w-full h-full object-cover">
+                </div>
+                <div>
+                    <p class="text-sm font-semibold text-orange-600 uppercase tracking-wide">Community</p>
+                    <p class="mt-1 font-extrabold text-gray-900">Training tips & socialization</p>
+                    <p class="mt-2 text-sm text-gray-600">Meet owners, share experiences, and help your dog socialize safely.</p>
+                </div>
+            </div>
+            <div class="rounded-3xl bg-white border border-gray-100 shadow-sm p-8 flex items-center gap-6">
+                <div class="h-24 w-24 rounded-full overflow-hidden flex-shrink-0">
+                    <img src="https://images.unsplash.com/photo-1558929996-da64ba858215?w=200&h=200&fit=crop" 
+                         alt="Dog playing" class="w-full h-full object-cover">
+                </div>
+                <div>
+                    <p class="text-sm font-semibold text-orange-600 uppercase tracking-wide">Fun</p>
+                    <p class="mt-1 font-extrabold text-gray-900">Games, contests & surprises</p>
+                    <p class="mt-2 text-sm text-gray-600">Enjoy activities designed for dogs of all sizes and ages.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-14">
+            <div class="flex items-end justify-between gap-6">
+                <div>
+                    <p class="text-orange-600 font-semibold text-xs uppercase tracking-wide">Events</p>
+                    <h2 class="text-2xl lg:text-3xl font-extrabold text-gray-900 mt-2">Upcoming Events</h2>
+                </div>
+                <button type="button" id="openRecommendationModal"
+                        class="px-5 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold rounded-xl hover:from-orange-600 hover:to-orange-700 transition shadow-md flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                    </svg>
+                    Recommend Events
+                </button>
+            </div>
+
+            {# Recommended Events Section (Hidden by default) #}
+            <div id="recommendedEventsSection" class="hidden mt-8 mb-10">
+                <div class="bg-gradient-to-r from-orange-50 to-amber-50 rounded-2xl p-6 border border-orange-100">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="h-10 w-10 rounded-full bg-orange-500 flex items-center justify-center">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-900">Recommended For You</h3>
+                                <p id="recommendedEventsInfo" class="text-sm text-gray-600">Based on your preferences</p>
+                            </div>
+                        </div>
+                        <button type="button" id="closeRecommendedSection" class="text-gray-400 hover:text-gray-600">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="recommendedEventsGrid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {# Recommended events will be inserted here via JavaScript #}
+                    </div>
+                </div>
+            </div>
+
+            {# Filter Form - AJAX #}
+            <div id="filterForm" class="mt-6 flex flex-wrap gap-4 items-end"
+                 data-filter-url="{{ path('app_events_filter') }}"
+                 data-events-url="{{ path('app_events') }}">
+                <div class="flex-1 min-w-[200px]">
+                    <input type="text" id="searchInput" value="{{ currentQ }}" placeholder="Search events..."
+                           class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none">
+                </div>
+                <div>
+                    <select id="typeFilter" class="px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none">
+                        <option value="">All Types</option>
+                        <option value="VACCINATION" {{ currentType == 'VACCINATION' ? 'selected' }}>Vaccination</option>
+                        <option value="ADOPTION" {{ currentType == 'ADOPTION' ? 'selected' }}>Adoption</option>
+                        <option value="SENSIBILISATION" {{ currentType == 'SENSIBILISATION' ? 'selected' }}>Awareness</option>
+                        <option value="COLLECTE_DONS" {{ currentType == 'COLLECTE_DONS' ? 'selected' }}>Donation Drive</option>
+                    </select>
+                </div>
+                <div>
+                    <select id="villeFilter" class="px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none">
+                        <option value="">All Cities</option>
+                        {% for ville in villes %}
+                            <option value="{{ ville }}" {{ currentVille == ville ? 'selected' }}>{{ ville }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="button" id="filterBtn" class="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 font-semibold transition flex items-center gap-2">
+                    <span>Filter</span>
+                    <svg id="filterSpinner" class="hidden w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </button>
+                <button type="button" id="clearFilterBtn" class="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium">
+                    Clear
+                </button>
+            </div>
+            
+            {# Results count #}
+            <div id="resultsCount" class="mt-4 text-sm text-gray-500">
+                Showing {{ events|length }} event(s)
+            </div>
+
+            {# Default images by event type #}
+            {% set typeImages = {
+                'VACCINATION': 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&h=225&fit=crop',
+                'ADOPTION': 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400&h=225&fit=crop',
+                'SENSIBILISATION': 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=400&h=225&fit=crop',
+                'COLLECTE_DONS': 'https://images.unsplash.com/photo-1450778869180-41d0601e046e?w=400&h=225&fit=crop'
+            } %}
+
+            <div id="eventsGrid" class="mt-8 grid lg:grid-cols-3 gap-6">
+                {% for event in events %}
+                    <article class="event-card rounded-2xl bg-white border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition">
+                        <div class="aspect-[16/9] bg-gray-100">
+                            {% if event.image %}
+                                <img src="{{ event.image }}" alt="{{ event.titre }}" class="w-full h-full object-cover">
+                            {% else %}
+                                <img src="{{ typeImages[event.type] ?? 'https://images.unsplash.com/photo-1534361960057-19889db9621e?w=400&h=225&fit=crop' }}" 
+                                     alt="{{ event.titre }}" class="w-full h-full object-cover">
+                            {% endif %}
+                        </div>
+                        <div class="p-5">
+                            <div class="flex items-center gap-2 text-xs text-gray-500">
+                                <span class="rounded-full bg-orange-100 px-2 py-1 font-semibold text-orange-700">{{ event.type }}</span>
+                                <span>{{ event.dateDebut|date('M d, Y') }}</span>
+                            </div>
+                            <h3 class="mt-3 font-extrabold text-gray-900">{{ event.titre }}</h3>
+                            <p class="mt-1 text-sm text-gray-500">{{ event.ville }} - {{ event.lieu }}</p>
+                            <p class="mt-2 text-sm text-gray-600 line-clamp-2">{{ event.description|slice(0, 100) }}...</p>
+                            <a href="{{ path('app_event_detail', {id: event.id}) }}" class="mt-4 inline-block text-orange-600 font-semibold hover:underline">
+                                View Details →
+                            </a>
+                        </div>
+                    </article>
+                {% else %}
+                    <div class="col-span-3 text-center py-12 text-gray-500">
+                        <p class="text-lg font-semibold">No events found</p>
+                        <p class="mt-2">Check back soon for upcoming events!</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    {# JavaScript for Event Recommendations #}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = document.getElementById('eventRecommendationModal');
+            const openBtn = document.getElementById('openRecommendationModal');
+            const closeBtn = document.getElementById('closeRecommendationModal');
+            const skipBtn = document.getElementById('skipRecommendationModal');
+            const form = document.getElementById('eventRecommendationForm');
+            const recommendedSection = document.getElementById('recommendedEventsSection');
+            const recommendedGrid = document.getElementById('recommendedEventsGrid');
+            const recommendedInfo = document.getElementById('recommendedEventsInfo');
+            const closeRecommendedBtn = document.getElementById('closeRecommendedSection');
+
+            // Default images by event type
+            const typeImages = {
+                'VACCINATION': 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&h=225&fit=crop',
+                'ADOPTION': 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400&h=225&fit=crop',
+                'SENSIBILISATION': 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=400&h=225&fit=crop',
+                'COLLECTE_DONS': 'https://images.unsplash.com/photo-1450778869180-41d0601e046e?w=400&h=225&fit=crop'
+            };
+
+            function openModal() {
+                modal.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeModal() {
+                modal.classList.add('hidden');
+                document.body.style.overflow = '';
+            }
+
+            function renderRecommendedEvents(events) {
+                recommendedGrid.innerHTML = '';
+                
+                if (!events || events.length === 0) {
+                    recommendedGrid.innerHTML = '<p class="col-span-3 text-center text-gray-500 py-4">No events match your preferences. Try adjusting your criteria!</p>';
+                    return;
+                }
+
+                events.forEach((event, index) => {
+                    const imageUrl = event.image || typeImages[event.type] || typeImages['ADOPTION'];
+                    const scorePercent = Math.round((event.score || 0) * 100);
+                    
+                    const card = `
+                        <article class="rounded-xl bg-white border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition">
+                            <div class="relative aspect-[16/9] bg-gray-100">
+                                <img src="${imageUrl}" alt="${event.titre}" class="w-full h-full object-cover">
+                                <div class="absolute top-2 right-2 bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                                    ${scorePercent}% Match
+                                </div>
+                            </div>
+                            <div class="p-4">
+                                <div class="flex items-center gap-2 text-xs text-gray-500">
+                                    <span class="rounded-full bg-orange-100 px-2 py-0.5 font-semibold text-orange-700">${event.type}</span>
+                                    <span>${event.date_debut}</span>
+                                </div>
+                                <h4 class="mt-2 font-bold text-gray-900 line-clamp-1">${event.titre}</h4>
+                                <p class="mt-1 text-xs text-gray-500">${event.ville} - ${event.lieu}</p>
+                                <a href="/events/${event.id}" class="mt-3 inline-block text-sm text-orange-600 font-semibold hover:underline">
+                                    View Details →
+                                </a>
+                            </div>
+                        </article>
+                    `;
+                    recommendedGrid.innerHTML += card;
+                });
+
+                recommendedInfo.textContent = `Found ${events.length} events matching your preferences`;
+            }
+
+            // Open modal
+            openBtn.addEventListener('click', openModal);
+
+            // Close modal
+            closeBtn.addEventListener('click', closeModal);
+            skipBtn.addEventListener('click', closeModal);
+
+            // Close recommended section
+            closeRecommendedBtn.addEventListener('click', function() {
+                recommendedSection.classList.add('hidden');
+            });
+
+            // Close modal on backdrop click
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal.querySelector('.absolute.inset-0')) {
+                    closeModal();
+                }
+            });
+
+            // Form submission
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const formData = new FormData(form);
+                const userPreferences = {
+                    preferred_type: formData.get('preferred_type'),
+                    preferred_city: formData.get('preferred_city'),
+                    preferred_timeframe: formData.get('preferred_timeframe'),
+                    group_size: formData.get('group_size')
+                };
+
+                // Show loading state
+                const submitBtn = form.querySelector('button[type="submit"]');
+                const originalText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<svg class="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Analyzing...';
+                submitBtn.disabled = true;
+
+                fetch('{{ path("app_event_recommend") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ user_preferences: userPreferences })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+
+                    if (data.ok) {
+                        renderRecommendedEvents(data.events || []);
+                        recommendedSection.classList.remove('hidden');
+                        closeModal();
+                        
+                        // Scroll to recommendations
+                        recommendedSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    } else {
+                        alert('Error: ' + (data.message || 'Failed to get recommendations. Make sure the Python API is running.'));
+                    }
+                })
+                .catch(error => {
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                    console.error('Recommendation error:', error);
+                    alert('Failed to connect to recommendation service. Please make sure the Python API is running on port 8003.');
+                });
+            });
+
+            // ============================================================
+            // AJAX FILTER FUNCTIONALITY
+            // ============================================================
+            
+            const filterForm = document.getElementById('filterForm');
+            const searchInput = document.getElementById('searchInput');
+            const typeFilter = document.getElementById('typeFilter');
+            const villeFilter = document.getElementById('villeFilter');
+            const filterBtn = document.getElementById('filterBtn');
+            const clearFilterBtn = document.getElementById('clearFilterBtn');
+            const filterSpinner = document.getElementById('filterSpinner');
+            const eventsGrid = document.getElementById('eventsGrid');
+            const resultsCount = document.getElementById('resultsCount');
+
+            // Get URLs from data attributes
+            const filterUrl = filterForm ? filterForm.dataset.filterUrl : '/events/filter';
+            const eventsUrl = filterForm ? filterForm.dataset.eventsUrl : '/events';
+
+            let debounceTimer;
+
+            function renderEvents(events) {
+                if (!events || events.length === 0) {
+                    eventsGrid.innerHTML = `
+                        <div class="col-span-3 text-center py-12 text-gray-500">
+                            <p class="text-lg font-semibold">No events found</p>
+                            <p class="mt-2">Try adjusting your filters or check back soon!</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                eventsGrid.innerHTML = events.map(event => `
+                    <article class="event-card rounded-2xl bg-white border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition transform hover:scale-[1.02]">
+                        <div class="aspect-[16/9] bg-gray-100">
+                            <img src="${event.image}" alt="${event.titre}" class="w-full h-full object-cover">
+                        </div>
+                        <div class="p-5">
+                            <div class="flex items-center gap-2 text-xs text-gray-500">
+                                <span class="rounded-full bg-orange-100 px-2 py-1 font-semibold text-orange-700">${event.type}</span>
+                                <span>${event.date_debut}</span>
+                            </div>
+                            <h3 class="mt-3 font-extrabold text-gray-900">${event.titre}</h3>
+                            <p class="mt-1 text-sm text-gray-500">${event.ville} - ${event.lieu}</p>
+                            <p class="mt-2 text-sm text-gray-600 line-clamp-2">${event.description}</p>
+                            <a href="${event.url}" class="mt-4 inline-block text-orange-600 font-semibold hover:underline">
+                                View Details →
+                            </a>
+                        </div>
+                    </article>
+                `).join('');
+            }
+
+            function filterEvents() {
+                const q = searchInput.value.trim();
+                const type = typeFilter.value;
+                const ville = villeFilter.value;
+
+                // Show spinner
+                filterSpinner.classList.remove('hidden');
+                filterBtn.disabled = true;
+
+                // Build query string
+                const params = new URLSearchParams();
+                if (q) params.append('q', q);
+                if (type) params.append('type', type);
+                if (ville) params.append('ville', ville);
+
+                fetch(`${filterUrl}?${params.toString()}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        filterSpinner.classList.add('hidden');
+                        filterBtn.disabled = false;
+
+                        if (data.ok) {
+                            renderEvents(data.events);
+                            resultsCount.textContent = `Showing ${data.count} event(s)`;
+                            
+                            // Update URL without reload (for bookmarking/sharing)
+                            const newUrl = params.toString() ? `${eventsUrl}?${params.toString()}` : eventsUrl;
+                            window.history.pushState({}, '', newUrl);
+                        }
+                    })
+                    .catch(error => {
+                        filterSpinner.classList.add('hidden');
+                        filterBtn.disabled = false;
+                        console.error('Filter error:', error);
+                    });
+            }
+
+            // Filter button click
+            if (filterBtn) {
+                filterBtn.addEventListener('click', filterEvents);
+            }
+
+            // Clear filters
+            if (clearFilterBtn) {
+                clearFilterBtn.addEventListener('click', function() {
+                    searchInput.value = '';
+                    typeFilter.value = '';
+                    villeFilter.value = '';
+                    filterEvents();
+                });
+            }
+
+            // Real-time search with debounce (300ms delay)
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    clearTimeout(debounceTimer);
+                    debounceTimer = setTimeout(filterEvents, 300);
+                });
+
+                // Enter key on search input
+                searchInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        clearTimeout(debounceTimer);
+                        filterEvents();
+                    }
+                });
+            }
+
+            // Filter on dropdown change
+            if (typeFilter) {
+                typeFilter.addEventListener('change', filterEvents);
+            }
+            if (villeFilter) {
+                villeFilter.addEventListener('change', filterEvents);
+            }
+        });
+    </script>
+{% endblock %}
+

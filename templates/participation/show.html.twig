@@ -1,0 +1,162 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Participation #{{ participation.id }} | PawTech Admin{% endblock %}
+
+{% block main %}
+<div class="max-w-2xl mx-auto space-y-4">
+    <div class="flex items-center justify-between gap-4">
+        <div class="flex items-center gap-4">
+            <a href="{{ path('app_participation_index') }}" class="p-2 hover:bg-gray-100 rounded-lg">
+                <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                </svg>
+            </a>
+            <h1 class="text-2xl font-bold text-gray-800">Participation #{{ participation.id }}</h1>
+        </div>
+        <div class="flex gap-2">
+            {% if participation.statut == 'EN_ATTENTE' %}
+                <form action="{{ path('app_participation_confirm', {'id': participation.id}) }}" method="post" class="inline">
+                    <input type="hidden" name="_token" value="{{ csrf_token('confirm' ~ participation.id) }}">
+                    <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium">
+                        Confirm
+                    </button>
+                </form>
+                <form action="{{ path('app_participation_cancel', {'id': participation.id}) }}" method="post" class="inline">
+                    <input type="hidden" name="_token" value="{{ csrf_token('cancel' ~ participation.id) }}">
+                    <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium">
+                        Cancel
+                    </button>
+                </form>
+            {% endif %}
+            <a href="{{ path('app_participation_edit', {'id': participation.id}) }}" class="px-4 py-2 bg-paw-orange text-white rounded-lg hover:bg-paw-orange-hover font-medium">
+                Edit
+            </a>
+        </div>
+    </div>
+
+    {# Participation Details #}
+    <div class="bg-white rounded-xl border border-gray-200 p-6">
+        <div class="flex justify-between items-start mb-6">
+            <h2 class="text-lg font-semibold text-gray-800">Participation Details</h2>
+            {% set statutColors = {
+                'EN_ATTENTE': 'bg-yellow-100 text-yellow-800',
+                'CONFIRMEE': 'bg-green-100 text-green-800',
+                'ANNULEE': 'bg-red-100 text-red-800'
+            } %}
+            <span class="px-3 py-1 rounded-full text-sm font-semibold {{ statutColors[participation.statut] ?? 'bg-gray-100 text-gray-800' }}">
+                {{ participation.statut|replace({'_': ' '}) }}
+            </span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-6">
+            <div>
+                <p class="text-sm text-gray-500 mb-1">Registration Date</p>
+                <p class="font-medium text-gray-900">{{ participation.dateParticipation|date('d/m/Y') }}</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-500 mb-1">ID</p>
+                <p class="font-medium text-gray-900">#{{ participation.id }}</p>
+            </div>
+        </div>
+    </div>
+
+    {# Participant Info #}
+    <div class="bg-white rounded-xl border border-gray-200 p-6">
+        <h2 class="text-lg font-semibold text-gray-800 mb-4">Participant</h2>
+        <div class="grid grid-cols-2 gap-6">
+            <div>
+                <p class="text-sm text-gray-500 mb-1">Full Name</p>
+                <p class="font-medium text-gray-900">{{ participation.user.fullName }}</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-500 mb-1">Email</p>
+                <p class="font-medium text-gray-900">{{ participation.user.email }}</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-500 mb-1">Phone</p>
+                <p class="font-medium text-gray-900">{{ participation.user.telephone ?? '-' }}</p>
+            </div>
+        </div>
+    </div>
+
+    {# Event Info #}
+    <div class="bg-white rounded-xl border border-gray-200 p-6">
+        <div class="flex justify-between items-start mb-4">
+            <h2 class="text-lg font-semibold text-gray-800">Event</h2>
+            <a href="{{ path('app_evenement_show', {'id': participation.evenement.id}) }}" class="text-paw-orange hover:underline text-sm">
+                View Event →
+            </a>
+        </div>
+        <div class="grid grid-cols-2 gap-6">
+            <div>
+                <p class="text-sm text-gray-500 mb-1">Title</p>
+                <p class="font-medium text-gray-900">{{ participation.evenement.titre }}</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-500 mb-1">Type</p>
+                {% set typeColors = {
+                    'ADOPTION': 'bg-blue-100 text-blue-800',
+                    'VACCINATION': 'bg-green-100 text-green-800',
+                    'SENSIBILISATION': 'bg-purple-100 text-purple-800',
+                    'COLLECTE': 'bg-yellow-100 text-yellow-800',
+                    'FORMATION': 'bg-indigo-100 text-indigo-800'
+                } %}
+                <span class="px-2 py-1 rounded-full text-xs font-semibold {{ typeColors[participation.evenement.type] ?? 'bg-gray-100 text-gray-800' }}">
+                    {{ participation.evenement.type }}
+                </span>
+            </div>
+            <div>
+                <p class="text-sm text-gray-500 mb-1">Date</p>
+                <p class="font-medium text-gray-900">{{ participation.evenement.dateDebut|date('d/m/Y H:i') }}</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-500 mb-1">Location</p>
+                <p class="font-medium text-gray-900">{{ participation.evenement.lieu }}, {{ participation.evenement.ville }}</p>
+            </div>
+        </div>
+    </div>
+
+    {# Delete Button #}
+    <div class="bg-white rounded-xl border border-gray-200 p-6">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Danger Zone</h3>
+        <button type="button" onclick="document.getElementById('delete-modal').classList.remove('hidden')" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium">
+            <svg class="w-5 h-5 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+            </svg>
+            Delete Permanently
+        </button>
+    </div>
+</div>
+
+{# Delete Confirmation Modal #}
+<div id="delete-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen px-4">
+        <div class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm" onclick="document.getElementById('delete-modal').classList.add('hidden')"></div>
+        <div class="relative bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
+            <div class="flex items-center gap-4 mb-4">
+                <div class="flex-shrink-0 w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                    <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-gray-900">Delete Participation</h3>
+                    <p class="text-sm text-gray-600">This action cannot be undone.</p>
+                </div>
+            </div>
+            <p class="text-gray-700 mb-6">Are you sure you want to permanently delete the participation of <strong>{{ participation.user.fullName }}</strong> for <strong>{{ participation.evenement.titre }}</strong>?</p>
+            <div class="flex justify-end gap-3">
+                <button type="button" onclick="document.getElementById('delete-modal').classList.add('hidden')" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium">
+                    Cancel
+                </button>
+                <form action="{{ path('app_participation_delete', {'id': participation.id}) }}" method="post" class="inline">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ participation.id) }}">
+                    <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium">
+                        Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

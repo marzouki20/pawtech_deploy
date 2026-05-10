@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment - PawTech</title>
+    <link rel="icon" href="{{ asset('favicon.ico') }}">
+    
+    {# Tailwind CSS #}
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    {# Font Awesome #}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            background-color: #fdfdfd;
+        }
+        
+        .bg-gradient-orange {
+            background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);
+        }
+        
+        .btn-orange {
+            background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-orange:hover {
+            background: linear-gradient(135deg, #ea580c 0%, #f97316 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+        }
+        
+        .btn-orange:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        #card-element {
+            padding: 12px 16px;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            background-color: white;
+            transition: all 0.2s ease;
+        }
+        
+        #card-element:focus {
+            border-color: #f97316;
+            box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+            outline: none;
+        }
+        
+        #card-element.StripeElement--focus {
+            border-color: #f97316;
+            box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+        }
+        
+        #card-element.StripeElement--invalid {
+            border-color: #ef4444;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+    {# Header #}
+    <header class="bg-[#fff9f4] sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <a href="{{ path('app_shop') }}" class="flex items-center gap-2">
+                        <div class="w-10 h-10 bg-gradient-to-br from-orange-500 to-amber-400 rounded-full flex items-center justify-center">
+                            <i class="fas fa-paw text-white text-lg"></i>
+                        </div>
+                        <span class="text-xl font-bold text-gray-800">PawTech</span>
+                    </a>
+                </div>
+                <div class="flex items-center gap-4">
+                    <a href="{{ path('app_shop') }}" class="text-gray-600 hover:text-orange-500 transition">
+                        <i class="fas fa-arrow-left mr-2"></i>Back to Shop
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    {# Main Content #}
+    <main class="flex-grow flex items-center justify-center py-12 px-4">
+        <div class="max-w-md w-full">
+            {# Payment Card #}
+            <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+                {# Card Header #}
+                <div class="bg-gradient-orange px-6 py-4">
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fas fa-credit-card"></i>
+                        Payment Details
+                    </h2>
+                </div>
+                
+                {# Card Body #}
+                <div class="p-6">
+                    {# Order Info #}
+                    <div class="flex flex-wrap gap-2 mb-6">
+                        <span class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm">
+                            <i class="fas fa-shopping-bag mr-1"></i>Order #{{ order_id }}
+                        </span>
+                        <span class="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm font-semibold">
+                            <i class="fas fa-coins mr-1"></i>{{ (amount / 100)|number_format(2) }} EUR
+                        </span>
+                    </div>
+                    
+                    {# Flash Messages #}
+                    {% for message in app.flashes('success') %}
+                        <div class="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg text-green-700 flex items-center gap-2">
+                            <i class="fas fa-check-circle"></i>
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                    
+                    {% for message in app.flashes('error') %}
+                        <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 flex items-center gap-2">
+                            <i class="fas fa-exclamation-circle"></i>
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                    
+                    {# Payment Form #}
+                    <form id='checkout-form' method='post' action="{{ path('app_stripe_charge') }}">
+                        <input type='hidden' name='stripeToken' id='stripe-token-id'>
+                        <input type='hidden' name='order_id' value='{{ order_id }}'>
+                        <input type='hidden' name='amount' value='{{ amount }}'>
+                        <input type='hidden' name='currency' value='{{ currency }}'>
+                        
+                        {# Card Input #}
+                        <div class="mb-4">
+                            <label for="card-element" class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-credit-card mr-2 text-orange-500"></i>Card Information
+                            </label>
+                            <div id="card-element"></div>
+                            <div id="card-errors" class="mt-2 text-red-500 text-sm" style="display: none;"></div>
+                        </div>
+                        
+                        {# Security Note #}
+                        <div class="mb-4 flex items-center gap-2 text-gray-500 text-sm">
+                            <i class="fas fa-lock text-green-500"></i>
+                            <span>Your payment information is secure and encrypted</span>
+                        </div>
+                        
+                        {# Pay Button #}
+                        <button 
+                            id='pay-btn'
+                            class="w-full btn-orange text-white font-semibold py-3 px-6 rounded-lg flex items-center justify-center gap-2"
+                            type="button"
+                            onclick="createToken()">
+                            <i class="fas fa-lock"></i>
+                            Pay {{ (amount / 100)|number_format(2) }} EUR
+                        </button>
+                    </form>
+                    
+                    {# Cancel Link #}
+                    <div class="mt-4 text-center">
+                        <a href="{{ path('app_shop') }}" class="text-gray-500 hover:text-orange-500 transition text-sm">
+                            <i class="fas fa-times mr-1"></i>Cancel and return to shop
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            {# Payment Methods Info #}
+            <div class="mt-6 text-center text-gray-500 text-sm">
+                <p class="flex items-center justify-center gap-2">
+                    <i class="fas fa-shield-alt text-green-500"></i>
+                    Secured by Stripe
+                </p>
+                <div class="mt-2 flex justify-center gap-3 text-xl">
+                    <i class="fab fa-cc-visa text-blue-600"></i>
+                    <i class="fab fa-cc-mastercard text-red-500"></i>
+                    <i class="fab fa-cc-amex text-blue-400"></i>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    {# Footer #}
+    <footer class="bg-[#fff9f4] py-4 border-t border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 text-center text-gray-500 text-sm">
+            <p>&copy; 2024 PawTech. All rights reserved.</p>
+        </div>
+    </footer>
+    
+    <script src="https://js.stripe.com/v3/"></script>
+    <script>
+        // Initialize Stripe with your publishable key
+        var stripe = Stripe("{{ stripe_key }}");
+        var elements = stripe.elements();
+        
+        // Create and mount the card element with custom styling
+        var cardElement = elements.create('card', {
+            style: {
+                base: {
+                    fontSize: '16px',
+                    color: '#32325d',
+                    fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
+                    '::placeholder': {
+                        color: '#9ca3af'
+                    },
+                    iconColor: '#f97316'
+                },
+                invalid: {
+                    color: '#ef4444',
+                    iconColor: '#ef4444'
+                }
+            },
+            hidePostalCode: false
+        });
+        cardElement.mount('#card-element');
+        
+        // Handle validation errors
+        cardElement.on('change', function(event) {
+            var displayError = document.getElementById('card-errors');
+            if (event.error) {
+                displayError.style.display = 'block';
+                displayError.textContent = event.error.message;
+            } else {
+                displayError.style.display = 'none';
+            }
+        });
+     
+        function createToken() {
+            var payBtn = document.getElementById("pay-btn");
+            payBtn.disabled = true;
+            payBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+            
+            stripe.createToken(cardElement).then(function(result) {
+                if(typeof result.error != 'undefined') {
+                    payBtn.disabled = false;
+                    payBtn.innerHTML = '<i class="fas fa-lock"></i> Pay {{ (amount / 100)|number_format(2) }} EUR';
+                    
+                    var errorDiv = document.getElementById('card-errors');
+                    errorDiv.style.display = 'block';
+                    errorDiv.textContent = result.error.message;
+                }
+     
+                // token created successfully
+                if(typeof result.token != 'undefined') {
+                    document.getElementById("stripe-token-id").value = result.token.id;
+                    document.getElementById('checkout-form').submit();
+                }
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,370 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Edit Dog{% endblock %}
+
+{% set active = 'dogs' %}
+{% set page_title = 'Edit Dog' %}
+
+{% block main %}
+    <!-- Page Header -->
+    <div class="bg-white rounded-2xl border border-gray-200 p-6 mb-8 shadow-sm">
+        <div class="flex items-start gap-4">
+            <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-100">
+                <svg class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                </svg>
+            </div>
+            <div class="flex-1">
+                <nav class="flex items-center gap-2 text-sm text-gray-500 mb-1">
+                    <a href="{{ path('app_dogs_index') }}" class="hover:text-gray-700 transition">Dogs</a>
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    <span class="text-gray-900 font-medium">Edit</span>
+                </nav>
+                <h1 class="text-2xl font-bold text-gray-900">Edit {{ dog.name }}</h1>
+                <p class="mt-1 text-sm text-gray-600">Update the profile information for this dog</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <a href="{{ path('app_dogs_show', {'id': dog.id}) }}"
+                   class="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                    View
+                </a>
+                <a href="{{ path('app_dogs_index') }}"
+                   class="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Back
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-2xl w-full">
+        <div class="px-8 py-6">
+            {{ form_start(form, {'attr': {'id': 'dogForm', 'novalidate': 'novalidate'}}) }}
+                {% if not form.vars.valid %}
+                    <div class="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                        Please review the highlighted fields and try again.
+                        {{ form_errors(form) }}
+                    </div>
+                {% endif %}
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-2 space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                {{ form_label(form.name, 'Dog Name', {'label_attr': {'class': 'block text-xs font-semibold text-gray-700 mb-1'}}) }}
+                                {{ form_widget(form.name, {'attr': {
+                                    'placeholder': "Enter dog's name",
+                                    'class': 'w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition'
+                                }}) }}
+                                <div class="text-red-500 text-xs mt-1">{{ form_errors(form.name) }}</div>
+                            </div>
+                            <div>
+                                {{ form_label(form.breed, 'Breed', {'label_attr': {'class': 'block text-xs font-semibold text-gray-700 mb-1'}}) }}
+                                {{ form_widget(form.breed, {'attr': {
+                                    'placeholder': 'e.g., Golden Retriever',
+                                    'class': 'w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition'
+                                }}) }}
+                                <div class="text-red-500 text-xs mt-1">{{ form_errors(form.breed) }}</div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                            <div>
+                                {{ form_label(form.age, 'Age', {'label_attr': {'class': 'block text-xs font-semibold text-gray-700 mb-1'}}) }}
+                                {{ form_widget(form.age, {'attr': {
+                                    'min': 0,
+                                    'max': 25,
+                                    'placeholder': 'Years',
+                                    'class': 'w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition'
+                                }}) }}
+                                <div class="text-red-500 text-xs mt-1">{{ form_errors(form.age) }}</div>
+                            </div>
+                            <div>
+                                {{ form_label(form.gender, 'Gender', {'label_attr': {'class': 'block text-xs font-semibold text-gray-700 mb-1'}}) }}
+                                <select id="{{ form.gender.vars.id }}" name="{{ form.gender.vars.full_name }}"
+                                        class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition">
+                                    <option value="">Select gender</option>
+                                    <option value="Male" {{ form.gender.vars.value == 'Male' ? 'selected' : '' }}>Male</option>
+                                    <option value="Female" {{ form.gender.vars.value == 'Female' ? 'selected' : '' }}>Female</option>
+                                </select>
+                                <div class="text-red-500 text-xs mt-1">{{ form_errors(form.gender) }}</div>
+                            </div>
+                            <div>
+                                {{ form_label(form.size, 'Size', {'label_attr': {'class': 'block text-xs font-semibold text-gray-700 mb-1'}}) }}
+                                <select id="{{ form.size.vars.id }}" name="{{ form.size.vars.full_name }}"
+                                        class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition">
+                                    <option value="">Select size</option>
+                                    <option value="XS" {{ form.size.vars.value == 'XS' ? 'selected' : '' }}>XS (Tiny)</option>
+                                    <option value="S" {{ form.size.vars.value == 'S' ? 'selected' : '' }}>Small</option>
+                                    <option value="M" {{ form.size.vars.value == 'M' ? 'selected' : '' }}>Medium</option>
+                                    <option value="L" {{ form.size.vars.value == 'L' ? 'selected' : '' }}>Large</option>
+                                    <option value="XL" {{ form.size.vars.value == 'XL' ? 'selected' : '' }}>XL (Giant)</option>
+                                </select>
+                                <div class="text-red-500 text-xs mt-1">{{ form_errors(form.size) }}</div>
+                            </div>
+                            <div>
+                                {{ form_label(form.weight, 'Weight (kg)', {'label_attr': {'class': 'block text-xs font-semibold text-gray-700 mb-1'}}) }}
+                                {{ form_widget(form.weight, {'attr': {
+                                    'step': '0.1',
+                                    'min': 0,
+                                    'placeholder': 'e.g., 25.5',
+                                    'class': 'w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition'
+                                }}) }}
+                                <div class="text-red-500 text-xs mt-1">{{ form_errors(form.weight) }}</div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                {{ form_label(form.health_status, 'Health Status', {'label_attr': {'class': 'block text-xs font-semibold text-gray-700 mb-1'}}) }}
+                                <select id="{{ form.health_status.vars.id }}" name="{{ form.health_status.vars.full_name }}"
+                                        class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition">
+                                    <option value="">Select health status</option>
+                                    <option value="Healthy" {{ form.health_status.vars.value == 'Healthy' ? 'selected' : '' }}>Healthy</option>
+                                    <option value="Minor issues" {{ form.health_status.vars.value == 'Minor issues' ? 'selected' : '' }}>Minor issues</option>
+                                    <option value="Chronic" {{ form.health_status.vars.value == 'Chronic' ? 'selected' : '' }}>Chronic condition</option>
+                                </select>
+                                <div class="text-red-500 text-xs mt-1">{{ form_errors(form.health_status) }}</div>
+                            </div>
+                            <div>
+                                {{ form_label(form.adoption_status, 'Adoption Status', {'label_attr': {'class': 'block text-xs font-semibold text-gray-700 mb-1'}}) }}
+                                <select id="{{ form.adoption_status.vars.id }}" name="{{ form.adoption_status.vars.full_name }}"
+                                        class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition">
+                                    <option value="">Select adoption status</option>
+                                    <option value="Available" {{ form.adoption_status.vars.value == 'Available' ? 'selected' : '' }}>Available</option>
+                                    <option value="Reserved" {{ form.adoption_status.vars.value == 'Reserved' ? 'selected' : '' }}>Reserved</option>
+                                    <option value="Adopted" {{ form.adoption_status.vars.value == 'Adopted' ? 'selected' : '' }}>Adopted</option>
+                                    <option value="Streetdog" {{ form.adoption_status.vars.value == 'Streetdog' ? 'selected' : '' }}>Streetdog</option>
+                                </select>
+                                <div class="text-red-500 text-xs mt-1">{{ form_errors(form.adoption_status) }}</div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                {{ form_label(form.arrival_date, 'Arrival Date', {'label_attr': {'class': 'block text-xs font-semibold text-gray-700 mb-1'}}) }}
+                                {{ form_widget(form.arrival_date, {'attr': {
+                                    'class': 'w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition'
+                                }}) }}
+                                <div class="text-red-500 text-xs mt-1">{{ form_errors(form.arrival_date) }}</div>
+                            </div>
+                            <div>
+                                {{ form_label(form.microchip_number, 'Microchip Number', {'label_attr': {'class': 'block text-xs font-semibold text-gray-700 mb-1'}}) }}
+                                <div class="flex gap-2">
+                                    {{ form_widget(form.microchip_number, {'attr': {
+                                        'id': form.microchip_number.vars.id,
+                                        'readonly': 'readonly',
+                                        'class': 'w-full rounded-lg border border-gray-300 px-3 py-2 text-sm bg-gray-50 text-gray-700 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition'
+                                    }}) }}
+                                    <button type="button" onclick="generateMicrochipNumber()"
+                                            class="px-3 py-2 rounded-lg border border-gray-200 text-xs font-semibold text-gray-700 hover:bg-gray-50">
+                                        Regenerate
+                                    </button>
+                                </div>
+                                <p class="text-xs text-gray-400 mt-1">Auto-generated when the page loads.</p>
+                                <div class="text-red-500 text-xs mt-1">{{ form_errors(form.microchip_number) }}</div>
+                            </div>
+                        </div>
+
+                        <div id="ziptag-field" class="hidden">
+                            {{ form_label(form.ziptag, 'Assign Ziptag', {'label_attr': {'class': 'block text-xs font-semibold mb-1 text-gray-700'}}) }}
+                            {{ form_widget(form.ziptag, {'attr': {
+                                'class': 'w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition'
+                            }}) }}
+                            <div class="text-red-500 text-xs mt-1">{{ form_errors(form.ziptag) }}</div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-2">Compatibility</label>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <label class="flex items-center gap-2 text-sm text-gray-700">
+                                    {{ form_widget(form.vaccinated, {'attr': {'class': 'h-4 w-4 rounded border-gray-300 text-orange-500 focus:ring-orange-200'}}) }}
+                                    Vaccinated
+                                </label>
+                                <label class="flex items-center gap-2 text-sm text-gray-700">
+                                    {{ form_widget(form.friendly_with_kids, {'attr': {'class': 'h-4 w-4 rounded border-gray-300 text-orange-500 focus:ring-orange-200'}}) }}
+                                    Good with Kids
+                                </label>
+                                <label class="flex items-center gap-2 text-sm text-gray-700">
+                                    {{ form_widget(form.friendly_with_dogs, {'attr': {'class': 'h-4 w-4 rounded border-gray-300 text-orange-500 focus:ring-orange-200'}}) }}
+                                    Good with Dogs
+                                </label>
+                                <label class="flex items-center gap-2 text-sm text-gray-700">
+                                    {{ form_widget(form.friendly_with_cats, {'attr': {'class': 'h-4 w-4 rounded border-gray-300 text-orange-500 focus:ring-orange-200'}}) }}
+                                    Good with Cats
+                                </label>
+                            </div>
+                        </div>
+
+                        <div>
+                            {{ form_label(form.description, 'Description', {'label_attr': {'class': 'block text-xs font-semibold text-gray-700 mb-1'}}) }}
+                            {{ form_widget(form.description, {'attr': {
+                                'rows': 4,
+                                'placeholder': "Tell us about this dog's personality, behavior, special needs...",
+                                'class': 'w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition resize-none'
+                            }}) }}
+                            <div class="text-red-500 text-xs mt-1">{{ form_errors(form.description) }}</div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="sticky top-6">
+                            {% set has_image = dog.image is not empty %}
+                            <label class="block text-xs font-semibold text-gray-700 mb-3">Dog Photo</label>
+                            <div class="relative">
+                                <input type="hidden" id="editImageBase64" name="{{ form.image.vars.full_name }}" value="{{ dog.image|default('') }}">
+                                <input type="file" id="edit-image-input" accept="image/*" class="hidden" onchange="previewEditImage(event)">
+                                <div id="image-preview" class="w-full aspect-square border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-orange-400 transition group bg-gray-50"
+                                     onclick="document.getElementById('edit-image-input').click()">
+                                    {% if not has_image %}
+                                        <div id="edit-upload-placeholder" class="text-center">
+                                            <svg class="mx-auto h-16 w-16 text-gray-400 group-hover:text-orange-500 transition" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                            </svg>
+                                            <p class="text-sm font-semibold text-gray-600 group-hover:text-orange-600 transition">Click to upload photo</p>
+                                            <p class="text-xs text-gray-500 mt-1">PNG, JPG up to 5MB</p>
+                                        </div>
+                                    {% endif %}
+                                    <img id="edit-preview-img" class="w-full h-full object-cover rounded-xl {{ has_image ? '' : 'hidden' }}" alt="Preview"
+                                         src="{{ has_image ? dog.image : '' }}">
+                                </div>
+                                <button type="button" id="edit-remove-image" class="{{ has_image ? '' : 'hidden' }} absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition"
+                                        onclick="removeEditImage()">
+                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <p id="image-error" class="text-red-500 text-xs mt-2 hidden">Please upload a dog photo.</p>
+                            <div class="text-red-500 text-xs mt-1">{{ form_errors(form.image) }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-4 mt-8 pt-6 border-t border-gray-200">
+                    <a href="{{ path('app_dogs_index') }}"
+                       class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition">
+                        Cancel
+                    </a>
+                    <button type="submit"
+                            class="px-8 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2">
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Update Dog
+                    </button>
+                </div>
+            {% if form._token is defined %}
+                {{ form_widget(form._token) }}
+            {% endif %}
+            {{ form_end(form, {'render_rest': false}) }}
+        </div>
+    </div>
+
+    <script>
+        function previewEditImage(event) {
+            const fileInput = event.target;
+            const file = fileInput.files[0];
+            const preview = document.getElementById('edit-preview-img');
+            const placeholder = document.getElementById('edit-upload-placeholder');
+            const removeBtn = document.getElementById('edit-remove-image');
+            const base64Input = document.getElementById('editImageBase64');
+
+            if (!file) {
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                preview.src = e.target.result;
+                preview.classList.remove('hidden');
+                if (placeholder) {
+                    placeholder.classList.add('hidden');
+                }
+                removeBtn.classList.remove('hidden');
+                base64Input.value = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeEditImage() {
+            const fileInput = document.getElementById('edit-image-input');
+            const preview = document.getElementById('edit-preview-img');
+            const placeholder = document.getElementById('edit-upload-placeholder');
+            const removeBtn = document.getElementById('edit-remove-image');
+            const base64Input = document.getElementById('editImageBase64');
+
+            fileInput.value = '';
+            base64Input.value = '';
+            preview.src = '';
+            preview.classList.add('hidden');
+            if (placeholder) {
+                placeholder.classList.remove('hidden');
+            }
+            removeBtn.classList.add('hidden');
+        }
+
+        function generateMicrochipNumber() {
+            const input = document.getElementById('{{ form.microchip_number.vars.id }}');
+            if (!input) return;
+            const randomPart = Array.from({ length: 15 }, () => Math.floor(Math.random() * 10)).join('');
+            input.value = randomPart;
+        }
+
+        function updateZiptagVisibility() {
+            const adoptionSelect = document.getElementById('{{ form.adoption_status.vars.id }}');
+            const ziptagField = document.getElementById('ziptag-field');
+            if (!adoptionSelect || !ziptagField) return;
+            const shouldShow = adoptionSelect.value === 'Streetdog';
+            ziptagField.classList.toggle('hidden', !shouldShow);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            generateMicrochipNumber();
+            updateZiptagVisibility();
+            const adoptionSelect = document.getElementById('{{ form.adoption_status.vars.id }}');
+            if (adoptionSelect) {
+                adoptionSelect.addEventListener('change', updateZiptagVisibility);
+            }
+
+            const form = document.getElementById('dogForm');
+            const base64Input = document.getElementById('editImageBase64');
+            const imageError = document.getElementById('image-error');
+            const preview = document.getElementById('edit-preview-img');
+            const placeholder = document.getElementById('edit-upload-placeholder');
+            const removeBtn = document.getElementById('edit-remove-image');
+
+            const fileInput = document.getElementById('edit-image-input');
+            const existingImage = fileInput ? fileInput.dataset.existingImage : '';
+
+            if (base64Input && !base64Input.value && existingImage) {
+                base64Input.value = existingImage;
+            }
+
+            if (base64Input && base64Input.value && preview && placeholder && removeBtn) {
+                preview.src = base64Input.value;
+                preview.classList.remove('hidden');
+                placeholder.classList.add('hidden');
+                removeBtn.classList.remove('hidden');
+            }
+
+            if (form && base64Input && imageError) {
+                form.addEventListener('submit', (event) => {
+                    if (!base64Input.value) {
+                        event.preventDefault();
+                        imageError.classList.remove('hidden');
+                        imageError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    } else {
+                        imageError.classList.add('hidden');
+                    }
+                });
+            }
+        });
+    </script>
+{% endblock %}
+

@@ -1,0 +1,70 @@
+{% extends 'base_front.html.twig' %}
+
+{% block title %}About Us - PawTech{% endblock %}
+
+{% block body %}
+    <section class="relative overflow-hidden">
+        <div class="absolute inset-0">
+            <div class="absolute -top-24 -right-24 h-96 w-96 rounded-full bg-orange-200/70"></div>
+            <div class="absolute top-24 right-24 h-80 w-80 rounded-full bg-orange-400/80"></div>
+        </div>
+
+        <div class="relative container mx-auto px-4 lg:px-8 py-12 lg:py-16 grid lg:grid-cols-2 gap-10 items-center">
+            <div>
+                <p class="text-orange-600 font-semibold tracking-wide uppercase text-xs mb-3">About us</p>
+                <h1 class="text-4xl lg:text-5xl font-extrabold leading-tight text-gray-900">
+                    Where Dogs Come First
+                </h1>
+                <p class="mt-4 text-gray-600 max-w-xl">
+                    PawTech is a caring pet shop and adoption center dedicated to giving dogs a better life through responsible rehoming, quality products, and veterinary care.
+                </p>
+            </div>
+            <div class="relative">
+                <div class="relative rounded-3xl bg-white shadow-xl p-6 border border-gray-100">
+                    <div class="aspect-[4/3] rounded-2xl overflow-hidden">
+                        <img
+                            src="https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&w=1200&q=80"
+                            alt="Dog portrait for about page"
+                            class="w-full h-full object-cover"
+                        >
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="container mx-auto px-4 lg:px-8 py-12">
+        <div class="grid md:grid-cols-3 gap-6">
+            {% for stat in [
+                {value:'2014', label:'Year founded'},
+                {value:'2k+', label:'Dogs adopted'},
+                {value:'98%', label:'Happy customers'}
+            ] %}
+                <div class="rounded-2xl bg-white border border-gray-100 shadow-sm p-6 text-center">
+                    <p class="text-3xl font-extrabold text-gray-900">{{ stat.value }}</p>
+                    <p class="mt-2 text-sm text-gray-600">{{ stat.label }}</p>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="container mx-auto px-4 lg:px-8 pb-14">
+        <div class="grid lg:grid-cols-2 gap-8 items-start">
+            <div>
+                <h2 class="text-2xl font-extrabold text-gray-900">Our mission</h2>
+                <p class="mt-4 text-gray-600">
+                    We believe every dog deserves a safe, loving home. Our mission is to connect dogs with responsible owners, support them with high-quality products, and provide access to trusted veterinary care.
+                </p>
+            </div>
+            <div>
+                <h2 class="text-2xl font-extrabold text-gray-900">What we offer</h2>
+                <ul class="mt-4 space-y-3 text-gray-600">
+                    <li>• Dog adoption and rehoming programs</li>
+                    <li>• Curated products for your dog’s health and happiness</li>
+                    <li>• Veterinary services and expert advice</li>
+                    <li>• Community events for dog lovers</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+{% endblock %}

@@ -1,0 +1,132 @@
+{# templates/categorie/_form_content.html.twig #}
+<div class="max-w-3xl mx-auto">
+  <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+    <div class="bg-gradient-to-r from-orange-500 to-orange-600 px-8 py-6">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold text-white">{{ page_title }}</h1>
+          <p class="text-orange-100 text-sm mt-1">Manage product categories</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="p-8">
+      {{ form_start(form, {
+        'attr': {
+          'class': 'space-y-6',
+          'id': 'category-form',
+          'novalidate': 'novalidate'
+        }
+      }) }}
+
+      {% if not form.vars.valid %}
+        <div class="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          Please review the highlighted fields and try again.
+          {{ form_errors(form) }}
+        </div>
+      {% endif %}
+
+      <div class="grid grid-cols-1 gap-6">
+        <div>
+          {% set nom_attr = {'class': 'w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-paw-orange focus:border-paw-orange bg-gray-50 hover:bg-white', 'placeholder': 'Enter category name', 'data-field': 'nom'} %}
+          {% if form.nom.vars.errors|length %}{% set nom_attr = nom_attr|merge({'class': 'w-full px-4 py-3 border border-red-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50'}) %}{% endif %}
+          {{ form_label(form.nom, null, {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-2'}}) }}
+          {{ form_widget(form.nom, {'attr': nom_attr, 'errors': false}) }}
+          {% set nom_errors = form.nom.vars.errors %}
+          <div class="text-red-500 text-sm mt-1 font-medium {{ nom_errors|length ? '' : 'hidden' }}" data-error-for="nom">
+            {% for error in nom_errors %}
+              <div>{{ error.message }}</div>
+            {% endfor %}
+          </div>
+          <div class="text-xs text-gray-500 mt-1">2 à 255 caractères.</div>
+        </div>
+      </div>
+
+      <div class="pt-6 border-t border-gray-100 flex flex-wrap gap-3">
+        <a href="{{ path('app_eshop_categorie_index') }}" class="inline-flex items-center px-5 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 hover:text-gray-800 transition-colors">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+          </svg>
+          Back to list
+        </a>
+        <button type="submit" class="inline-flex items-center px-5 py-2.5 text-sm font-medium text-white bg-orange-500 rounded-lg hover:bg-orange-600 transition-all shadow-md hover:shadow-lg">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+          </svg>
+          {{ submit_label|default('Save') }}
+        </button>
+      </div>
+
+      {{ form_end(form) }}
+    </div>
+  </div>
+</div>
+
+<script>
+function initCategoryFormValidation() {
+  const form = document.getElementById('category-form');
+  if (!form || form.dataset.validationBound === 'true') {
+    return;
+  }
+  form.dataset.validationBound = 'true';
+
+  const field = form.querySelector('[data-field="nom"]');
+  const errorContainer = form.querySelector('[data-error-for="nom"]');
+
+  if (field) {
+    field.removeAttribute('minlength');
+    field.removeAttribute('maxlength');
+    field.removeAttribute('required');
+  }
+
+  function setError(message) {
+    if (errorContainer) {
+      if (message) {
+        errorContainer.innerHTML = '<div>' + message + '</div>';
+        errorContainer.classList.remove('hidden');
+      } else {
+        errorContainer.innerHTML = '';
+        errorContainer.classList.add('hidden');
+      }
+    }
+
+    if (field) {
+      field.classList.toggle('border-red-500', !!message);
+      field.classList.toggle('bg-red-50', !!message);
+      field.classList.toggle('focus:ring-red-500', !!message);
+      field.classList.toggle('focus:border-red-500', !!message);
+      field.setAttribute('aria-invalid', message ? 'true' : 'false');
+    }
+  }
+
+  function validate() {
+    const value = (field?.value || '').trim();
+    if (value.length < 2) {
+      setError('Le nom doit contenir au moins 2 caractères.');
+      return false;
+    }
+    setError('');
+    return true;
+  }
+
+  if (field) {
+    field.addEventListener('input', validate);
+    field.addEventListener('change', validate);
+  }
+
+  form.addEventListener('submit', function(event) {
+    if (!validate()) {
+      event.preventDefault();
+      field?.focus();
+    }
+  });
+}
+
+document.addEventListener('DOMContentLoaded', initCategoryFormValidation);
+document.addEventListener('turbo:load', initCategoryFormValidation);
+</script>

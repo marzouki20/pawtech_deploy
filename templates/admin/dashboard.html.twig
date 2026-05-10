@@ -1,0 +1,371 @@
+{% extends 'base_front.html.twig' %}
+
+{% block title %}{{ page_title }} - PawTech Admin{% endblock %}
+
+{% block body %}
+<div class="min-h-screen bg-gray-50">
+    {# Header #}
+    <div class="bg-gradient-to-r from-orange-500 to-orange-600 text-white admin-header">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex flex-col-mobile items-start md:items-center justify-between">
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-bold">Admin Dashboard</h1>
+                    <p class="text-orange-100 mt-1 text-sm md:text-base">IoT Station Management & Monitoring</p>
+                </div>
+                <div class="flex flex-wrap-mobile items-center gap-2 md:gap-4 mt-3 md:mt-0">
+                    <a href="{{ path('app_admin_map') }}" class="bg-white/20 hover:bg-white/30 px-3 md:px-4 py-2 rounded-lg flex items-center gap-2 transition text-sm">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span class="hide-mobile">Map View</span>
+                    </a>
+                    <a href="{{ path('app_admin_cameras') }}" class="bg-white/20 hover:bg-white/30 px-3 md:px-4 py-2 rounded-lg flex items-center gap-2 transition text-sm">
+                        <i class="fas fa-video"></i>
+                        <span class="hide-mobile">Cameras</span>
+                    </a>
+                    <a href="{{ path('app_admin_statistics') }}" class="bg-white/20 hover:bg-white/30 px-3 md:px-4 py-2 rounded-lg flex items-center gap-2 transition text-sm">
+                        <i class="fas fa-chart-bar"></i>
+                        <span class="hide-mobile">Statistics</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Stats Cards #}
+    <div class="container mx-auto px-4 -mt-6">
+        <div class="stats-grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {# Stations Card #}
+            <div class="bg-white rounded-xl shadow-lg p-4 md:p-6 stats-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">Total Stations</p>
+                        <p class="text-3xl font-bold text-gray-800" id="total-stations">{{ stations|length }}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-satellite-dish text-blue-500 text-xl"></i>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center text-sm">
+                    <span class="text-green-500 font-medium" id="active-stations">{{ stations|filter(s => s.statut == 'active')|length }}</span>
+                    <span class="text-gray-400 ml-1">active</span>
+                </div>
+            </div>
+
+            {# Cameras Card #}
+            <div class="bg-white rounded-xl shadow-lg p-4 md:p-6 stats-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">IP Cameras</p>
+                        <p class="text-3xl font-bold text-gray-800" id="total-cameras">{{ cameras|length }}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-video text-purple-500 text-xl"></i>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center text-sm">
+                    <span class="text-green-500 font-medium" id="active-cameras">{{ cameras|filter(c => c.status == 'active')|length }}</span>
+                    <span class="text-gray-400 ml-1">online</span>
+                </div>
+            </div>
+
+            {# Alerts Card #}
+            <div class="bg-white rounded-xl shadow-lg p-4 md:p-6 stats-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">Active Alerts</p>
+                        <p class="text-3xl font-bold text-gray-800" id="total-alerts">{{ activeAlerts|length }}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-bell text-red-500 text-xl"></i>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center text-sm">
+                    <span class="text-orange-500 font-medium">{{ healthAlerts|length }}</span>
+                    <span class="text-gray-400 ml-1">health alerts</span>
+                </div>
+            </div>
+
+            {# Detections Card #}
+            <div class="bg-white rounded-xl shadow-lg p-4 md:p-6 stats-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">Dog Detections</p>
+                        <p class="text-3xl font-bold text-gray-800" id="total-detections">{{ recentDetections|length }}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-dog text-green-500 text-xl"></i>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center text-sm">
+                    <span class="text-red-500 font-medium">{{ healthAlerts|filter(h => h.severity == 'critical')|length }}</span>
+                    <span class="text-gray-400 ml-1">critical</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Main Content #}
+    <div class="container mx-auto px-4 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {# Left Column - Stations & IoT Data #}
+            <div class="lg:col-span-2 space-y-6">
+                {# IoT Stations List #}
+                <div class="bg-white rounded-xl shadow-lg p-4 md:p-6">
+                    <div class="flex flex-col-sm items-center justify-between mb-4 gap-2">
+                        <h2 class="text-lg md:text-xl font-bold text-gray-800">
+                            <i class="fas fa-satellite-dish mr-2 text-orange-500"></i>
+                            IoT Stations
+                        </h2>
+                        <a href="{{ path('app_admin_stations') }}" class="text-orange-500 hover:text-orange-600 text-sm whitespace-nowrap">
+                            View All <i class="fas fa-arrow-right ml-1"></i>
+                        </a>
+                    </div>
+                    
+                    <div class="table-responsive-container">
+                        <table class="w-full min-w-[500px]">
+                            <thead>
+                                <tr class="text-left text-gray-500 text-sm border-b">
+                                    <th class="pb-3">Code</th>
+                                    <th class="pb-3">Zone</th>
+                                    <th class="pb-3">Status</th>
+                                    <th class="pb-3 hide-on-mobile">Temp</th>
+                                    <th class="pb-3 hide-on-mobile">Humidity</th>
+                                    <th class="pb-3 hide-on-xs">Last Seen</th>
+                                </tr>
+                            </thead>
+                            <tbody id="stations-table">
+                                {% for station in stations %}
+                                <tr class="border-b hover:bg-gray-50">
+                                    <td class="py-3 font-medium">{{ station.code }}</td>
+                                    <td class="py-3 text-gray-600">{{ station.zone }}</td>
+                                    <td class="py-3">
+                                        {% if station.statut == 'active' %}
+                                            <span class="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs">Active</span>
+                                        {% elseif station.statut == 'inactive' %}
+                                            <span class="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs">Inactive</span>
+                                        {% else %}
+                                            <span class="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs">Maintenance</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="py-3 hide-on-mobile" id="temp-{{ station.code }}">--</td>
+                                    <td class="py-3 hide-on-mobile" id="humidity-{{ station.code }}">--</td>
+                                    <td class="py-3 text-gray-500 text-sm">--</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {# Map Preview #}
+                <div class="bg-white rounded-xl shadow-lg p-4 md:p-6">
+                    <div class="flex flex-col-sm items-center justify-between mb-4 gap-2">
+                        <h2 class="text-lg md:text-xl font-bold text-gray-800">
+                            <i class="fas fa-map mr-2 text-orange-500"></i>
+                            Station Locations
+                        </h2>
+                        <a href="{{ path('app_admin_map') }}" class="text-orange-500 hover:text-orange-600 text-sm whitespace-nowrap">
+                            Full Map <i class="fas fa-arrow-right ml-1"></i>
+                        </a>
+                    </div>
+                    <div id="dashboard-map" class="h-48 md:h-64 bg-gray-100 rounded-lg flex items-center justify-center">
+                        <p class="text-gray-400">Loading map...</p>
+                    </div>
+                </div>
+            </div>
+
+            {# Right Column - Alerts & Detections #}
+            <div class="space-y-6">
+                {# Health Alerts #}
+                <div class="bg-white rounded-xl shadow-lg p-4 md:p-6">
+                    <div class="flex flex-col-sm items-center justify-between mb-4 gap-2">
+                        <h2 class="text-lg md:text-xl font-bold text-gray-800">
+                            <i class="fas fa-heartbeat mr-2 text-red-500"></i>
+                            Health Alerts
+                        </h2>
+                        <a href="{{ path('app_admin_health_alerts') }}" class="text-orange-500 hover:text-orange-600 text-sm whitespace-nowrap">
+                            View All
+                        </a>
+                    </div>
+                    <div class="space-y-3">
+                        {% for alert in healthAlerts|slice(0, 5) %}
+                        <div class="p-3 bg-red-50 rounded-lg border border-red-100">
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <p class="font-medium text-red-800">{{ alert.healthCondition ?: 'Unknown Condition' }}</p>
+                                    <p class="text-sm text-red-600">{{ alert.description }}</p>
+                                    <p class="text-xs text-gray-500 mt-1">{{ alert.detectedAt|date('Y-m-d H:i') }}</p>
+                                </div>
+                                <span class="px-2 py-1 text-xs rounded-full 
+                                    {% if alert.severity == 'critical' %}bg-red-600 text-white
+                                    {% elseif alert.severity == 'serious' %}bg-orange-500 text-white
+                                    {% else %}bg-yellow-500 text-white{% endif %}">
+                                    {{ alert.severity }}
+                                </span>
+                            </div>
+                        </div>
+                        {% else %}
+                        <p class="text-gray-500 text-center py-4">No health alerts</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                {# Recent Detections #}
+                <div class="bg-white rounded-xl shadow-lg p-4 md:p-6">
+                    <div class="flex flex-col-sm items-center justify-between mb-4 gap-2">
+                        <h2 class="text-lg md:text-xl font-bold text-gray-800">
+                            <i class="fas fa-eye mr-2 text-green-500"></i>
+                            Recent Detections
+                        </h2>
+                        <a href="{{ path('app_admin_detections') }}" class="text-orange-500 hover:text-orange-600 text-sm whitespace-nowrap">
+                            View All
+                        </a>
+                    </div>
+                    <div class="space-y-3">
+                        {% for detection in recentDetections|slice(0, 5) %}
+                        <div class="p-3 bg-gray-50 rounded-lg">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="font-medium text-gray-800">{{ detection.behaviorType|replace({'_': ' '})|title }}</p>
+                                    <p class="text-sm text-gray-500">
+                                        {% if detection.healthCondition %}
+                                            <span class="text-orange-500">{{ detection.healthCondition }}</span>
+                                        {% else %}
+                                            No health issues
+                                        {% endif %}
+                                    </p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-xs text-gray-400">{{ detection.detectedAt|date('H:i') }}</p>
+                                    <p class="text-xs text-green-600">{{ detection.confidence }}%</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <p class="text-gray-500 text-center py-4">No detections yet</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                {# Quick Actions #}
+                <div class="bg-white rounded-xl shadow-lg p-4 md:p-6">
+                    <h2 class="text-lg md:text-xl font-bold text-gray-800 mb-4">
+                        <i class="fas fa-bolt mr-2 text-yellow-500"></i>
+                        Quick Actions
+                    </h2>
+                    <div class="quick-actions-grid grid grid-cols-2 gap-3">
+                        <a href="{{ path('app_admin_cameras') }}" class="p-3 bg-purple-50 rounded-lg text-center hover:bg-purple-100 transition">
+                            <i class="fas fa-video text-purple-500 text-xl mb-1"></i>
+                            <p class="text-sm text-purple-700">View Cameras</p>
+                        </a>
+                        <a href="{{ path('app_admin_statistics') }}" class="p-3 bg-blue-50 rounded-lg text-center hover:bg-blue-100 transition">
+                            <i class="fas fa-chart-line text-blue-500 text-xl mb-1"></i>
+                            <p class="text-sm text-blue-700">Statistics</p>
+                        </a>
+                        <a href="{{ path('app_admin_alerts') }}" class="p-3 bg-red-50 rounded-lg text-center hover:bg-red-100 transition">
+                            <i class="fas fa-exclamation-triangle text-red-500 text-xl mb-1"></i>
+                            <p class="text-sm text-red-700">All Alerts</p>
+                        </a>
+                        <a href="{{ path('app_admin_map') }}" class="p-3 bg-green-50 rounded-lg text-center hover:bg-green-100 transition">
+                            <i class="fas fa-map-marked-alt text-green-500 text-xl mb-1"></i>
+                            <p class="text-sm text-green-700">Map View</p>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# Include Leaflet CSS and JS for map #}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Load dashboard data
+    fetch('{{ path('app_admin_dashboard_data') }}')
+        .then(response => response.json())
+        .then(data => {
+            // Update stats
+            document.getElementById('total-stations').textContent = data.stations.total;
+            document.getElementById('active-stations').textContent = data.stations.active;
+            document.getElementById('total-cameras').textContent = data.cameras.total;
+            document.getElementById('active-cameras').textContent = data.cameras.active;
+            document.getElementById('total-alerts').textContent = data.alerts.unread;
+            
+            // Update IoT data in table
+            for (const [code, iotData] of Object.entries(data.iotData || {})) {
+                const tempEl = document.getElementById('temp-' + code);
+                const humidityEl = document.getElementById('humidity-' + code);
+                if (tempEl && iotData.temperature) {
+                    tempEl.textContent = iotData.temperature + '°C';
+                }
+                if (humidityEl && iotData.humidity) {
+                    humidityEl.textContent = iotData.humidity + '%';
+                }
+            }
+        })
+        .catch(error => console.error('Error loading dashboard data:', error));
+
+    // Initialize map
+    const mapContainer = document.getElementById('dashboard-map');
+    if (mapContainer) {
+        // Fetch map data
+        fetch('{{ path('app_admin_map_data') }}')
+            .then(response => response.json())
+            .then(stations => {
+                if (stations.length > 0) {
+                    mapContainer.innerHTML = '';
+                    const map = L.map('dashboard-map').setView([stations[0].lat, stations[0].lng], 10);
+                    
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '© OpenStreetMap contributors'
+                    }).addTo(map);
+                    
+                    stations.forEach(station => {
+                        const color = station.status === 'active' ? 'green' : 
+                                     station.status === 'inactive' ? 'red' : 'orange';
+                        
+                        L.circleMarker([station.lat, station.lng], {
+                            radius: 8,
+                            fillColor: color,
+                            color: '#fff',
+                            weight: 2,
+                            opacity: 1,
+                            fillOpacity: 0.8
+                        })
+                        .bindPopup(`<b>${station.code}</b><br>${station.zone}<br>Status: ${station.status}`)
+                        .addTo(map);
+                    });
+                    
+                    // Fit bounds
+                    const bounds = L.latLngBounds(stations.map(s => [s.lat, s.lng]));
+                    map.fitBounds(bounds, { padding: [20, 20] });
+                }
+            })
+            .catch(error => {
+                console.error('Error loading map:', error);
+            });
+    }
+
+    // Auto-refresh data every 5 seconds for live updates
+    setInterval(() => {
+        fetch('{{ path('app_admin_dashboard_data') }}')
+            .then(response => response.json())
+            .then(data => {
+                for (const [code, iotData] of Object.entries(data.iotData || {})) {
+                    const tempEl = document.getElementById('temp-' + code);
+                    const humidityEl = document.getElementById('humidity-' + code);
+                    if (tempEl && iotData.temperature) {
+                        tempEl.textContent = iotData.temperature + '°C';
+                    }
+                    if (humidityEl && iotData.humidity) {
+                        humidityEl.textContent = iotData.humidity + '%';
+                    }
+                }
+            })
+            .catch(error => console.error('Error refreshing data:', error));
+    }, 5000);
+});
+</script>
+{% endblock %}

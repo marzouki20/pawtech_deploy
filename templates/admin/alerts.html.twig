@@ -1,0 +1,75 @@
+{% extends 'base_front.html.twig' %}
+
+{% block title %}{{ page_title }} - PawTech Admin{% endblock %}
+
+{% block body %}
+<div class="min-h-screen bg-gray-50">
+    {# Header #}
+    <div class="bg-gradient-to-r from-orange-500 to-orange-600 text-white admin-header">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex flex-col-mobile items-start md:items-center justify-between">
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-bold">System Alerts</h1>
+                    <p class="text-orange-100 mt-1 text-sm md:text-base">Technical alerts and notifications</p>
+                </div>
+                <div class="flex flex-wrap-mobile items-center gap-2 md:gap-4 mt-3 md:mt-0">
+                    <a href="{{ path('app_admin_dashboard') }}" class="bg-white/20 hover:bg-white/30 px-3 md:px-4 py-2 rounded-lg flex items-center gap-2 transition text-sm">
+                        <i class="fas fa-home"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Alerts List #}
+    <div class="container mx-auto px-4 py-6">
+        <div class="space-y-3">
+            {% for alert in alerts %}
+            <div class="bg-white rounded-xl shadow-lg p-4 hover:shadow-xl transition cursor-pointer alert-list-item">
+                <div class="flex items-start justify-between">
+                    <div class="flex items-start gap-4">
+                        <div class="w-10 h-10 rounded-full flex items-center justify-center 
+                            {% if alert.type == 'TECHNICAL' %}bg-red-100{% else %}bg-blue-100{% endif %}">
+                            <i class="fas fa-exclamation-triangle 
+                                {% if alert.type == 'TECHNICAL' %}text-red-500{% else %}text-blue-500{% endif %}">
+                            </i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-gray-800">{{ alert.message }}</h3>
+                            <div class="flex items-center gap-4 mt-2 text-sm text-gray-500">
+                                <span><i class="fas fa-calendar mr-1"></i> {{ alert.date|date('Y-m-d H:i') }}</span>
+                                {% if alert.station %}
+                                <span><i class="fas fa-satellite-dish mr-1"></i> {{ alert.station.code }}</span>
+                                {% endif %}
+                                <span class="px-2 py-0.5 rounded text-xs
+                                    {% if alert.prioritee == 1 %}bg-red-100 text-red-700
+                                    {% elseif alert.prioritee == 2 %}bg-orange-100 text-orange-700
+                                    {% else %}bg-gray-100 text-gray-700{% endif %}">
+                                    Priority {{ alert.prioritee }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        {% if alert.statut == 'unread' %}
+                        <span class="px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm">Unread</span>
+                        {% else %}
+                        <span class="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-sm">Read</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="bg-white rounded-xl shadow-lg p-12 text-center">
+                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-check text-green-500 text-2xl"></i>
+                </div>
+                <h2 class="text-xl font-bold text-gray-800">No Alerts</h2>
+                <p class="text-gray-500 mt-2">You're all caught up!</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

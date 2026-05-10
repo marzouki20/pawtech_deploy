@@ -1,0 +1,259 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}IP Cameras | PawTech{% endblock %}
+
+{% set active = 'cameras' %}
+{% set page_title = 'IP Cameras' %}
+
+{% block main %}
+<div class="px-4 sm:px-6 lg:px-8 py-8 max-w-7xl mx-auto">
+    <!-- Page Header -->
+    <div class="bg-white rounded-2xl border border-gray-200 p-6 mb-8 shadow-sm">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            <div class="flex items-start gap-4 flex-1">
+                <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-purple-100">
+                    <svg class="h-6 w-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                </div>
+                <div>
+                    <nav class="flex items-center gap-2 text-sm text-gray-500 mb-1">
+                        <a href="{{ path('app_admin_stations') }}" class="hover:text-gray-700 transition">Stations</a>
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        <span class="text-gray-900 font-medium">Cameras</span>
+                    </nav>
+                    <h1 class="text-2xl font-bold text-gray-900">IP Cameras</h1>
+                    <p class="mt-1 text-sm text-gray-600">Manage camera feeds and monitoring</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3 flex-shrink-0 mt-4 lg:mt-0">
+                <a href="{{ path('app_admin_stations_cameras_new') }}"
+                   class="inline-flex items-center gap-2 rounded-lg bg-purple-600 px-5 py-2.5 text-sm font-semibold text-white shadow hover:bg-purple-700 transition-colors">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Add Camera
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Camera Grid -->
+    {% if cameras|length > 0 %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for camera in cameras %}
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
+            <!-- Camera Preview -->
+            <div class="relative h-48 bg-gray-900">
+                <img src="{{ camera.fullSnapshotUrl }}?t={{ 'now'|date('U') }}" 
+                     alt="{{ camera.name }}"
+                     class="w-full h-full object-cover"
+                     id="camera-preview-{{ camera.id }}"
+                     onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%23333%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2250%22 fill=%22%23666%22 text-anchor=%22middle%22 dy=%22.3em%22>No Signal</text></svg>'">
+                
+                <!-- Stream Status Badge -->
+                <div class="absolute top-2 right-2">
+                    <span id="stream-status-{{ camera.id }}"
+                          class="px-2 py-1 text-white text-xs rounded-full flex items-center gap-1 {% if camera.status == 'active' %}bg-green-500{% else %}bg-gray-500{% endif %}">
+                        <span class="w-2 h-2 bg-white rounded-full {% if camera.status == 'active' %}animate-pulse{% endif %}"></span>
+                        {% if camera.status == 'active' %}Live{% else %}Offline{% endif %}
+                    </span>
+                </div>
+            </div>
+            
+            <!-- Camera Info -->
+            <div class="p-4">
+                <h3 class="text-lg font-bold text-gray-800">{{ camera.name }}</h3>
+                <p class="text-sm text-gray-500 mt-1">{{ camera.ipAddress }}:{{ camera.port }}</p>
+                
+                {% if camera.resolution %}
+                <p class="text-xs text-gray-400 mt-1">Resolution: {{ camera.resolution }}</p>
+                {% endif %}
+                
+                {% if camera.station %}
+                <p class="text-xs text-gray-400 mt-1">
+                    <svg class="inline w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    </svg>
+                    Station: {{ camera.station.code }}
+                </p>
+                {% endif %}
+                
+                <div class="mt-3 flex items-center gap-2">
+                    <div id="camera-live-status-{{ camera.id }}"
+                         class="text-xs inline-flex items-center px-2 py-1 rounded bg-gray-100 text-gray-600">
+                        AI: waiting...
+                    </div>
+                </div>
+
+                <div class="mt-4 grid grid-cols-2 gap-2">
+                    <button onclick="startCameraStream({{ camera.id }})"
+                            class="bg-green-600 hover:bg-green-700 text-white text-center py-2 rounded-lg transition text-sm font-medium">
+                        Start
+                    </button>
+                    <button onclick="stopCameraStream({{ camera.id }})"
+                            class="bg-red-600 hover:bg-red-700 text-white text-center py-2 rounded-lg transition text-sm font-medium">
+                        Stop
+                    </button>
+                </div>
+
+                <div class="mt-2 flex gap-2">
+                    <a href="{{ path('app_admin_stations_cameras_view', {id: camera.id}) }}" 
+                       class="flex-1 bg-purple-600 hover:bg-purple-700 text-white text-center py-2 rounded-lg transition text-sm">
+                        <svg class="inline w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg> View
+                    </a>
+                    <button onclick="takeSnapshot({{ camera.id }})" 
+                            class="px-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="bg-white rounded-xl shadow-lg p-12 text-center">
+        <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+        </div>
+        <h2 class="text-xl font-bold text-gray-800">No Cameras Configured</h2>
+        <p class="text-gray-500 mt-2">Add your first IP camera to start monitoring</p>
+        <a href="{{ path('app_admin_stations_cameras_new') }}" class="mt-4 inline-block bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg transition">
+            <svg class="inline w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Add Camera
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+const cameraIds = [{% for camera in cameras %}{{ camera.id }}{% if not loop.last %}, {% endif %}{% endfor %}];
+let liveStatusInterval = null;
+
+function setStreamBadge(cameraId, isLive) {
+    const badge = document.getElementById(`stream-status-${cameraId}`);
+    if (!badge) return;
+
+    badge.className = `px-2 py-1 text-white text-xs rounded-full flex items-center gap-1 ${isLive ? 'bg-green-500' : 'bg-gray-500'}`;
+    badge.innerHTML = `<span class="w-2 h-2 bg-white rounded-full ${isLive ? 'animate-pulse' : ''}"></span>${isLive ? 'Live' : 'Offline'}`;
+}
+
+function refreshCameraPreview(cameraId) {
+    const img = document.getElementById(`camera-preview-${cameraId}`);
+    if (!img) return;
+    img.src = `/admin/cameras/${cameraId}/frame.jpg?t=${Date.now()}`;
+}
+
+function takeSnapshot(cameraId) {
+    fetch(`/admin/stations/cameras/${cameraId}/control`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ action: 'snapshot' })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const img = document.getElementById(`camera-preview-${cameraId}`);
+            if (img && data.snapshotUrl) {
+                img.src = data.snapshotUrl;
+            }
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+function startCameraStream(cameraId) {
+    fetch(`/admin/stations/cameras/${cameraId}/stream/start`, { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.success) {
+                alert(data.error || data.message || 'Failed to start stream');
+                return;
+            }
+            setStreamBadge(cameraId, true);
+            setTimeout(() => refreshCameraPreview(cameraId), 900);
+        })
+        .catch(error => {
+            console.error('Start stream error:', error);
+            alert('Failed to start stream');
+        });
+}
+
+function stopCameraStream(cameraId) {
+    fetch(`/admin/stations/cameras/${cameraId}/stream/stop`, { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.success) {
+                alert(data.error || data.message || 'Failed to stop stream');
+                return;
+            }
+            setStreamBadge(cameraId, false);
+        })
+        .catch(error => {
+            console.error('Stop stream error:', error);
+            alert('Failed to stop stream');
+        });
+}
+
+function updateLiveBadge(cameraId, payload) {
+    const badge = document.getElementById(`camera-live-status-${cameraId}`);
+    if (!badge) return;
+
+    const stale = Boolean(payload?.stale);
+    const dogCount = Number(payload?.dogCount || 0);
+    const detections = Array.isArray(payload?.detections) ? payload.detections : [];
+    const illCount = detections.filter(d => (d.health_label || '').toString().toLowerCase() === 'ill').length;
+
+    badge.className = 'text-xs inline-flex items-center px-2 py-1 rounded';
+    if (stale) {
+        badge.classList.add('bg-yellow-100', 'text-yellow-800');
+        badge.textContent = 'AI: stale';
+    } else if (illCount > 0) {
+        badge.classList.add('bg-red-100', 'text-red-700');
+        badge.textContent = `AI: dogs ${dogCount} | ill ${illCount}`;
+    } else if (dogCount > 0) {
+        badge.classList.add('bg-green-100', 'text-green-700');
+        badge.textContent = `AI: dogs ${dogCount} | ill 0`;
+    } else {
+        badge.classList.add('bg-gray-100', 'text-gray-600');
+        badge.textContent = 'AI: no dog';
+    }
+}
+
+function pollLiveStatuses() {
+    cameraIds.forEach((cameraId) => {
+        fetch(`/admin/stations/cameras/${cameraId}/live-detections`, { cache: 'no-store' })
+            .then(response => response.json())
+            .then(payload => updateLiveBadge(cameraId, payload))
+            .catch(() => {
+                const badge = document.getElementById(`camera-live-status-${cameraId}`);
+                if (!badge) return;
+                badge.className = 'text-xs inline-flex items-center px-2 py-1 rounded bg-gray-100 text-gray-600';
+                badge.textContent = 'AI: offline';
+            });
+    });
+}
+
+function refreshAllPreviews() {
+    cameraIds.forEach((cameraId) => refreshCameraPreview(cameraId));
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    pollLiveStatuses();
+    liveStatusInterval = setInterval(pollLiveStatuses, 2000);
+    setInterval(refreshAllPreviews, 6000);
+});
+</script>
+{% endblock %}

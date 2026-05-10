@@ -1,0 +1,101 @@
+user_id,preferred_type,preferred_city,preferred_timeframe,group_size,liked_event_type,satisfaction_score
+1,VACCINATION,Tunis,this_month,small,VACCINATION,0.95
+2,ADOPTION,Ariana,this_week,medium,ADOPTION,0.92
+3,SENSIBILISATION,Sousse,anytime,large,SENSIBILISATION,0.88
+4,COLLECTE_DONS,Tunis,this_month,medium,COLLECTE_DONS,0.90
+5,VACCINATION,Ben Arous,next_month,small,VACCINATION,0.85
+6,ADOPTION,Tunis,this_week,small,ADOPTION,0.93
+7,SENSIBILISATION,Ariana,this_month,medium,SENSIBILISATION,0.87
+8,COLLECTE_DONS,Sfax,anytime,large,COLLECTE_DONS,0.91
+9,VACCINATION,Nabeul,this_month,medium,VACCINATION,0.89
+10,ADOPTION,Tunis,next_month,small,ADOPTION,0.94
+11,any,Tunis,this_week,medium,ADOPTION,0.82
+12,any,Ariana,this_month,small,VACCINATION,0.78
+13,VACCINATION,any,anytime,large,VACCINATION,0.86
+14,ADOPTION,Sousse,this_month,medium,ADOPTION,0.91
+15,SENSIBILISATION,Tunis,this_week,small,SENSIBILISATION,0.84
+16,COLLECTE_DONS,Ben Arous,next_month,medium,COLLECTE_DONS,0.88
+17,any,any,anytime,large,SENSIBILISATION,0.75
+18,VACCINATION,Tunis,this_month,small,VACCINATION,0.96
+19,ADOPTION,Ariana,this_week,medium,ADOPTION,0.90
+20,SENSIBILISATION,Sfax,next_month,large,SENSIBILISATION,0.83
+21,COLLECTE_DONS,Tunis,this_month,small,COLLECTE_DONS,0.92
+22,any,Nabeul,this_week,medium,ADOPTION,0.79
+23,VACCINATION,Monastir,anytime,small,VACCINATION,0.87
+24,ADOPTION,Tunis,this_month,large,ADOPTION,0.95
+25,SENSIBILISATION,Ariana,next_month,medium,SENSIBILISATION,0.81
+26,COLLECTE_DONS,Sousse,this_week,small,COLLECTE_DONS,0.89
+27,any,Tunis,this_month,medium,VACCINATION,0.76
+28,VACCINATION,Ben Arous,this_week,large,VACCINATION,0.88
+29,ADOPTION,Sfax,anytime,small,ADOPTION,0.93
+30,SENSIBILISATION,Tunis,this_month,medium,SENSIBILISATION,0.85
+31,COLLECTE_DONS,Ariana,next_month,large,COLLECTE_DONS,0.90
+32,any,any,this_week,small,COLLECTE_DONS,0.72
+33,VACCINATION,Tunis,this_month,medium,VACCINATION,0.94
+34,ADOPTION,Nabeul,anytime,large,ADOPTION,0.91
+35,SENSIBILISATION,Ben Arous,this_week,small,SENSIBILISATION,0.86
+36,COLLECTE_DONS,Tunis,next_month,medium,COLLECTE_DONS,0.87
+37,any,Sousse,this_month,large,ADOPTION,0.80
+38,VACCINATION,Ariana,this_week,small,VACCINATION,0.92
+39,ADOPTION,Tunis,anytime,medium,ADOPTION,0.89
+40,SENSIBILISATION,Sfax,next_month,large,SENSIBILISATION,0.84
+41,COLLECTE_DONS,Monastir,this_month,small,COLLECTE_DONS,0.91
+42,any,Tunis,this_week,medium,SENSIBILISATION,0.77
+43,VACCINATION,Sousse,next_month,large,VACCINATION,0.85
+44,ADOPTION,Ben Arous,this_month,small,ADOPTION,0.96
+45,SENSIBILISATION,Tunis,anytime,medium,SENSIBILISATION,0.82
+46,COLLECTE_DONS,Ariana,this_week,large,COLLECTE_DONS,0.88
+47,any,Nabeul,next_month,small,VACCINATION,0.74
+48,VACCINATION,Tunis,this_month,medium,VACCINATION,0.93
+49,ADOPTION,Sfax,this_week,large,ADOPTION,0.90
+50,SENSIBILISATION,Ben Arous,anytime,small,SENSIBILISATION,0.87
+51,VACCINATION,Tunis,this_week,small,VACCINATION,0.94
+52,VACCINATION,Ariana,this_month,medium,VACCINATION,0.91
+53,VACCINATION,Sousse,next_month,small,VACCINATION,0.88
+54,VACCINATION,Sfax,this_week,large,VACCINATION,0.92
+55,VACCINATION,Nabeul,this_month,medium,VACCINATION,0.89
+56,ADOPTION,Tunis,this_week,small,ADOPTION,0.96
+57,ADOPTION,Ariana,this_month,medium,ADOPTION,0.93
+58,ADOPTION,Ben Arous,next_month,large,ADOPTION,0.90
+59,ADOPTION,Sousse,this_week,small,ADOPTION,0.94
+60,ADOPTION,Sfax,this_month,medium,ADOPTION,0.91
+61,SENSIBILISATION,Tunis,this_week,large,SENSIBILISATION,0.89
+62,SENSIBILISATION,Ariana,next_month,small,SENSIBILISATION,0.86
+63,SENSIBILISATION,Sousse,this_month,medium,SENSIBILISATION,0.92
+64,SENSIBILISATION,Nabeul,this_week,large,SENSIBILISATION,0.88
+65,SENSIBILISATION,Monastir,anytime,small,SENSIBILISATION,0.85
+66,COLLECTE_DONS,Tunis,this_week,medium,COLLECTE_DONS,0.93
+67,COLLECTE_DONS,Ariana,this_month,small,COLLECTE_DONS,0.90
+68,COLLECTE_DONS,Ben Arous,next_month,large,COLLECTE_DONS,0.87
+69,COLLECTE_DONS,Sousse,this_week,medium,COLLECTE_DONS,0.94
+70,COLLECTE_DONS,Sfax,this_month,small,COLLECTE_DONS,0.91
+71,VACCINATION,Bizerte,this_week,small,VACCINATION,0.95
+72,VACCINATION,Monastir,this_month,medium,VACCINATION,0.92
+73,ADOPTION,Bizerte,next_month,large,ADOPTION,0.89
+74,ADOPTION,Nabeul,this_week,small,ADOPTION,0.97
+75,SENSIBILISATION,Bizerte,this_month,medium,SENSIBILISATION,0.90
+76,SENSIBILISATION,Sfax,this_week,large,SENSIBILISATION,0.87
+77,COLLECTE_DONS,Bizerte,anytime,small,COLLECTE_DONS,0.88
+78,COLLECTE_DONS,Monastir,this_month,medium,COLLECTE_DONS,0.92
+79,VACCINATION,Tunis,this_month,large,VACCINATION,0.93
+80,VACCINATION,Ariana,this_week,small,VACCINATION,0.96
+81,ADOPTION,Tunis,anytime,medium,ADOPTION,0.91
+82,ADOPTION,Sousse,this_month,large,ADOPTION,0.94
+83,SENSIBILISATION,Tunis,this_week,small,SENSIBILISATION,0.88
+84,SENSIBILISATION,Ariana,this_month,medium,SENSIBILISATION,0.91
+85,COLLECTE_DONS,Tunis,next_month,large,COLLECTE_DONS,0.89
+86,COLLECTE_DONS,Nabeul,this_week,small,COLLECTE_DONS,0.95
+87,VACCINATION,Ben Arous,this_month,medium,VACCINATION,0.90
+88,VACCINATION,Sfax,this_week,large,VACCINATION,0.94
+89,ADOPTION,Ben Arous,anytime,small,ADOPTION,0.92
+90,ADOPTION,Ariana,this_week,medium,ADOPTION,0.95
+91,SENSIBILISATION,Ben Arous,next_month,large,SENSIBILISATION,0.86
+92,SENSIBILISATION,Sousse,this_week,small,SENSIBILISATION,0.93
+93,COLLECTE_DONS,Ben Arous,this_month,medium,COLLECTE_DONS,0.91
+94,COLLECTE_DONS,Ariana,this_week,large,COLLECTE_DONS,0.88
+95,VACCINATION,Nabeul,anytime,small,VACCINATION,0.87
+96,VACCINATION,Sousse,this_month,medium,VACCINATION,0.91
+97,ADOPTION,Monastir,this_week,large,ADOPTION,0.93
+98,ADOPTION,Sfax,next_month,small,ADOPTION,0.90
+99,SENSIBILISATION,Monastir,this_month,medium,SENSIBILISATION,0.89
+100,COLLECTE_DONS,Sfax,this_week,small,COLLECTE_DONS,0.96

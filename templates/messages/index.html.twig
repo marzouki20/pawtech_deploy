@@ -1,0 +1,18 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Messages | PawTech{% endblock %}
+
+{% block main %}
+  {% include 'components/_entity_page.html.twig' with {
+    entity_name: entity_name,
+    columns: columns,
+    rows: rows,
+    modal_title: modal_title,
+    modal_fields: modal_fields,
+    total_records: total_records,
+    per_page: per_page,
+    page: page,
+    total_pages: total_pages
+  } %}
+{% endblock %}
+

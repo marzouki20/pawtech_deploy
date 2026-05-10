@@ -1,0 +1,65 @@
+{# templates/ligne_commande/_show_content.html.twig #}
+<div class="max-w-3xl mx-auto">
+  <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+    <div class="bg-gradient-to-r from-orange-500 to-orange-600 px-8 py-6">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h.01M12 7h.01M16 7h.01M21 11a8 8 0 11-16 0 8 8 0 0116 0z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15h.01"></path>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold text-white">{{ page_title }}</h1>
+          <p class="text-orange-100 text-sm mt-1">Line item details</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="p-8">
+      <table class="w-full">
+        <tbody class="divide-y divide-gray-100">
+          <tr class="hover:bg-gray-50 transition-colors">
+            <th class="text-left py-3 pr-4 font-medium text-gray-600 w-40">ID</th>
+            <td class="py-3 pl-4 text-gray-900">#{{ ligne.id }}</td>
+          </tr>
+          <tr class="hover:bg-gray-50 transition-colors">
+            <th class="text-left py-3 pr-4 font-medium text-gray-600">Product</th>
+            <td class="py-3 pl-4 text-gray-900">{{ ligne.produit ? ligne.produit.nom : '-' }}</td>
+          </tr>
+          <tr class="hover:bg-gray-50 transition-colors">
+            <th class="text-left py-3 pr-4 font-medium text-gray-600">Order</th>
+            <td class="py-3 pl-4 text-gray-900">{% if ligne.commande %}#{{ ligne.commande.id }}{% else %}-{% endif %}</td>
+          </tr>
+          <tr class="hover:bg-gray-50 transition-colors">
+            <th class="text-left py-3 pr-4 font-medium text-gray-600">Quantity</th>
+            <td class="py-3 pl-4 text-gray-900">{{ ligne.quantite }}</td>
+          </tr>
+          <tr class="hover:bg-gray-50 transition-colors">
+            <th class="text-left py-3 pr-4 font-medium text-gray-600">Unit price</th>
+            <td class="py-3 pl-4 text-gray-900">{{ ligne.prixUnitaire|number_format(2, ',', ' ') }} TND</td>
+          </tr>
+          <tr class="hover:bg-gray-50 transition-colors">
+            <th class="text-left py-3 pr-4 font-medium text-gray-600">Subtotal</th>
+            <td class="py-3 pl-4 text-gray-900">{{ ligne.calculerSousTotal()|number_format(2, ',', ' ') }} TND</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="mt-8 flex flex-wrap gap-3">
+        <a href="{{ path('app_eshop_ligne_commande_index') }}" class="inline-flex items-center px-5 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 hover:text-gray-800 transition-colors">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+          </svg>
+          Back to list
+        </a>
+        <a href="{{ path('app_eshop_ligne_commande_edit', {'id': ligne.id}) }}" class="inline-flex items-center px-5 py-2.5 text-sm font-medium text-white bg-orange-500 rounded-lg hover:bg-orange-600 transition-all shadow-md hover:shadow-lg js-modal-link">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+          </svg>
+          Modify
+        </a>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,98 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}New Guest | PawTech Admin{% endblock %}
+
+{% block main %}
+<div class="max-w-2xl mx-auto space-y-4">
+    <div class="flex items-center gap-4">
+        <a href="{{ path('app_guest_index') }}" class="p-2 hover:bg-gray-100 rounded-lg">
+            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+        </a>
+        <h1 class="text-2xl font-bold text-gray-800">New Guest</h1>
+    </div>
+
+    <div class="bg-white rounded-xl border border-gray-200 p-6">
+        {{ form_start(form, {'attr': {'class': 'space-y-4', 'novalidate': 'novalidate'}}) }}
+            
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    {{ form_label(form.prenom, 'First Name *', {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+                    {{ form_widget(form.prenom, {'attr': {'class': 'w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-paw-orange focus:border-paw-orange outline-none ' ~ (form.prenom.vars.errors|length > 0 ? 'border-red-500' : 'border-gray-200')}}) }}
+                    {% if form.prenom.vars.errors|length > 0 %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.prenom.vars.errors[0].message }}</p>
+                    {% endif %}
+                </div>
+                <div>
+                    {{ form_label(form.nom, 'Last Name *', {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+                    {{ form_widget(form.nom, {'attr': {'class': 'w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-paw-orange focus:border-paw-orange outline-none ' ~ (form.nom.vars.errors|length > 0 ? 'border-red-500' : 'border-gray-200')}}) }}
+                    {% if form.nom.vars.errors|length > 0 %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.nom.vars.errors[0].message }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    {{ form_label(form.email, 'Email *', {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+                    {{ form_widget(form.email, {'attr': {'class': 'w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-paw-orange focus:border-paw-orange outline-none ' ~ (form.email.vars.errors|length > 0 ? 'border-red-500' : 'border-gray-200')}}) }}
+                    {% if form.email.vars.errors|length > 0 %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.email.vars.errors[0].message }}</p>
+                    {% endif %}
+                </div>
+                <div>
+                    {{ form_label(form.phone, 'Phone', {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+                    {{ form_widget(form.phone, {'attr': {'class': 'w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-paw-orange focus:border-paw-orange outline-none ' ~ (form.phone.vars.errors|length > 0 ? 'border-red-500' : 'border-gray-200')}}) }}
+                    {% if form.phone.vars.errors|length > 0 %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.phone.vars.errors[0].message }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div>
+                {{ form_label(form.organisation, 'Organization', {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+                {{ form_widget(form.organisation, {'attr': {'class': 'w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-paw-orange focus:border-paw-orange outline-none ' ~ (form.organisation.vars.errors|length > 0 ? 'border-red-500' : 'border-gray-200')}}) }}
+                {% if form.organisation.vars.errors|length > 0 %}
+                    <p class="text-red-500 text-sm mt-1">{{ form.organisation.vars.errors[0].message }}</p>
+                {% endif %}
+            </div>
+
+            <div>
+                {{ form_label(form.bio, 'Biography', {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+                {{ form_widget(form.bio, {'attr': {'class': 'w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-paw-orange focus:border-paw-orange outline-none ' ~ (form.bio.vars.errors|length > 0 ? 'border-red-500' : 'border-gray-200'), 'rows': 3}}) }}
+                {% if form.bio.vars.errors|length > 0 %}
+                    <p class="text-red-500 text-sm mt-1">{{ form.bio.vars.errors[0].message }}</p>
+                {% endif %}
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    {{ form_label(form.role, 'Role *', {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+                    {{ form_widget(form.role, {'attr': {'class': 'w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-paw-orange focus:border-paw-orange outline-none ' ~ (form.role.vars.errors|length > 0 ? 'border-red-500' : 'border-gray-200')}}) }}
+                    {% if form.role.vars.errors|length > 0 %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.role.vars.errors[0].message }}</p>
+                    {% endif %}
+                </div>
+                <div>
+                    {{ form_label(form.evenement, 'Event *', {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+                    {{ form_widget(form.evenement, {'attr': {'class': 'w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-paw-orange focus:border-paw-orange outline-none ' ~ (form.evenement.vars.errors|length > 0 ? 'border-red-500' : 'border-gray-200')}}) }}
+                    {% if form.evenement.vars.errors|length > 0 %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.evenement.vars.errors[0].message }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="flex gap-3 pt-4">
+                <a href="{{ path('app_guest_index') }}" class="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 text-center">
+                    Cancel
+                </a>
+                <button type="submit" class="flex-1 px-4 py-2.5 bg-paw-orange text-white rounded-lg hover:bg-paw-orange-hover font-medium">
+                    Create Guest
+                </button>
+            </div>
+
+        {{ form_end(form) }}
+    </div>
+</div>
+{% endblock %}

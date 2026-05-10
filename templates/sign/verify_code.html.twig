@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Code - PawTech</title>
+    <link rel="icon" href="{{ asset('favicon.ico') }}">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+    <div class="w-full max-w-md rounded-2xl bg-white shadow-lg p-8">
+        <div class="text-center">
+            <img src="{{ asset('logo.png') }}" alt="PawTech" class="h-14 mx-auto mb-3">
+            <h1 class="text-2xl font-bold text-gray-900">Verify Code</h1>
+            <p class="text-sm text-gray-500 mt-1">Enter the 6-digit code sent to your email.</p>
+        </div>
+
+        {% for message in app.flashes('error') %}
+            <div class="mt-4 rounded-lg bg-red-50 text-red-700 px-4 py-3 text-sm">
+                {{ message }}
+            </div>
+        {% endfor %}
+
+        <form method="post" class="mt-6 space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Reset code</label>
+                <input type="text" name="code" maxlength="6" class="w-full rounded-lg border border-gray-200 px-4 py-3 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none" placeholder="123456">
+            </div>
+            <button type="submit" class="w-full rounded-lg bg-orange-500 text-white font-semibold py-3 hover:bg-orange-600 transition">Verify code</button>
+        </form>
+
+        <div class="mt-4 text-center text-sm">
+            <a href="{{ path('app_forgot_password') }}" class="text-orange-600 hover:text-orange-700">Resend code</a>
+        </div>
+    </div>
+</body>
+</html>

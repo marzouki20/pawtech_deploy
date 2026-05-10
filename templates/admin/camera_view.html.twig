@@ -1,0 +1,1481 @@
+{% extends 'base_front.html.twig' %}
+
+{% block title %}{{ page_title }} - PawTech Admin{% endblock %}
+
+{% block body %}
+<style>
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+.animate-slide-in {
+    animation: slideIn 0.3s ease-out;
+}
+</style>
+<div class="min-h-screen bg-gray-900 text-white">
+    {# Header #}
+    <div class="bg-gray-800 border-b border-gray-700">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <a href="{{ path('app_admin_cameras') }}" class="text-gray-400 hover:text-white transition">
+                        <i class="fas fa-arrow-left text-xl"></i>
+                    </a>
+                    <div>
+                        <h1 class="text-2xl font-bold">{{ camera.name }}</h1>
+                        <p class="text-gray-400 text-sm">{{ camera.ipAddress }}:{{ camera.port }}</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <span class="px-3 py-1 rounded-full text-sm 
+                        {% if camera.status == 'active' %}bg-green-500{% else %}bg-gray-500{% endif %}">
+                        {{ camera.status|title }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mx-auto px-4 py-6">
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            {# Main Video Feed #}
+            <div class="lg:col-span-3">
+                <div class="bg-black rounded-xl overflow-hidden relative" style="aspect-ratio: 16/9;">
+                    
+                    {# VLC Plugin Container - Primary Method (No HTML5) #}
+                    <div id="vlc-container" class="w-full h-full flex items-center justify-center bg-black">
+                        
+                        {# VLC ActiveX for IE/Edge #}
+                        <object id="vlc-activex" 
+                                classid="clsid:9BE31822-FDAD-461B-AD51-BE1D1C159728"
+                                events="True"
+                                width="100%" 
+                                height="100%"
+                                style="display:none">
+                            <param name="MRL" value="" />
+                            <param name="Src" value="" />
+                            <param name="Autoplay" value="true" />
+                            <param name="Loop" value="false" />
+                            <param name="Fullscreen" value="false" />
+                        </object>
+                        
+                        {# VLC NPAPI for Firefox/Chrome #}
+                        <embed id="vlc-plugin"
+                               type="application/x-vlc-plugin"
+                               pluginspage="http://www.videolan.org/"
+                               width="100%"
+                               height="100%"
+                               style="display:none"
+                               autoplay="true"
+                               loop="false">
+                        </embed>
+                        
+                        {# MJPEG Image Fallback - Most Compatible #}
+                        <img id="mjpeg-stream" 
+                             class="w-full h-full object-contain"
+                             style="display:none; width:100%; height:100%;"
+                             alt="Camera Stream">
+                        
+                        {# Loading/Status Indicator #}
+                        <div id="stream-loading" class="absolute inset-0 flex items-center justify-center bg-black/80">
+                            <div class="text-center">
+                                <i class="fas fa-circle-notch fa-spin text-4xl text-blue-500 mb-4"></i>
+                                <p class="text-gray-300">Connecting to camera...</p>
+                                <p id="stream-status-text" class="text-sm text-gray-500 mt-2"></p>
+                            </div>
+                        </div>
+                        
+                        {# Error Display #}
+                        <div id="stream-error" class="absolute inset-0 flex items-center justify-center bg-black/90 hidden">
+                            <div class="text-center p-4">
+                                <i class="fas fa-exclamation-triangle text-4xl text-red-500 mb-4"></i>
+                                <p class="text-red-400 font-bold">Connection Failed</p>
+                                <p id="stream-error-text" class="text-sm text-gray-400 mt-2"></p>
+                                <button onclick="reconnectStream()" class="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg">
+                                    <i class="fas fa-sync mr-2"></i> Retry Connection
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {# Overlay Controls #}
+                    <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+                        <div class="flex items-center justify-between">
+                            <div class="text-sm">
+                                <span class="text-gray-300">Resolution:</span>
+                                <span class="ml-2">{{ camera.resolution ?: '1080p' }}</span>
+                                <span class="ml-4 text-green-400" id="connection-indicator">
+                                    <i class="fas fa-wifi mr-1"></i><span id="connection-status">Connecting</span>
+                                </span>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="reconnectStream()" class="px-3 py-1 bg-blue-600 hover:bg-blue-500 rounded text-sm transition" title="Reconnect">
+                                    <i class="fas fa-sync mr-1"></i> Reconnect
+                                </button>
+                                <button onclick="takeSnapshot()" class="px-3 py-1 bg-white/20 hover:bg-white/30 rounded text-sm transition">
+                                    <i class="fas fa-camera mr-1"></i> Snapshot
+                                </button>
+                                <button onclick="toggleFullscreen()" class="px-3 py-1 bg-white/20 hover:bg-white/30 rounded text-sm transition">
+                                    <i class="fas fa-expand mr-1"></i> Fullscreen
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {# Overlay Controls #}
+                    <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+                        <div class="flex items-center justify-between">
+                            <div class="text-sm">
+                                <span class="text-gray-300">Resolution:</span>
+                                <span class="ml-2">{{ camera.resolution ?: '1080p' }}</span>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="stopStream()" class="px-3 py-1 bg-red-600 hover:bg-red-500 rounded text-sm transition" title="Stop Stream">
+                                    <i class="fas fa-stop"></i>
+                                </button>
+                                <button onclick="startStream()" class="px-3 py-1 bg-green-600 hover:bg-green-500 rounded text-sm transition" title="Start Stream">
+                                    <i class="fas fa-play"></i>
+                                </button>
+                                <button onclick="restartStream()" class="px-3 py-1 bg-blue-600 hover:bg-blue-500 rounded text-sm transition" title="Restart Stream">
+                                    <i class="fas fa-redo"></i>
+                                </button>
+                                <button onclick="refreshStreamDisplay()" class="px-3 py-1 bg-white/20 hover:bg-white/30 rounded text-sm transition" title="Refresh Display">
+                                    <i class="fas fa-sync mr-1"></i> Refresh
+                                </button>
+                                <button onclick="takeSnapshot()" class="px-3 py-1 bg-white/20 hover:bg-white/30 rounded text-sm transition">
+                                    <i class="fas fa-camera mr-1"></i> Snapshot
+                                </button>
+                                <button onclick="toggleFullscreen()" class="px-3 py-1 bg-white/20 hover:bg-white/30 rounded text-sm transition">
+                                    <i class="fas fa-expand mr-1"></i> Fullscreen
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {# PTZ Controls #}
+                {% if camera.ptzCapabilities %}
+                <div class="bg-gray-800 rounded-xl p-4 mt-4">
+                    <h3 class="text-lg font-bold mb-4">
+                        <i class="fas fa-gamepad mr-2 text-purple-500"></i>
+                        PTZ Controls
+                    </h3>
+                    
+                    <div class="flex items-center justify-center gap-8">
+                        {# Direction Controls #}
+                        <div class="grid grid-cols-3 gap-2">
+                            <div></div>
+                            <button data-ptz-action="ptz_up" class="w-12 h-12 bg-gray-700 hover:bg-gray-600 active:bg-purple-600 rounded-lg flex items-center justify-center transition select-none">
+                                <i class="fas fa-chevron-up text-xl"></i>
+                            </button>
+                            <div></div>
+                            
+                            <button data-ptz-action="ptz_left" class="w-12 h-12 bg-gray-700 hover:bg-gray-600 active:bg-purple-600 rounded-lg flex items-center justify-center transition select-none">
+                                <i class="fas fa-chevron-left text-xl"></i>
+                            </button>
+                            <div class="w-12 h-12 bg-gray-900 rounded-lg flex items-center justify-center text-gray-500">
+                                <i class="fas fa-crosshairs"></i>
+                            </div>
+                            <button data-ptz-action="ptz_right" class="w-12 h-12 bg-gray-700 hover:bg-gray-600 active:bg-purple-600 rounded-lg flex items-center justify-center transition select-none">
+                                <i class="fas fa-chevron-right text-xl"></i>
+                            </button>
+                            
+                            <div></div>
+                            <button data-ptz-action="ptz_down" class="w-12 h-12 bg-gray-700 hover:bg-gray-600 active:bg-purple-600 rounded-lg flex items-center justify-center transition select-none">
+                                <i class="fas fa-chevron-down text-xl"></i>
+                            </button>
+                            <div></div>
+                        </div>
+                        
+                        {# Zoom Controls #}
+                        <div class="flex flex-col gap-2">
+                            <button data-ptz-action="zoom_in" class="w-12 h-12 bg-gray-700 hover:bg-gray-600 active:bg-purple-600 rounded-lg flex items-center justify-center transition select-none">
+                                <i class="fas fa-search-plus text-xl"></i>
+                            </button>
+                            <button data-ptz-action="zoom_out" class="w-12 h-12 bg-gray-700 hover:bg-gray-600 active:bg-purple-600 rounded-lg flex items-center justify-center transition select-none">
+                                <i class="fas fa-search-minus text-xl"></i>
+                            </button>
+                        </div>
+                        
+                        {# Presets #}
+                        <div class="border-l border-gray-700 pl-6">
+                            <p class="text-sm text-gray-400 mb-2">Presets</p>
+                            <div class="grid grid-cols-3 gap-2">
+                                {% for i in 1..6 %}
+                                <button onclick="ptzControl('preset', {{ i }})" 
+                                        class="w-10 h-10 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm transition">
+                                    {{ i }}
+                                </button>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            {# Sidebar #}
+            <div class="space-y-4">
+                {# Camera Info #}
+                <div class="bg-gray-800 rounded-xl p-4">
+                    <h3 class="text-lg font-bold mb-4">Camera Info</h3>
+                    <div class="space-y-3 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">IP Address</span>
+                            <span>{{ camera.ipAddress }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Port</span>
+                            <span>{{ camera.port }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Model</span>
+                            <span>{{ camera.model ?: 'Unknown' }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Resolution</span>
+                            <span>{{ camera.resolution ?: '1080p' }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Last Connection</span>
+                            <span>{{ camera.lastConnection ? camera.lastConnection|date('Y-m-d H:i') : 'Never' }}</span>
+                        </div>
+                        {% if camera.station %}
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Station</span>
+                            <span>{{ camera.station.code }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {# Quick Actions - Simplified for VLC #}
+                <div class="bg-gray-800 rounded-xl p-4">
+                    <h3 class="text-lg font-bold mb-4">Stream Controls</h3>
+                    <div class="space-y-2">
+                        <button onclick="reconnectStream()" class="w-full bg-green-600 hover:bg-green-500 py-2 rounded-lg transition text-left px-4 flex items-center">
+                            <i class="fas fa-plug mr-2"></i> Connect
+                        </button>
+                        <button onclick="stopStream()" class="w-full bg-red-600 hover:bg-red-500 py-2 rounded-lg transition text-left px-4 flex items-center">
+                            <i class="fas fa-stop mr-2"></i> Disconnect
+                        </button>
+                    </div>
+                </div>
+
+                {# Snapshot Actions #}
+                <div class="bg-gray-800 rounded-xl p-4">
+                    <h3 class="text-lg font-bold mb-4">Snapshot</h3>
+                    <div class="space-y-2">
+                        <button onclick="takeSnapshot()" class="w-full bg-gray-700 hover:bg-gray-600 py-2 rounded-lg transition text-left px-4">
+                            <i class="fas fa-camera mr-2"></i> Take Snapshot
+                        </button>
+                        <a href="{{ path('app_admin_detections') }}?camera={{ camera.id }}" class="block w-full bg-gray-700 hover:bg-gray-600 py-2 rounded-lg transition text-left px-4">
+                            <i class="fas fa-history mr-2"></i> View History
+                        </a>
+                    </div>
+                </div>
+
+                {# Recent Detections #}
+                <div class="bg-gray-800 rounded-xl p-4">
+                    <h3 class="text-lg font-bold mb-4">Recent Activity</h3>
+                    <div id="recent-activity" class="space-y-2 max-h-48 overflow-y-auto">
+                        <p class="text-gray-500 text-sm">Loading...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const cameraId = {{ camera.id }};
+const JS_VERSION = 'v2';
+let player = null;
+
+// Direct RTSP URL for the camera
+const RTSP_URL = 'rtsp://192.168.1.162:554/stream';
+let vlcPlugin = null;
+let vlcActiveX = null;
+let currentStreamMode = 'vlc';
+let mjpegInterval = null;
+let reconnectAttempts = 0;
+const MAX_RECONNECT_ATTEMPTS = 5;
+
+// Initialize VLC streaming on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Try to get VLC plugin references
+    initVlcPlugin();
+    
+    // Start the stream
+    setTimeout(() => connectStream(), 500);
+});
+
+/**
+ * Initialize VLC plugin references
+ */
+function initVlcPlugin() {
+    // Try NPAPI plugin first (Firefox, older Chrome)
+    try {
+        vlcPlugin = document.getElementById('vlc-plugin');
+        if (vlcPlugin) {
+            console.log('VLC NPAPI plugin found');
+        }
+    } catch (e) {
+        console.log('NPAPI not available:', e);
+    }
+    
+    // Try ActiveX (Internet Explorer, Edge)
+    try {
+        vlcActiveX = document.getElementById('vlc-activex');
+        if (vlcActiveX) {
+            console.log('VLC ActiveX found');
+        }
+    } catch (e) {
+        console.log('ActiveX not available:', e);
+    }
+}
+
+/**
+ * Connect to camera stream - use MJPEG polling for reliable streaming
+ */
+function connectStream() {
+    console.log('[DEBUG] connectStream called, cameraId:', cameraId);
+    updateConnectionStatus('connecting', 'Connecting...');
+    showLoading(true);
+    
+    // Always use MJPEG polling for reliable low-latency streaming
+    console.log('[DEBUG] Starting MJPEG stream');
+    startMjpegStream();
+}
+
+/**
+ * Try to stream using VLC plugin
+ */
+function tryVlcPlugin(url) {
+    let vlc = vlcPlugin || vlcActiveX;
+    
+    if (!vlc) {
+        return false;
+    }
+    
+    try {
+        // Configure VLC options for low latency
+        var options = [
+            'rtsp-tcp',
+            'network-caching=0',
+            'rtsp-caching=0',
+            'live-caching=0',
+            'clock-jitter=0',
+            'clock-synchro=0',
+            ':demux=h264',
+            ':codec=any'
+        ];
+        
+        // Play the stream
+        var item = vlc.playlist.add(url, 'Camera Stream', options);
+        if (item != -1) {
+            vlc.playlist.play();
+            vlc.video.fullscreen = false;
+            
+            showLoading(false);
+            showVlcContainer();
+            updateConnectionStatus('online', 'Connected (VLC)');
+            
+            // Set up error detection
+            vlc.addEventListener('error', function() {
+                console.log('VLC error detected');
+                handleStreamError('VLC playback error');
+            });
+            
+            vlc.addEventListener('endofstream', function() {
+                console.log('Stream ended');
+                reconnectStream();
+            });
+            
+            return true;
+        }
+    } catch (e) {
+        console.log('VLC playback error:', e);
+    }
+    
+    return false;
+}
+
+/**
+ * Start MJPEG streaming as fallback
+ */
+function startMjpegStream() {
+    console.log('[DEBUG] startMjpegStream called');
+    const mjpegImg = document.getElementById('mjpeg-stream');
+    if (!mjpegImg) {
+        console.error('[DEBUG] MJPEG element not found');
+        handleStreamError('MJPEG element not found');
+        return;
+    }
+    
+    console.log('[DEBUG] MJPEG element found, setting up stream');
+    
+    // Use the Symfony controller endpoint for single frame polling
+    const frameUrl = '/admin/cameras/' + cameraId + '/frame.jpg';
+    console.log('[DEBUG] Frame URL:', frameUrl);
+    
+    // Stop any existing interval
+    if (mjpegInterval) {
+        clearInterval(mjpegInterval);
+    }
+    
+    // Show MJPEG container
+    console.log('[DEBUG] Showing MJPEG container');
+    mjpegImg.style.display = 'block';
+    
+    const vlcActiveX = document.getElementById('vlc-activex');
+    const vlcPlugin = document.getElementById('vlc-plugin');
+    if (vlcActiveX) vlcActiveX.style.display = 'none';
+    if (vlcPlugin) vlcPlugin.style.display = 'none';
+    
+    // Start polling for images
+    let lastTime = Date.now();
+    let frameCount = 0;
+    
+    mjpegImg.onload = function() {
+        console.log('[DEBUG] Frame loaded successfully, frameCount:', frameCount);
+        showLoading(false);
+        updateConnectionStatus('online', 'Connected (MJPEG)');
+        lastTime = Date.now();
+        frameCount++;
+    };
+    
+    mjpegImg.onerror = function() {
+        console.error('[DEBUG] Frame load error');
+        if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+            console.log('Frame load error, retrying...');
+            setTimeout(() => {
+                mjpegImg.src = frameUrl + '?t=' + Date.now();
+            }, 500);
+        } else {
+            handleStreamError('Failed to load frame stream');
+        }
+    };
+    
+    // Set initial source with cache bypass
+    mjpegImg.src = frameUrl + '?t=' + Date.now();
+    
+    // Keep polling conservative to avoid overloading PHP workers on Windows.
+    mjpegInterval = setInterval(() => {
+        const now = Date.now();
+        if (now - lastTime > 350) {
+            mjpegImg.src = frameUrl + '?t=' + now;
+            lastTime = now;
+        }
+    }, 250);
+}
+
+/**
+ * Reconnect to stream
+ */
+function reconnectStream() {
+    reconnectAttempts++;
+    
+    if (reconnectAttempts > MAX_RECONNECT_ATTEMPTS) {
+        handleStreamError('Maximum reconnection attempts reached');
+        return;
+    }
+    
+    updateConnectionStatus('reconnecting', `Reconnecting (${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})...`);
+    
+    // Stop current stream
+    stopStream();
+    
+    // Wait and reconnect
+    setTimeout(() => {
+        connectStream();
+    }, 1000);
+}
+
+/**
+ * Stop the current stream
+ */
+function stopStream() {
+    // Stop VLC if active
+    try {
+        let vlc = vlcPlugin || vlcActiveX;
+        if (vlc) {
+            vlc.playlist.stop();
+            vlc.playlist.clear();
+        }
+    } catch (e) {
+        console.log('Error stopping VLC:', e);
+    }
+    
+    // Stop MJPEG polling
+    if (mjpegInterval) {
+        clearInterval(mjpegInterval);
+        mjpegInterval = null;
+    }
+}
+
+/**
+ * Show/hide loading indicator
+ */
+function showLoading(show) {
+    const loading = document.getElementById('stream-loading');
+    if (loading) {
+        loading.style.display = show ? 'flex' : 'none';
+    }
+}
+
+/**
+ * Show VLC container
+ */
+function showVlcContainer() {
+    const vlcActiveX = document.getElementById('vlc-activex');
+    const vlcPlugin = document.getElementById('vlc-plugin');
+    const mjpeg = document.getElementById('mjpeg-stream');
+    
+    if (vlcActiveX) vlcActiveX.style.display = 'block';
+    if (vlcPlugin) vlcPlugin.style.display = 'block';
+    if (mjpeg) mjpeg.style.display = 'none';
+}
+
+/**
+ * Update connection status
+ */
+function updateConnectionStatus(status, text) {
+    const indicator = document.getElementById('connection-status');
+    if (indicator) {
+        indicator.textContent = text;
+    }
+    
+    const indicatorDiv = document.getElementById('connection-indicator');
+    if (indicatorDiv) {
+        indicatorDiv.className = 'ml-4 ';
+        if (status === 'online') {
+            indicatorDiv.classList.add('text-green-400');
+        } else if (status === 'connecting' || status === 'reconnecting') {
+            indicatorDiv.classList.add('text-yellow-400');
+        } else {
+            indicatorDiv.classList.add('text-red-400');
+        }
+    }
+}
+
+/**
+ * Handle stream error
+ */
+function handleStreamError(message) {
+    showLoading(false);
+    
+    const errorDiv = document.getElementById('stream-error');
+    const errorText = document.getElementById('stream-error-text');
+    
+    if (errorDiv) errorDiv.classList.remove('hidden');
+    if (errorText) errorText.textContent = message;
+    
+    updateConnectionStatus('error', 'Connection Failed');
+}
+
+function takeSnapshot() {
+    // Try VLC first
+    let vlc = vlcPlugin || vlcActiveX;
+    if (vlc) {
+        try {
+            vlc.video.takeSnapshot();
+            showStreamStatus('Snapshot taken via VLC', 'success');
+            return;
+        } catch (e) {
+            console.log('VLC snapshot failed:', e);
+        }
+    }
+    
+    // Fallback: fetch snapshot via API
+    fetch(`/admin/cameras/${cameraId}/control`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'snapshot' })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success && data.snapshotUrl) {
+            window.open(data.snapshotUrl, '_blank');
+        }
+    })
+    .catch(error => console.error('Snapshot error:', error));
+}
+
+function refreshStreamDisplay() {
+    reconnectStream();
+}
+
+function toggleFullscreen() {
+    const container = document.getElementById('vlc-container');
+    if (!container) return;
+    
+    if (document.fullscreenElement) {
+        document.exitFullscreen();
+    } else {
+        container.requestFullscreen();
+    }
+}
+
+// Initialize PTZ (keep existing functionality)
+function initPTZButtons() {
+    const ptzButtons = document.querySelectorAll('[data-ptz-action]');
+    ptzButtons.forEach(button => {
+        const action = button.getAttribute('data-ptz-action');
+        
+        button.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            startPTZMovement(action);
+        });
+        
+        button.addEventListener('mouseup', () => stopPTZMovement());
+        button.addEventListener('mouseleave', () => stopPTZMovement());
+        
+        button.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            startPTZMovement(action);
+        }, { passive: false });
+        
+        button.addEventListener('touchend', () => stopPTZMovement());
+    });
+}
+
+let ptzInterval = null;
+let ptzCurrentAction = null;
+const PTZ_REFRESH_INTERVAL = 2500;
+const PTZ_TIMEOUT_SECONDS = 3;
+
+function startPTZMovement(action) {
+    if (ptzInterval) {
+        clearInterval(ptzInterval);
+        ptzInterval = null;
+    }
+    ptzCurrentAction = action;
+    ptzControl(action, null, PTZ_TIMEOUT_SECONDS);
+    ptzInterval = setInterval(() => {
+        if (ptzCurrentAction) {
+            ptzControl(ptzCurrentAction, null, PTZ_TIMEOUT_SECONDS);
+        }
+    }, PTZ_REFRESH_INTERVAL);
+}
+
+function stopPTZMovement() {
+    if (ptzInterval) {
+        clearInterval(ptzInterval);
+        ptzInterval = null;
+    }
+    if (ptzCurrentAction) {
+        ptzControl('ptz_stop');
+        ptzCurrentAction = null;
+    }
+}
+
+function ptzControl(action, preset = null, timeout = null) {
+    const data = { action: action };
+    if (preset) data.preset = preset;
+    if (timeout) data.timeout = timeout;
+    
+    fetch(`/admin/cameras/${cameraId}/control`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('PTZ Response:', data);
+    })
+    .catch(error => console.error('PTZ error:', error));
+}
+
+// Load recent detections (kept for compatibility)
+fetch(`/admin/detections/recent`)
+    .then(response => response.json())
+    .then(detections => {
+        const container = document.getElementById('recent-activity');
+        if (container && detections.length > 0) {
+            container.innerHTML = detections.slice(0, 10).map(d => `
+                <div class="p-2 bg-gray-700 rounded text-xs">
+                    <div class="flex justify-between">
+                        <span class="font-medium">${d.behaviorType.replace('_', ' ')}</span>
+                        <span class="text-gray-400">${d.confidence}%</span>
+                    </div>
+                    ${d.healthCondition ? `<span class="text-orange-400">${d.healthCondition}</span>` : ''}
+                </div>
+            `).join('');
+        }
+    });
+
+function showStreamStatus(message, type) {
+    const toast = document.createElement('div');
+    const bgColor = type === 'success' ? 'bg-green-600' : type === 'error' ? 'bg-red-600' : 'bg-blue-600';
+    toast.className = `fixed top-4 right-4 z-50 ${bgColor} text-white px-6 py-3 rounded-lg shadow-xl flex items-center gap-3`;
+    toast.innerHTML = `
+        <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i>
+        <span class="font-medium">${message}</span>
+    `;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 4000);
+}
+</script>
+
+/**
+ * Initialize PTZ control buttons with hold-to-move functionality
+ * Adds mousedown/mouseup/touchstart/touchend event listeners
+ */
+function initPTZButtons() {
+    const ptzButtons = document.querySelectorAll('[data-ptz-action]');
+    
+    ptzButtons.forEach(button => {
+        const action = button.getAttribute('data-ptz-action');
+        
+        // Mouse events for desktop
+        button.addEventListener('mousedown', (e) => {
+            e.preventDefault(); // Prevent text selection
+            startPTZMovement(action);
+        });
+        
+        button.addEventListener('mouseup', () => {
+            stopPTZMovement();
+        });
+        
+        button.addEventListener('mouseleave', () => {
+            stopPTZMovement();
+        });
+        
+        // Touch events for mobile/tablet
+        button.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            startPTZMovement(action);
+        }, { passive: false });
+        
+        button.addEventListener('touchend', () => {
+            stopPTZMovement();
+        });
+        
+        button.addEventListener('touchcancel', () => {
+            stopPTZMovement();
+        });
+    });
+}
+
+/**
+ * Start continuous PTZ movement
+ * Sends initial command and sets up interval to refresh before timeout
+ * @param {string} action - PTZ action (ptz_up, ptz_down, ptz_left, ptz_right, zoom_in, zoom_out)
+ */
+function startPTZMovement(action) {
+    // Stop any existing movement first
+    if (ptzInterval) {
+        clearInterval(ptzInterval);
+        ptzInterval = null;
+    }
+    
+    ptzCurrentAction = action;
+    
+    // Send initial PTZ command with timeout
+    ptzControl(action, null, PTZ_TIMEOUT_SECONDS);
+    
+    // Set up interval to refresh command before timeout expires
+    // This ensures continuous movement as long as button is held
+    ptzInterval = setInterval(() => {
+        if (ptzCurrentAction) {
+            ptzControl(ptzCurrentAction, null, PTZ_TIMEOUT_SECONDS);
+        }
+    }, PTZ_REFRESH_INTERVAL);
+}
+
+/**
+ * Stop PTZ movement immediately
+ * Sends Stop command to halt all PTZ movement
+ */
+function stopPTZMovement() {
+    // Clear the refresh interval
+    if (ptzInterval) {
+        clearInterval(ptzInterval);
+        ptzInterval = null;
+    }
+    
+    // Only send stop if there was an active movement
+    if (ptzCurrentAction) {
+        ptzControl('ptz_stop');
+        ptzCurrentAction = null;
+    }
+}
+
+/**
+ * PTZ Control function
+ * @param {string} action - PTZ action (ptz_up, ptz_down, ptz_left, ptz_right, zoom_in, zoom_out, ptz_stop, ptz_home)
+ * @param {number|null} preset - Optional preset number
+ * @param {number} timeout - Optional timeout in seconds for hold-to-move
+ */
+function ptzControl(action, preset = null, timeout = null) {
+    console.log('PTZ Control called:', action, 'timeout:', timeout);
+    
+    const data = { action: action };
+    if (preset) {
+        data.preset = preset;
+    }
+    // Pass timeout to backend for hold-to-move functionality
+    if (timeout) {
+        data.timeout = timeout;
+    }
+    
+    fetch(`/admin/cameras/${cameraId}/control`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => {
+        console.log('PTZ Response status:', response.status);
+        return response.json();
+    })
+    .then(data => {
+        console.log('PTZ Response data:', data);
+        // Show feedback
+        if (data.success) {
+            // Visual feedback
+        } else if (data.error) {
+            console.error('PTZ Error:', data.error);
+        }
+    })
+    .catch(error => {
+        console.error('PTZ Request failed:', error);
+    });
+}
+
+function takeSnapshot() {
+    fetch(`/admin/cameras/${cameraId}/control`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ action: 'snapshot' })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success && data.snapshotUrl) {
+            // Open snapshot in new tab
+            window.open(data.snapshotUrl, '_blank');
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+function refreshStream() {
+    // Use HLS stream URL if available, otherwise fall back to direct stream
+    const streamUrl = '{{ camera.hlsStreamUrl ?: camera.fullStreamUrl }}';
+    if (player) {
+        player.src({
+            src: streamUrl,
+            type: 'application/x-mpegURL'
+        });
+        player.play();
+    }
+    const fallback = document.getElementById('camera-fallback');
+    fallback.src = '{{ camera.fullSnapshotUrl }}?t=' + new Date().getTime();
+}
+
+/**
+ * Refresh stream display to show latest frames without interrupting continuity
+ * This updates the HLS player to load the latest segments
+ */
+function refreshStreamDisplay() {
+    showStreamStatus('Refreshing display...', 'info');
+    
+    fetch(`/admin/cameras/${cameraId}/control`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ action: 'stream_refresh' })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Reload the HLS stream without stopping - this gets the latest segments
+            if (player) {
+                const streamUrl = data.streamUrl || '{{ camera.hlsStreamUrl ?: camera.fullStreamUrl }}';
+                // Update the source with a cache-busting query to get latest segments
+                player.src({
+                    src: streamUrl + '?t=' + new Date().getTime(),
+                    type: 'application/x-mpegURL'
+                });
+                player.play();
+            }
+            // Also refresh the fallback image
+            const fallback = document.getElementById('camera-fallback');
+            if (fallback) {
+                fallback.src = '{{ camera.fullSnapshotUrl }}?t=' + new Date().getTime();
+            }
+            showStreamStatus('Display refreshed', 'success');
+        } else {
+            showStreamStatus('Refresh failed: ' + (data.message || 'Unknown error'), 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Refresh error:', error);
+        showStreamStatus('Refresh error: ' + error.message, 'error');
+    });
+}
+
+/**
+ * Start the video stream (initiates FFmpeg transcoding)
+ */
+function startStream() {
+    showStreamStatus('Starting stream...', 'info');
+    
+    fetch(`/admin/cameras/${cameraId}/control`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ action: 'stream_start' })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showStreamStatus('Stream started successfully', 'success');
+            // Reload the player after a short delay to allow FFmpeg to start
+            setTimeout(() => {
+                refreshStream();
+            }, 2000);
+        } else {
+            showStreamStatus('Failed to start stream: ' + (data.error || data.message || 'Unknown error'), 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Start stream error:', error);
+        showStreamStatus('Start stream error: ' + error.message, 'error');
+    });
+}
+
+/**
+ * Stop the video stream (terminates FFmpeg transcoding)
+ */
+function stopStream() {
+    showStreamStatus('Stopping stream...', 'info');
+    
+    fetch(`/admin/cameras/${cameraId}/control`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ action: 'stream_stop' })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showStreamStatus('Stream stopped successfully', 'success');
+            // Pause the player
+            if (player) {
+                player.pause();
+            }
+        } else {
+            showStreamStatus('Failed to stop stream: ' + (data.error || data.message || 'Unknown error'), 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Stop stream error:', error);
+        showStreamStatus('Stop stream error: ' + error.message, 'error');
+    });
+}
+
+/**
+ * Restart the video stream (stops and starts FFmpeg)
+ */
+function restartStream() {
+    showStreamStatus('Restarting stream...', 'info');
+    
+    fetch(`/admin/cameras/${cameraId}/control`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ action: 'stream_restart' })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showStreamStatus('Stream restarted successfully', 'success');
+            // Reload the player after a short delay to allow FFmpeg to restart
+            setTimeout(() => {
+                refreshStream();
+            }, 3000);
+        } else {
+            showStreamStatus('Failed to restart stream: ' + (data.error || data.message || 'Unknown error'), 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Restart stream error:', error);
+        showStreamStatus('Restart stream error: ' + error.message, 'error');
+    });
+}
+
+/**
+ * Show stream status message - improved styling
+ */
+function showStreamStatus(message, type) {
+    // Create a toast notification with improved styling
+    const toast = document.createElement('div');
+    
+    // Determine icon based on type
+    let icon = 'fa-info-circle';
+    let bgColor = 'bg-blue-600';
+    if (type === 'success') {
+        icon = 'fa-check-circle';
+        bgColor = 'bg-green-600';
+    } else if (type === 'error') {
+        icon = 'fa-exclamation-circle';
+        bgColor = 'bg-red-600';
+    }
+    
+    toast.className = `fixed top-4 right-4 z-50 animate-slide-in`;
+    toast.innerHTML = `
+        <div class="${bgColor} text-white px-6 py-3 rounded-lg shadow-xl flex items-center gap-3 min-w-64">
+            <i class="fas ${icon} text-lg"></i>
+            <span class="font-medium">${message}</span>
+            <button onclick="this.parentElement.parentElement.remove()" class="ml-auto text-white/80 hover:text-white">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    `;
+    document.body.appendChild(toast);
+    
+    // Auto-remove after 4 seconds (longer for better visibility)
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(100%)';
+        setTimeout(() => toast.remove(), 300);
+    }, 4000);
+}
+
+// Stream mode management
+let currentStreamMode = 'hls'; // 'hls' or 'vlc'
+
+/**
+ * Switch to HLS stream mode for general viewing
+ */
+function switchToHls() {
+    currentStreamMode = 'hls';
+    document.getElementById('btn-hls').className = 'flex-1 bg-green-600 hover:bg-green-500 py-2 rounded-lg transition text-center text-sm font-medium';
+    document.getElementById('btn-vlc').className = 'flex-1 bg-gray-700 hover:bg-gray-600 py-2 rounded-lg transition text-center text-sm font-medium';
+    document.getElementById('stream-mode-desc').textContent = 'HLS: Standard playback for viewing';
+    
+    // Hide MJPEG, show Video.js
+    document.getElementById('vlc-stream').classList.add('hidden');
+    document.getElementById('camera-stream').classList.remove('hidden');
+    
+    // Reload with HLS stream
+    const streamUrl = '{{ camera.hlsStreamUrl ?: camera.fullStreamUrl }}';
+    if (player) {
+        player.src({
+            src: streamUrl,
+            type: 'application/x-mpegURL'
+        });
+        player.play();
+    }
+    showStreamStatus('Switched to HLS mode for viewing', 'success');
+}
+
+/**
+ * Switch to VLC stream mode for computer vision
+ */
+function switchToVlc() {
+    currentStreamMode = 'vlc';
+    document.getElementById('btn-vlc').className = 'flex-1 bg-purple-600 hover:bg-purple-500 py-2 rounded-lg transition text-center text-sm font-medium';
+    document.getElementById('btn-hls').className = 'flex-1 bg-gray-700 hover:bg-gray-600 py-2 rounded-lg transition text-center text-sm font-medium';
+    document.getElementById('stream-mode-desc').textContent = 'VLC: Low-latency for AI/ML processing';
+    
+    // Request stream status to get VLC URL
+    fetch(`/admin/cameras/${cameraId}/control`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ action: 'get_stream_status' })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success && data.vlcUrl) {
+            // Hide Video.js, show MJPEG image
+            document.getElementById('camera-stream').classList.add('hidden');
+            const vlcImg = document.getElementById('vlc-stream');
+            vlcImg.classList.remove('hidden');
+            vlcImg.src = data.vlcUrl + '?t=' + new Date().getTime();
+            
+            showStreamStatus('Switched to VLC mode for CV processing', 'success');
+        } else {
+            // Try to start VLC first
+            startVlcStream();
+            showStreamStatus('Starting VLC stream...', 'info');
+        }
+    })
+    .catch(error => {
+        console.error('Error getting stream status:', error);
+        showStreamStatus('Error switching to VLC mode', 'error');
+    });
+}
+
+/**
+ * Start VLC stream for computer vision processing
+ */
+function startVlcStream() {
+    showStreamStatus('Starting VLC stream for CV...', 'info');
+    
+    fetch(`/admin/cameras/${cameraId}/control`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ action: 'vlc_start' })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('vlc-status').innerHTML = '<span class="text-green-500">●</span> VLC running on port ' + (8080 + cameraId);
+            showStreamStatus('VLC stream started for CV processing', 'success');
+            
+            // Auto-switch to VLC mode after starting
+            setTimeout(() => {
+                // Hide Video.js, show MJPEG image
+                document.getElementById('camera-stream').classList.add('hidden');
+                const vlcImg = document.getElementById('vlc-stream');
+                vlcImg.classList.remove('hidden');
+                
+                // Set the VLC URL for MJPEG streaming
+                const vlcPort = 8080 + cameraId;
+                vlcImg.src = `http://localhost:${vlcPort}/stream.jpg?t=${new Date().getTime()}`;
+                
+                // Start polling for fresh frames
+                if (window.vlcInterval) clearInterval(window.vlcInterval);
+                window.vlcInterval = setInterval(() => {
+                    vlcImg.src = `http://localhost:${vlcPort}/stream.jpg?t=${new Date().getTime()}`;
+                }, 100); // 10fps for smooth playback
+                
+                // Update mode
+                currentStreamMode = 'vlc';
+                document.getElementById('btn-vlc').className = 'flex-1 bg-purple-600 hover:bg-purple-500 py-2 rounded-lg transition text-center text-sm font-medium';
+                document.getElementById('btn-hls').className = 'flex-1 bg-gray-700 hover:bg-gray-600 py-2 rounded-lg transition text-center text-sm font-medium';
+                document.getElementById('stream-mode-desc').textContent = 'VLC: Low-latency for AI/ML processing';
+                
+            }, 3000);
+        } else {
+            document.getElementById('vlc-status').innerHTML = '<span class="text-red-500">●</span> VLC failed to start';
+            showStreamStatus('Failed to start VLC: ' + (data.error || data.message || 'Unknown error'), 'error');
+        }
+    })
+    .catch(error => {
+        console.error('VLC start error:', error);
+        document.getElementById('vlc-status').innerHTML = '<span class="text-red-500">●</span> VLC error';
+        showStreamStatus('VLC start error: ' + error.message, 'error');
+    });
+}
+
+/**
+ * Stop VLC stream
+ */
+function stopVlcStream() {
+    showStreamStatus('Stopping VLC stream...', 'info');
+    
+    // Stop the polling
+    if (window.vlcInterval) {
+        clearInterval(window.vlcInterval);
+        window.vlcInterval = null;
+    }
+    
+    fetch(`/admin/cameras/${cameraId}/control`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ action: 'vlc_stop' })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('vlc-status').innerHTML = '<span class="text-yellow-500">●</span> VLC stopped';
+            showStreamStatus('VLC stream stopped', 'success');
+            
+            // Switch back to HLS mode
+            document.getElementById('vlc-stream').classList.add('hidden');
+            document.getElementById('camera-stream').classList.remove('hidden');
+            
+            // Switch to HLS
+            switchToHls();
+        } else {
+            showStreamStatus('Failed to stop VLC: ' + (data.error || data.message || 'Unknown error'), 'error');
+        }
+    })
+    .catch(error => {
+        console.error('VLC stop error:', error);
+        showStreamStatus('VLC stop error: ' + error.message, 'error');
+    });
+}
+
+/**
+ * Poll stream status to update UI
+ */
+function pollStreamStatus() {
+    fetch(`/admin/cameras/${cameraId}/control`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ action: 'get_stream_status' })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success && data.status) {
+            // Update HLS status
+            if (data.status.running) {
+                // HLS is running
+            }
+            
+            // Update VLC status
+            if (data.status.vlcRunning) {
+                document.getElementById('vlc-status').innerHTML = '<span class="text-green-500">●</span> VLC active for CV';
+            } else {
+                document.getElementById('vlc-status').innerHTML = '<span class="text-yellow-500">●</span> VLC not running';
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Error polling stream status:', error);
+    });
+}
+
+// Poll status every 5 seconds
+setInterval(pollStreamStatus, 5000);
+
+/**
+ * Start Direct RTSP Stream - connects directly to camera
+ */
+function startRtspStream() {
+    showStreamStatus('Connecting to RTSP stream...', 'info');
+    updateRtspStatus('connecting', 'Connecting...');
+    
+    fetch(`/admin/cameras/${cameraId}/control`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ action: 'rtsp_start' })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            updateRtspStatus('online', 'Live');
+            document.getElementById('rtsp-info').textContent = 'Connected to rtsp://192.168.1.162:554/stream';
+            showStreamStatus('RTSP stream connected - live feed active', 'success');
+            
+            // Auto-switch to RTSP mode
+            setTimeout(() => switchToRtsp(data.streamUrl), 2000);
+        } else {
+            updateRtspStatus('offline', 'Connection Failed');
+            document.getElementById('rtsp-info').textContent = data.error || 'Failed to connect';
+            showStreamStatus('Failed to connect: ' + (data.error || data.message || 'Unknown error'), 'error');
+        }
+    })
+    .catch(error => {
+        console.error('RTSP start error:', error);
+        updateRtspStatus('offline', 'Error');
+        document.getElementById('rtsp-info').textContent = error.message;
+        showStreamStatus('Connection error: ' + error.message, 'error');
+    });
+}
+
+/**
+ * Restart/Reconnect RTSP Stream - refreshes the connection
+ */
+function restartRtspStream() {
+    showStreamStatus('Reconnecting to RTSP stream...', 'info');
+    updateRtspStatus('connecting', 'Reconnecting...');
+    
+    fetch(`/admin/cameras/${cameraId}/control`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ action: 'rtsp_restart' })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            updateRtspStatus('online', 'Live (Refreshed)');
+            showStreamStatus('Stream refreshed - reconnected to live feed', 'success');
+            
+            // Refresh the stream display
+            if (currentStreamMode === 'rtsp' && data.streamUrl) {
+                refreshRtspDisplay(data.streamUrl);
+            }
+        } else {
+            updateRtspStatus('offline', 'Reconnect Failed');
+            showStreamStatus('Failed to reconnect: ' + (data.error || data.message), 'error');
+        }
+    })
+    .catch(error => {
+        console.error('RTSP restart error:', error);
+        updateRtspStatus('offline', 'Error');
+        showStreamStatus('Reconnect error: ' + error.message, 'error');
+    });
+}
+
+/**
+ * Stop RTSP Stream
+ */
+function stopRtspStream() {
+    showStreamStatus('Disconnecting RTSP stream...', 'info');
+    updateRtspStatus('connecting', 'Disconnecting...');
+    
+    fetch(`/admin/cameras/${cameraId}/control`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ action: 'rtsp_stop' })
+    })
+    .then(response => response.json())
+    .then(data => {
+        updateRtspStatus('offline', 'Offline');
+        document.getElementById('rtsp-info').textContent = '';
+        showStreamStatus('RTSP stream disconnected', 'success');
+        
+        // Switch back to HLS if in RTSP mode
+        if (currentStreamMode === 'rtsp') {
+            switchToHls();
+        }
+    })
+    .catch(error => {
+        console.error('RTSP stop error:', error);
+        showStreamStatus('Error disconnecting: ' + error.message, 'error');
+    });
+}
+
+/**
+ * Update RTSP status display
+ */
+function updateRtspStatus(status, text) {
+    const statusEl = document.getElementById('rtsp-status-text');
+    statusEl.textContent = text;
+    
+    // Update color based on status
+    statusEl.className = '';
+    if (status === 'online') {
+        statusEl.classList.add('text-green-500', 'font-bold');
+    } else if (status === 'connecting') {
+        statusEl.classList.add('text-yellow-500', 'animate-pulse');
+    } else {
+        statusEl.classList.add('text-red-500');
+    }
+}
+
+/**
+ * Poll RTSP stream status
+ */
+function pollRtspStatus() {
+    fetch(`/admin/cameras/${cameraId}/control`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ action: 'rtsp_status' })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success && data.status) {
+            if (data.online) {
+                updateRtspStatus('online', 'Live');
+                document.getElementById('rtsp-info').textContent = 
+                    'File size: ' + (data.status.fileSize || 0) + ' bytes';
+            } else {
+                updateRtspStatus('offline', 'Offline');
+            }
+        }
+    })
+    .catch(error => {
+        console.error('RTSP status poll error:', error);
+    });
+}
+
+// Poll RTSP status every 3 seconds
+setInterval(pollRtspStatus, 3000);
+
+/**
+ * Switch to RTSP mode
+ */
+function switchToRtsp() {
+    currentStreamMode = 'rtsp';
+    
+    // Hide Video.js, show MJPEG image
+    document.getElementById('camera-stream').classList.add('hidden');
+    const rtspImg = document.getElementById('vlc-stream');
+    rtspImg.classList.remove('hidden');
+    
+    // Set the MJPEG endpoint
+    rtspImg.src = `/admin/cameras/${cameraId}/mjpeg`;
+    
+    // Update button styles
+    document.getElementById('btn-rtsp').className = 'bg-green-600 hover:bg-green-500 py-2 rounded-lg transition text-center text-sm font-medium';
+    document.getElementById('btn-hls').className = 'bg-gray-700 hover:bg-gray-600 py-2 rounded-lg transition text-center text-sm font-medium';
+    document.getElementById('btn-vlc').className = 'bg-gray-700 hover:bg-gray-600 py-2 rounded-lg transition text-center text-sm font-medium';
+    
+    showStreamStatus('Switched to Direct RTSP mode', 'success');
+}
+
+/**
+ * Refresh RTSP display - reloads the stream
+ */
+function refreshRtspDisplay(url) {
+    const rtspImg = document.getElementById('vlc-stream');
+    rtspImg.src = url + '?t=' + Date.now();
+}
+
+function toggleFullscreen() {
+    const container = document.querySelector('.bg-black.rounded-xl');
+    if (document.fullscreenElement) {
+        document.exitFullscreen();
+    } else {
+        container.requestFullscreen();
+    }
+}
+
+// Load recent detections
+fetch(`/admin/detections/recent`)
+    .then(response => response.json())
+    .then(detections => {
+        const container = document.getElementById('recent-activity');
+        if (detections.length > 0) {
+            container.innerHTML = detections.slice(0, 10).map(d => `
+                <div class="p-2 bg-gray-700 rounded text-xs">
+                    <div class="flex justify-between">
+                        <span class="font-medium">${d.behaviorType.replace('_', ' ')}</span>
+                        <span class="text-gray-400">${d.confidence}%</span>
+                    </div>
+                    ${d.healthCondition ? `<span class="text-orange-400">${d.healthCondition}</span>` : ''}
+                </div>
+            `).join('');
+        } else {
+            container.innerHTML = '<p class="text-gray-500 text-sm">No recent activity</p>';
+        }
+    })
+    .catch(error => {
+        document.getElementById('recent-activity').innerHTML = '<p class="text-gray-500 text-sm">Error loading activity</p>';
+    });
+
+// Auto-refresh snapshot every 5 seconds
+setInterval(() => {
+    const fallback = document.getElementById('camera-fallback');
+    if (fallback) {
+        fallback.src = '{{ camera.fullSnapshotUrl }}?t=' + new Date().getTime();
+    }
+}, 5000);
+</script>
+{% endblock %}

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}PawTech{% endblock %}</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐾</text></svg>">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        paw: {
+                            orange: '#f97316',
+                            'orange-hover': '#ea580c',
+                            'orange-light': '#ffedd5',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .form-error-list,
+        .form-error-message,
+        .form-errors,
+        .form-error {
+            color: #ef4444;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        .form-error-list {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .form-error-list li + li {
+            margin-top: 0.25rem;
+        }
+
+        input[aria-invalid="true"]:not([type="checkbox"]):not([type="radio"]),
+        select[aria-invalid="true"],
+        textarea[aria-invalid="true"] {
+            border-color: #ef4444 !important;
+            background-color: #fef2f2 !important;
+            box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.15);
+        }
+    </style>
+    {% block stylesheets %}{% endblock %}
+    {% block javascripts %}
+        {% block importmap %}{{ importmap('app') }}{% endblock %}
+    {% endblock %}
+</head>
+<body class="bg-gray-100 antialiased">
+    {% block body %}{% endblock %}
+</body>
+</html>

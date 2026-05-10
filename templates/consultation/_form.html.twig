@@ -1,0 +1,86 @@
+{{ form_start(form, {'attr': {'class': 'space-y-4'}}) }}
+    {{ form_errors(form) }}
+    
+    <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{{ form_label(form.nom) }}</label>
+        {{ form_widget(form.nom, {'attr': {
+            'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition',
+            'placeholder': 'Enter your name'
+        }}) }}
+        {{ form_errors(form.nom) }}
+    </div>
+    
+    <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{{ form_label(form.email) }}</label>
+        {{ form_widget(form.email, {'attr': {
+            'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition',
+            'placeholder': 'your.email@example.com'
+        }}) }}
+        {{ form_errors(form.email) }}
+    </div>
+    
+    <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{{ form_label(form.telephone) }}</label>
+        {{ form_widget(form.telephone, {'attr': {
+            'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition',
+            'placeholder': '+216 XX XXX XXX'
+        }}) }}
+        {{ form_errors(form.telephone) }}
+    </div>
+    
+    <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{{ form_label(form.date) }}</label>
+        {{ form_widget(form.date, {'attr': {
+            'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition'
+        }}) }}
+        {{ form_errors(form.date) }}
+    </div>
+    
+    {% if form.type is defined %}
+    <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{{ form_label(form.type) }}</label>
+        {{ form_widget(form.type, {'attr': {
+            'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition'
+        }}) }}
+        {{ form_errors(form.type) }}
+    </div>
+    {% endif %}
+    
+    {% if form.veterinaire is defined %}
+    <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{{ form_label(form.veterinaire) }}</label>
+        {{ form_widget(form.veterinaire, {'attr': {
+            'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition'
+        }}) }}
+        {{ form_errors(form.veterinaire) }}
+    </div>
+    {% endif %}
+    
+    {% if form.diagnostic is defined %}
+    <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{{ form_label(form.diagnostic) }}</label>
+        {{ form_widget(form.diagnostic, {'attr': {
+            'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition',
+            'rows': 3,
+            'placeholder': 'Diagnostic details...'
+        }}) }}
+        {{ form_errors(form.diagnostic) }}
+    </div>
+    {% endif %}
+    
+    <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{{ form_label(form.message) }}</label>
+        {{ form_widget(form.message, {'attr': {
+            'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition',
+            'rows': 4,
+            'placeholder': 'Please describe your dog\'s symptoms or reason for appointment...'
+        }}) }}
+        {{ form_errors(form.message) }}
+    </div>
+    
+    <div class="pt-4">
+        <button type="submit" class="w-full inline-flex justify-center items-center rounded-full bg-orange-600 px-6 py-3 text-white font-semibold hover:bg-orange-700 transition focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2">
+            {{ button_label|default('Make Appointment') }}
+        </button>
+    </div>
+{{ form_end(form) }}

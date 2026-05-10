@@ -1,0 +1,466 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Edit User{% endblock %}
+
+{% set active = 'users' %}
+{% set page_title = 'Edit User' %}
+
+{% block main %}
+    <!-- Page Header -->
+    <div class="bg-white rounded-2xl border border-gray-200 p-6 mb-8 shadow-sm">
+        <div class="flex items-start gap-4">
+            <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-100">
+                <svg class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+            </div>
+            <div class="flex-1">
+                <nav class="flex items-center gap-2 text-sm text-gray-500 mb-1">
+                    <a href="{{ path('app_users_index') }}" class="hover:text-gray-700 transition">Users</a>
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                    <span class="text-gray-900 font-medium">Edit User</span>
+                </nav>
+                <h1 class="text-2xl font-bold text-gray-900">Edit User</h1>
+                <p class="mt-1 text-sm text-gray-600">Update user information for {{ user.nom }} {{ user.prenom }}</p>
+            </div>
+            <a href="{{ path('app_users_index') }}"
+               class="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Back to list
+            </a>
+        </div>
+    </div>
+
+    <!-- Flash Messages -->
+    {% for message in app.flashes('success') %}
+        <div class="mb-6 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+            <div class="flex items-center gap-2">
+                <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                </svg>
+                {{ message }}
+            </div>
+        </div>
+    {% endfor %}
+
+    {% for message in app.flashes('error') %}
+        <div class="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            <div class="flex items-center gap-2">
+                <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                </svg>
+                {{ message }}
+            </div>
+        </div>
+    {% endfor %}
+
+    <div class="bg-white rounded-2xl shadow-2xl w-full overflow-hidden">
+        <!-- Form Container -->
+        <div class="px-8 py-6">
+            {{ form_start(form, {'attr': {'id': 'userForm', 'novalidate': 'novalidate'}}) }}
+            
+            {% if form.vars.submitted and not form.vars.valid %}
+                <div class="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                    <div class="flex items-center gap-2">
+                        <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                        </svg>
+                        Please review the highlighted fields and try again.
+                    </div>
+                    {{ form_errors(form) }}
+                </div>
+            {% endif %}
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-2 space-y-6">
+                    <!-- Personal Information Section -->
+                    <div class="border-b border-gray-200 pb-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Personal Information</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- First Name -->
+                            <div>
+                                {{ form_label(form.prenom, 'First Name', {'label_attr': {'class': 'block text-xs font-semibold text-gray-700 mb-1'}}) }}
+                                {{ form_widget(form.prenom, {'attr': {
+                                    'placeholder': 'John',
+                                    'class': 'w-full rounded-lg border px-4 py-2.5 text-sm transition-all duration-200 focus:outline-none' ~ 
+                                            (form.prenom.vars.errors|length ? ' border-red-500 bg-red-50 focus:border-red-500 focus:ring-2 focus:ring-red-200' : ' border-gray-300 focus:border-paw-orange focus:ring-2 focus:ring-orange-200'),
+                                    'autocomplete': 'given-name'
+                                }}) }}
+                                {% if form.prenom.vars.errors|length %}
+                                    <div class="mt-1 flex items-center gap-1 text-red-600 text-xs">
+                                        <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                        </svg>
+                                        {{ form_errors(form.prenom) }}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Last Name -->
+                            <div>
+                                {{ form_label(form.nom, 'Last Name', {'label_attr': {'class': 'block text-xs font-semibold text-gray-700 mb-1'}}) }}
+                                {{ form_widget(form.nom, {'attr': {
+                                    'placeholder': 'Doe',
+                                    'class': 'w-full rounded-lg border px-4 py-2.5 text-sm transition-all duration-200 focus:outline-none' ~ 
+                                            (form.nom.vars.errors|length ? ' border-red-500 bg-red-50 focus:border-red-500 focus:ring-2 focus:ring-red-200' : ' border-gray-300 focus:border-paw-orange focus:ring-2 focus:ring-orange-200'),
+                                    'autocomplete': 'family-name'
+                                }}) }}
+                                {% if form.nom.vars.errors|length %}
+                                    <div class="mt-1 flex items-center gap-1 text-red-600 text-xs">
+                                        <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                        </svg>
+                                        {{ form_errors(form.nom) }}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Email -->
+                            <div class="md:col-span-2">
+                                {{ form_label(form.email, 'Email Address', {'label_attr': {'class': 'block text-xs font-semibold text-gray-700 mb-1'}}) }}
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                        </svg>
+                                    </div>
+                                    {{ form_widget(form.email, {'attr': {
+                                        'placeholder': 'john.doe@example.com',
+                                        'class': 'w-full rounded-lg border pl-10 pr-4 py-2.5 text-sm transition-all duration-200 focus:outline-none' ~ 
+                                                (form.email.vars.errors|length ? ' border-red-500 bg-red-50 focus:border-red-500 focus:ring-2 focus:ring-red-200' : ' border-gray-300 focus:border-paw-orange focus:ring-2 focus:ring-orange-200'),
+                                        'autocomplete': 'email'
+                                    }}) }}
+                                </div>
+                                {% if form.email.vars.errors|length %}
+                                    <div class="mt-1 flex items-center gap-1 text-red-600 text-xs">
+                                        <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                        </svg>
+                                        {{ form_errors(form.email) }}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Phone -->
+                            <div class="md:col-span-2">
+                                {{ form_label(form.telephone, 'Phone Number', {'label_attr': {'class': 'block text-xs font-semibold text-gray-700 mb-1'}}) }}
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                                        </svg>
+                                    </div>
+                                    {{ form_widget(form.telephone, {'attr': {
+                                        'placeholder': '29 052 284',
+                                        'class': 'w-full rounded-lg border pl-10 pr-4 py-2.5 text-sm transition-all duration-200 focus:outline-none' ~ 
+                                                (form.telephone.vars.errors|length ? ' border-red-500 bg-red-50 focus:border-red-500 focus:ring-2 focus:ring-red-200' : ' border-gray-300 focus:border-paw-orange focus:ring-2 focus:ring-orange-200'),
+                                        'autocomplete': 'tel'
+                                    }}) }}
+                                </div>
+                                {% if form.telephone.vars.errors|length %}
+                                    <div class="mt-1 flex items-center gap-1 text-red-600 text-xs">
+                                        <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                        </svg>
+                                        {{ form_errors(form.telephone) }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Account Information Section -->
+                    <div class="border-b border-gray-200 pb-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Account Information</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Password -->
+                            <div>
+                                {{ form_label(form.password, 'Password', {'label_attr': {'class': 'block text-xs font-semibold text-gray-700 mb-1'}}) }}
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                        </svg>
+                                    </div>
+                                    {{ form_widget(form.password, {'attr': {
+                                        'placeholder': 'Leave blank to keep current password',
+                                        'class': 'w-full rounded-lg border pl-10 pr-10 py-2.5 text-sm transition-all duration-200 focus:outline-none' ~ 
+                                                (form.password.vars.errors|length ? ' border-red-500 bg-red-50 focus:border-red-500 focus:ring-2 focus:ring-red-200' : ' border-gray-300 focus:border-paw-orange focus:ring-2 focus:ring-orange-200'),
+                                        'autocomplete': 'new-password'
+                                    }}) }}
+                                    <button type="button" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 password-toggle">
+                                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                {% if form.password.vars.errors|length %}
+                                    <div class="mt-1 flex items-center gap-1 text-red-600 text-xs">
+                                        <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                        </svg>
+                                        {{ form_errors(form.password) }}
+                                    </div>
+                                {% else %}
+                                    <p class="mt-1 text-xs text-gray-500">Leave blank to keep current password</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- Role -->
+                            <div>
+                                {{ form_label(form.role, 'Role', {'label_attr': {'class': 'block text-xs font-semibold text-gray-700 mb-1'}}) }}
+                                {{ form_widget(form.role, {'attr': {
+                                    'class': 'w-full rounded-lg border px-4 py-2.5 text-sm transition-all duration-200 focus:outline-none appearance-none bg-white' ~ 
+                                            (form.role.vars.errors|length ? ' border-red-500 bg-red-50 focus:border-red-500 focus:ring-2 focus:ring-red-200' : ' border-gray-300 focus:border-paw-orange focus:ring-2 focus:ring-orange-200'),
+                                }}) }}
+                                {% if form.role.vars.errors|length %}
+                                    <div class="mt-1 flex items-center gap-1 text-red-600 text-xs">
+                                        <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                        </svg>
+                                        {{ form_errors(form.role) }}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Status -->
+                            <div>
+                                {{ form_label(form.status, 'Status', {'label_attr': {'class': 'block text-xs font-semibold text-gray-700 mb-1'}}) }}
+                                {{ form_widget(form.status, {'attr': {
+                                    'class': 'w-full rounded-lg border px-4 py-2.5 text-sm transition-all duration-200 focus:outline-none appearance-none bg-white' ~ 
+                                            (form.status.vars.errors|length ? ' border-red-500 bg-red-50 focus:border-red-500 focus:ring-2 focus:ring-red-200' : ' border-gray-300 focus:border-paw-orange focus:ring-2 focus:ring-orange-200'),
+                                }}) }}
+                                {% if form.status.vars.errors|length %}
+                                    <div class="mt-1 flex items-center gap-1 text-red-600 text-xs">
+                                        <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                        </svg>
+                                        {{ form_errors(form.status) }}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Order Number -->
+                            <div>
+                                {{ form_label(form.order_number, 'Order Number', {'label_attr': {'class': 'block text-xs font-semibold text-gray-700 mb-1'}}) }}
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                        </svg>
+                                    </div>
+                                    {{ form_widget(form.order_number, {'attr': {
+                                        'placeholder': '12345',
+                                        'class': 'w-full rounded-lg border pl-10 pr-4 py-2.5 text-sm transition-all duration-200 focus:outline-none' ~ 
+                                                (form.order_number.vars.errors|length ? ' border-red-500 bg-red-50 focus:border-red-500 focus:ring-2 focus:ring-red-200' : ' border-gray-300 focus:border-paw-orange focus:ring-2 focus:ring-orange-200'),
+                                    }}) }}
+                                </div>
+                                {% if form.order_number.vars.errors|length %}
+                                    <div class="mt-1 flex items-center gap-1 text-red-600 text-xs">
+                                        <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                        </svg>
+                                        {{ form_errors(form.order_number) }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Additional Information Section -->
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Additional Information</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Matricule -->
+                            <div>
+                                {{ form_label(form.matricule, 'Matricule', {'label_attr': {'class': 'block text-xs font-semibold text-gray-700 mb-1'}}) }}
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"/>
+                                        </svg>
+                                    </div>
+                                    {{ form_widget(form.matricule, {'attr': {
+                                        'placeholder': 'MAT-001',
+                                        'class': 'w-full rounded-lg border pl-10 pr-4 py-2.5 text-sm transition-all duration-200 focus:outline-none' ~ 
+                                                (form.matricule.vars.errors|length ? ' border-red-500 bg-red-50 focus:border-red-500 focus:ring-2 focus:ring-red-200' : ' border-gray-300 focus:border-paw-orange focus:ring-2 focus:ring-orange-200'),
+                                    }}) }}
+                                </div>
+                                {% if form.matricule.vars.errors|length %}
+                                    <div class="mt-1 flex items-center gap-1 text-red-600 text-xs">
+                                        <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                        </svg>
+                                        {{ form_errors(form.matricule) }}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Zone Affectée -->
+                            <div>
+                                {{ form_label(form.zone_affectee, 'Assigned Zone', {'label_attr': {'class': 'block text-xs font-semibold text-gray-700 mb-1'}}) }}
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        </svg>
+                                    </div>
+                                    {{ form_widget(form.zone_affectee, {'attr': {
+                                        'placeholder': 'Zone 1',
+                                        'class': 'w-full rounded-lg border pl-10 pr-4 py-2.5 text-sm transition-all duration-200 focus:outline-none' ~ 
+                                                (form.zone_affectee.vars.errors|length ? ' border-red-500 bg-red-50 focus:border-red-500 focus:ring-2 focus:ring-red-200' : ' border-gray-300 focus:border-paw-orange focus:ring-2 focus:ring-orange-200'),
+                                    }}) }}
+                                </div>
+                                {% if form.zone_affectee.vars.errors|length %}
+                                    <div class="mt-1 flex items-center gap-1 text-red-600 text-xs">
+                                        <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                        </svg>
+                                        {{ form_errors(form.zone_affectee) }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Profile Photo Section -->
+                <div>
+                    <div class="sticky top-6">
+                        <div class="border border-gray-200 rounded-xl p-6 bg-gray-50">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Profile Photo</h3>
+                            <div class="space-y-4">
+                                <div class="relative">
+                                    <div class="w-full aspect-square border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-paw-orange transition group bg-white"
+                                         onclick="document.getElementById('user_user_image').click()">
+                                        {% set has_image = form.vars.value and form.vars.value.userImage and form.vars.value.userImage != 'uploads/users/default-user.png' and form.vars.value.userImage != 'uploads/users/default.png' %}
+                                        {% if has_image %}
+                                            <img id="image-preview" src="{{ asset(form.vars.value.userImage) }}" 
+                                                 alt="Preview" class="w-full h-full object-cover rounded-xl">
+                                        {% else %}
+                                            <div id="upload-placeholder" class="text-center p-4">
+                                                <svg class="mx-auto h-16 w-16 text-gray-400 group-hover:text-paw-orange transition" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                                </svg>
+                                                <p class="text-sm font-semibold text-gray-600 group-hover:text-paw-orange transition mt-2">Click to upload photo</p>
+                                                <p class="text-xs text-gray-500 mt-1">PNG, JPG, GIF up to 2MB</p>
+                                            </div>
+                                        {% endif %}
+                                        <button type="button" id="remove-image" class="{{ has_image ? '' : 'hidden' }} absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition"
+                                                onclick="removeImage()">
+                                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                    {{ form_widget(form.user_image, {'attr': {
+                                        'class': 'hidden',
+                                        'accept': 'image/jpeg,image/png,image/gif,image/webp',
+                                        'onchange': 'previewImage(event)'
+                                    }}) }}
+                                </div>
+                                {% if form.user_image.vars.errors|length %}
+                                    <div class="flex items-center gap-1 text-red-600 text-xs">
+                                        <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                        </svg>
+                                        {{ form_errors(form.user_image) }}
+                                    </div>
+                                {% endif %}
+                                <p class="text-xs text-gray-500 text-center">Optional. Upload a profile picture for better identification.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="flex justify-end gap-4 mt-8 pt-6 border-t border-gray-200">
+                <a href="{{ path('app_users_index') }}"
+                   class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition">
+                    Cancel
+                </a>
+                <button type="submit"
+                        class="px-8 py-3 bg-paw-orange hover:bg-paw-orange-hover text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    Update User
+                </button>
+            </div>
+            {{ form_end(form) }}
+
+            <form method="post" action="{{ path('app_user_delete', {'id': user.id}) }}" class="mt-6 pt-6 border-t border-gray-200" onsubmit="return confirm('Are you sure you want to delete this user?');">
+                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ user.id) }}">
+                <button type="submit" class="px-6 py-3 border border-red-300 text-red-700 rounded-lg font-semibold hover:bg-red-50 transition">
+                    Delete User
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Toggle password visibility
+        document.querySelectorAll('.password-toggle').forEach(button => {
+            button.addEventListener('click', function() {
+                const input = this.parentElement.querySelector('input');
+                const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+                input.setAttribute('type', type);
+                
+                const svg = this.querySelector('svg');
+                if (type === 'password') {
+                    svg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>';
+                } else {
+                    svg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L6.59 6.59m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>';
+                }
+            });
+        });
+
+        // Image preview
+        function previewImage(event) {
+            const file = event.target.files[0];
+            const preview = document.getElementById('image-preview');
+            const placeholder = document.getElementById('upload-placeholder');
+            const removeBtn = document.getElementById('remove-image');
+
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                if (!preview) {
+                    const img = document.createElement('img');
+                    img.id = 'image-preview';
+                    img.src = e.target.result;
+                    img.alt = 'Preview';
+                    img.className = 'w-full h-full object-cover rounded-xl';
+                    placeholder.parentElement.appendChild(img);
+                    placeholder.classList.add('hidden');
+                    removeBtn.classList.remove('hidden');
+                } else {
+                    preview.src = e.target.result;
+                    preview.classList.remove('hidden');
+                    placeholder.classList.add('hidden');
+                    removeBtn.classList.remove('hidden');
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeImage() {
+            const input = document.getElementById('user_user_image');
+            const preview = document.getElementById('image-preview');
+            const placeholder = document.getElementById('upload-placeholder');
+            const removeBtn = document.getElementById('remove-image');
+            input.value = '';
+            if (preview) preview.remove();
+            placeholder.classList.remove('hidden');
+            removeBtn.classList.add('hidden');
+        }
+    </script>
+{% endblock %}

@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PawTech - Consultation Detail Report</title>
+    <style>
+        @page { margin: 24px 28px; }
+        body {
+            margin: 0;
+            font-family: DejaVu Sans, sans-serif;
+            color: #1f2937;
+            background: #f6f7fb;
+            font-size: 12px;
+            line-height: 1.45;
+        }
+        .logo-wrap {
+            margin-left: -14px;
+            margin-bottom: 22px;
+        }
+        .logo {
+            height: 34px;
+        }
+        .header {
+            background: #f97316;
+            color: #fff;
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin-bottom: 16px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 700;
+        }
+        .header p {
+            margin: 4px 0 0;
+            font-size: 11px;
+            opacity: .95;
+        }
+        .card {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            overflow: hidden;
+        }
+        .card-title {
+            background: #fff1e6;
+            color: #ea580c;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 9px 12px;
+            border-bottom: 1px solid #ffe0c7;
+        }
+        .card-body {
+            padding: 10px 12px;
+        }
+        .row {
+            margin-bottom: 6px;
+            word-wrap: break-word;
+        }
+        .label {
+            color: #6b7280;
+            font-weight: 700;
+        }
+        .value {
+            color: #111827;
+        }
+        .pre {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 8px 10px;
+            white-space: pre-wrap;
+            font-size: 11px;
+            color: #374151;
+        }
+    </style>
+</head>
+<body>
+    {% if logo_data_uri %}
+        <div class="logo-wrap">
+            <img class="logo" src="{{ logo_data_uri }}" alt="PawTech logo">
+        </div>
+    {% endif %}
+
+    <div class="header">
+        <h1>PawTech - Consultation Detail Report</h1>
+        <p>Generated on: {{ generated_at }}</p>
+    </div>
+
+    <div class="card">
+        <div class="card-title">Consultation Information</div>
+        <div class="card-body">
+            <div class="row"><span class="label">ID:</span> <span class="value">#{{ consultation.id }}</span></div>
+            <div class="row"><span class="label">Date:</span> <span class="value">{{ consultation_date }}</span></div>
+            <div class="row"><span class="label">Type:</span> <span class="value">{{ consultation.type ?: 'N/A' }}</span></div>
+            <div class="row"><span class="label">Dog:</span> <span class="value">{{ dog_name }}</span></div>
+            <div class="row"><span class="label">Veterinarian:</span> <span class="value">{{ consultation.user ? consultation.user.fullName : 'N/A' }}</span></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title">Diagnostic & Treatment</div>
+        <div class="card-body">
+            <div class="row"><span class="label">Diagnostic:</span> <span class="value">{{ consultation.diagnostic ?: 'N/A' }}</span></div>
+            <div class="row"><span class="label">Treatment:</span> <span class="value">{{ consultation.traitement ?: 'N/A' }}</span></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title">Follow-up Information</div>
+        <div class="card-body">
+            <div class="row"><span class="label">Follow-up ID:</span> <span class="value">#{{ suivi.id }}</span></div>
+            <div class="row"><span class="label">Status (Etat):</span> <span class="value">{{ suivi.etat ?: 'N/A' }}</span></div>
+            <div class="row"><span class="label">Type:</span> <span class="value">{{ suivi.type ?: 'N/A' }}</span></div>
+            <div class="row"><span class="label">Next Visit:</span> <span class="value">{{ next_visit }}</span></div>
+            <div class="row"><span class="label">Emergency Level:</span> <span class="value">{{ suivi.emergencyLevelDisplay }}</span></div>
+            <div class="row"><span class="label">Affected Parts:</span> <span class="value">{{ affected_parts_text }}</span></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title">AI-Powered Analysis</div>
+        <div class="card-body">
+            <div class="row"><span class="label">Symptoms:</span> <span class="value">{{ symptoms }}</span></div>
+            <div class="row"><span class="label">Predicted Condition:</span> <span class="value">{{ predicted_condition }}</span></div>
+            <div class="row"><span class="label">Predicted Emergency:</span> <span class="value">{{ predicted_emergency }}</span></div>
+            <div class="row"><span class="label">Medical Analysis Report:</span></div>
+            <div class="pre">{{ analysis_report }}</div>
+        </div>
+    </div>
+</body>
+</html>

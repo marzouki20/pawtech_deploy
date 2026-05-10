@@ -1,0 +1,322 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Products | PawTech{% endblock %}
+
+{% set active = 'eshop_produits' %}
+{% set page_title = 'Products' %}
+
+{# Calculate records here so they're available in both main and javascripts blocks #}
+{% set total_records = produits|length %}
+{% set in_stock_records = produits|filter(p => p.quantite > 10)|length %}
+{% set low_stock_records = produits|filter(p => p.quantite > 0 and p.quantite <= 10)|length %}
+{% set out_of_stock_records = produits|filter(p => p.quantite == 0)|length %}
+
+{% block main %}
+<div>
+    <div class="px-4 sm:px-6 lg:px-8 py-8 max-w-7xl mx-auto">
+        <!-- Page Header -->
+        <div class="bg-white rounded-2xl border border-gray-200 p-6 mb-8 shadow-sm">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+                <div class="flex items-start gap-4 flex-1">
+                    <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-orange-100">
+                        <svg class="h-6 w-6 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <nav class="flex items-center gap-2 text-sm text-gray-500 mb-1">
+                            <a href="#" class="hover:text-gray-700 transition">Dashboard</a>
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                            <span class="text-gray-900 font-medium">Products</span>
+                        </nav>
+                        <h1 class="text-2xl font-bold text-gray-900">Product Management</h1>
+                        <p class="mt-1 text-sm text-gray-600 max-w-xl">Manage your e-shop products, track inventory levels, and update stock information.</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 flex-shrink-0 mt-4 lg:mt-0">
+                    <a href="{{ path('app_eshop_produit_new') }}"
+                       class="inline-flex items-center gap-2 rounded-lg bg-paw-orange px-5 py-2.5 text-sm font-semibold text-white shadow hover:bg-paw-orange-hover transition-colors">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Add Product
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- FILTERS INLINE WITH SEARCH BAR -->
+        <div class="flex flex-col gap-2 mb-8">
+            <div class="flex flex-1 items-center gap-4 max-w-5xl">
+                <!-- Filters -->
+                <span class="text-sm font-semibold text-gray-700">Filters:</span>
+                <div class="relative">
+                    <select id="categoryFilter" 
+                            class="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm text-gray-900 focus:border-paw-orange focus:ring-2 focus:ring-paw-orange/30">
+                        <option value="">All Categories</option>
+                        {% for category in categories_for_filter %}
+                            <option value="{{ category.id }}">{{ category.nom }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="relative">
+                    <select id="stockStatusFilter" 
+                            class="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm text-gray-900 focus:border-paw-orange focus:ring-2 focus:ring-paw-orange/30">
+                        <option value="">All Stock Status</option>
+                        <option value="in_stock">In Stock (> 10)</option>
+                        <option value="low_stock">Low Stock (1-10)</option>
+                        <option value="out_of_stock">Out of Stock</option>
+                    </select>
+                </div>
+                <div class="flex gap-2">
+                    <button type="button" 
+                            id="applyFilters"
+                            class="inline-flex items-center gap-2 rounded-lg bg-paw-orange px-5 py-2.5 text-sm font-semibold text-white shadow hover:bg-paw-orange-hover transition-colors min-w-[120px]">
+                        Apply Filters
+                    </button>
+                    <button type="button" 
+                            id="clearFilters"
+                            class="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors min-w-[120px]">
+                        Clear Filters
+                    </button>
+                </div>
+        <!-- Search -->
+                <form method="get" action="{{ path('app_eshop_produit_index') }}" class="relative flex-1 min-w-[200px]">
+                  <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                  </span>
+                  <input 
+                    name="search" 
+                    type="search" 
+                    value="{{ app.request.query.get('search', '') }}" 
+                    placeholder="Search products by name..." 
+                    class="w-full pl-10 pr-10 py-2 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-paw-orange focus:border-paw-orange outline-none"
+                    onkeydown="if(event.key === 'Enter') this.form.submit()">
+                  
+                  {% if app.request.query.get('search') %}
+                    <a href="{{ path('app_eshop_produit_index', app.request.query.all|filter((v, k) => k != 'search')) }}" 
+                       class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                       title="Clear search">
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                      </svg>
+                    </a>
+                  {% endif %}
+                  
+                  {% if app.request.query.get('category') %}
+                    <input type="hidden" name="category" value="{{ app.request.query.get('category') }}">
+                  {% endif %}
+                  {% if app.request.query.get('stock_status') %}
+                    <input type="hidden" name="stock_status" value="{{ app.request.query.get('stock_status') }}">
+                  {% endif %}
+                </form>
+            </div>
+            {% set has_active_filter = app.request.query.get('category') or app.request.query.get('stock_status') or app.request.query.get('search') %}
+            {% if has_active_filter %}
+            <div class="flex items-center gap-2 flex-wrap">
+                <span class="text-sm text-gray-600">Active filters:</span>
+                {% if app.request.query.get('category') %}
+                    {% set selected_category = categories_for_filter|filter(c => c.id == app.request.query.get('category'))|first %}
+                    <span class="inline-flex items-center gap-1 rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
+                        Category: {{ selected_category ? selected_category.nom : 'Unknown' }}
+                        <a href="{{ path('app_eshop_produit_index', {
+                            stock_status: app.request.query.get('stock_status'),
+                            search: app.request.query.get('search')
+                        }) }}" class="text-blue-500 hover:text-blue-700">&times;</a>
+                    </span>
+                {% endif %}
+                {% if app.request.query.get('stock_status') %}
+                    {% set stock_labels = {
+                        'in_stock': 'In Stock',
+                        'low_stock': 'Low Stock',
+                        'out_of_stock': 'Out of Stock'
+                    } %}
+                    <span class="inline-flex items-center gap-1 rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+                        Stock: {{ stock_labels[app.request.query.get('stock_status')] }}
+                        <a href="{{ path('app_eshop_produit_index', {
+                            category: app.request.query.get('category'),
+                            search: app.request.query.get('search')
+                        }) }}" class="text-green-500 hover:text-green-700">&times;</a>
+                    </span>
+                {% endif %}
+                {% if app.request.query.get('search') %}
+                    <span class="inline-flex items-center gap-1 rounded-full bg-yellow-100 px-3 py-1 text-xs font-semibold text-yellow-700">
+                        Search: "{{ app.request.query.get('search') }}"
+                        <a href="{{ path('app_eshop_produit_index', {
+                            category: app.request.query.get('category'),
+                            stock_status: app.request.query.get('stock_status')
+                        }) }}" class="text-yellow-500 hover:text-yellow-700">&times;</a>
+                    </span>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Overview Stats -->
+        <div class="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Total Products</p>
+                <p class="mt-2 text-2xl font-bold text-gray-900">{{ total_records }}</p>
+            </div>
+            <div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">In Stock</p>
+                <p class="mt-2 text-2xl font-bold text-green-600">{{ in_stock_records }}</p>
+            </div>
+            <div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Low Stock</p>
+                <p class="mt-2 text-2xl font-bold text-yellow-600">{{ low_stock_records }}</p>
+            </div>
+            <div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Out of Stock</p>
+                <p class="mt-2 text-2xl font-bold text-red-600">{{ out_of_stock_records }}</p>
+            </div>
+        </div>
+
+        <!-- Products Table -->
+        <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-100">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 w-[25%]">Product</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 w-[12%]">Category</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 w-[12%]">Price</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 w-[12%]">Stock</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 w-[10%]">Alert Threshold</th>
+                            <th class="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wide text-gray-500 w-[20%]">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="all">
+                        {% if produits is empty %}
+                            <tr>
+                                <td colspan="6" class="px-6 py-12 text-center">
+                                    <p class="text-sm font-semibold text-gray-600">No products registered yet.</p>
+                                    <p class="text-xs text-gray-400">Click "Add Product" to create the first record.</p>
+                                </td>
+                            </tr>
+                        {% else %}
+                            {% for produit in produits %}
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-3">
+                                            {% if produit.image %}
+                                                <img src="{{ asset('uploads/images/' ~ produit.image) }}" alt="{{ produit.nom }}" class="h-10 w-10 rounded-lg object-cover">
+                                            {% else %}
+                                                <div class="h-10 w-10 rounded-lg bg-gray-300 flex items-center justify-center text-sm font-bold text-gray-700">
+                                                    {{ produit.nom|slice(0, 1)|upper }}
+                                                </div>
+                                            {% endif %}
+                                            <div>
+                                                <p class="text-sm font-semibold text-gray-900">{{ produit.nom }}</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 text-sm text-gray-600">
+                                        {% if produit.categorie %}
+                                            {{ produit.categorie.nom }}
+                                        {% else %}
+                                            <span class="text-gray-400">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-6 py-4 text-sm text-gray-600">{{ produit.prix }} TND</td>
+                                    <td class="px-6 py-4">
+                                        {% set stock_class = {
+                                            'in_stock': 'bg-green-100 text-green-700',
+                                            'low_stock': 'bg-yellow-100 text-yellow-700',
+                                            'out_of_stock': 'bg-red-100 text-red-700'
+                                        } %}
+                                        {% set stock_status = produit.quantite > 10 ? 'in_stock' : (produit.quantite > 0 ? 'low_stock' : 'out_of_stock') %}
+                                        {% set stock_label = produit.quantite > 10 ? 'In Stock' : (produit.quantite > 0 ? 'Low Stock' : 'Out of Stock') %}
+                                        <span class="inline-flex rounded-full px-3 py-1 text-xs font-semibold {{ stock_class[stock_status] }}">
+                                            {{ stock_label }} ({{ produit.quantite }})
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 text-sm text-gray-600">{{ produit.seuilAlert }}</td>
+                                    <td class="px-6 py-4 text-right text-sm">
+                                        <a href="{{ path('app_eshop_produit_show', {'id': produit.id}) }}"
+                                           class="text-gray-600 hover:text-gray-900 font-semibold">View</a>
+                                        <a href="{{ path('app_eshop_produit_edit', {'id': produit.id}) }}"
+                                           class="ml-4 text-paw-orange hover:text-paw-orange-hover font-semibold">Edit</a>
+                                        <button type="button"
+                                                class="ml-4 text-red-600 hover:text-red-700 font-semibold"
+                                                onclick="openDeleteModal('{{ path('app_eshop_produit_delete', {'id': produit.id}) }}', '{{ csrf_token('delete' ~ produit.id) }}', '{{ produit.nom|e('js') }}')">
+                                            Delete
+                                        </button>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        {% endif %}
+                    </tbody>
+                    <tbody id="filtertab" style="display: none;"></tbody>
+                    <tbody id="searchtab" style="display: none;"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Modal -->
+    <div id="delete-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm" style="display: none;">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4">
+            <div class="sticky top-0 bg-white border-b border-gray-200 px-8 py-6 rounded-t-2xl">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900">Delete Product</h2>
+                        <p class="mt-1 text-sm text-gray-600">Are you sure you want to delete <span id="delete-label" class="font-semibold"></span>?</p>
+                    </div>
+                    <button onclick="closeDeleteModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                        <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="px-8 py-6">
+                <form id="delete-form" method="post">
+                    <input type="hidden" name="_token" id="delete-token">
+                    <div class="flex justify-end gap-3">
+                        <button type="button" onclick="closeDeleteModal()"
+                                class="px-6 py-2.5 rounded-lg border border-gray-200 bg-white text-sm font-semibold text-gray-700 hover:bg-gray-50">
+                            Cancel
+                        </button>
+                        <button type="submit"
+                                class="px-6 py-2.5 rounded-lg bg-red-600 text-sm font-semibold text-white shadow hover:bg-red-700">
+                            Delete
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    function openDeleteModal(action, token, label) {
+        document.getElementById('delete-form').action = action;
+        document.getElementById('delete-token').value = token;
+        document.getElementById('delete-label').textContent = label;
+        document.getElementById('delete-modal').style.display = 'flex';
+    }
+    
+    function closeDeleteModal() {
+        document.getElementById('delete-modal').style.display = 'none';
+    }
+    
+    // Close modal when clicking outside
+    document.getElementById('delete-modal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeDeleteModal();
+        }
+    });
+    
+    // Close modal on Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeDeleteModal();
+        }
+    });
+    </script>
+</div>
+</div>
+
+{% endblock %}

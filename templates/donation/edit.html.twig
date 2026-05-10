@@ -1,0 +1,52 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Edit Donation{% endblock %}
+
+{% set active = 'donations' %}
+{% set page_title = 'Edit Donation' %}
+
+{% block main %}
+<div class="mb-6">
+    <div class="flex items-center justify-between">
+        <div>
+            <nav class="text-sm text-gray-500 mb-2">
+                <a href="{{ path('app_donation_index') }}" class="hover:text-gray-700">Donations</a>
+                <span class="mx-2">/</span>
+                <span class="text-gray-700 font-semibold">Edit</span>
+            </nav>
+            <div class="flex items-center gap-3">
+                <a href="{{ path('app_donation_index') }}"
+                   class="inline-flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-gray-800">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                    Back to list
+                </a>
+                <span class="text-xs text-gray-400">.</span>
+                <span class="text-sm text-gray-500">Update donation information</span>
+            </div>
+        </div>
+        <div class="flex items-center gap-2">
+            <a href="{{ path('app_donation_index') }}"
+               class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-50 transition">
+                Cancel
+            </a>
+            <button type="submit" form="donation-edit-form"
+                    class="px-5 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-sm font-semibold shadow">
+                Save
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="bg-white rounded-2xl shadow-2xl w-full">
+    <div class="sticky top-0 bg-white border-b border-gray-200 px-8 py-6 rounded-t-2xl">
+        <h2 class="text-3xl font-bold text-gray-900">Edit Donation</h2>
+        <p class="mt-1 text-sm text-gray-600">Modify donation details with input control.</p>
+    </div>
+
+    <div class="px-8 py-6">
+        {{ include('donation/_form.html.twig', {button_label: 'Update Donation', form_id: 'donation-edit-form'}) }}
+    </div>
+</div>
+{% endblock %}

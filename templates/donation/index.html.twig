@@ -1,0 +1,327 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Donations | PawTech{% endblock %}
+
+{% block main %}
+<div data-controller="modal delete-confirm" class="space-y-4">
+  <!-- Barre de recherche et filtres -->
+  <div class="flex flex-wrap items-center gap-4 mb-4">
+    <!-- Barre de recherche -->
+    <form method="get" action="{{ path('app_donation_index') }}" class="relative flex-1 min-w-[200px]">
+      <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+      </span>
+      <input 
+        name="search" 
+        type="search" 
+        value="{{ search|default('') }}" 
+        placeholder="Search donations by donor, email or reference..." 
+        class="w-full pl-10 pr-10 py-2 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-paw-orange focus:border-paw-orange outline-none"
+        onkeydown="if(event.key === 'Enter') this.form.submit()">
+      
+      {% if search %}
+        <a href="{{ path('app_donation_index') }}" 
+           class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+           title="Clear search">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </a>
+      {% endif %}
+      
+      <!-- Champs cachés pour conserver les autres filtres -->
+      {% if status_filter %}
+        <input type="hidden" name="status" value="{{ status_filter }}">
+      {% endif %}
+    </form>
+    
+    <!-- Bouton de filtrage par statut -->
+    <div class="relative">
+      <button type="button" 
+              class="inline-flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg bg-white text-gray-700 hover:bg-gray-50"
+              onclick="toggleStatusFilter()">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+        </svg>
+        Filter by Status
+        {% if status_filter %}
+          <span class="ml-1 px-2 py-0.5 bg-paw-orange text-white text-xs rounded-full">
+            {% if status_filter == 'validated' %}Validated{% endif %}
+            {% if status_filter == 'pending' %}Pending{% endif %}
+          </span>
+        {% endif %}
+      </button>
+      
+      <!-- Menu déroulant des statuts -->
+      <div id="status-filter-dropdown" 
+           class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10 hidden">
+        <div class="p-2">
+          <div class="text-xs font-semibold text-gray-500 px-2 py-1">Filter by status</div>
+          <div class="space-y-1">
+            <a href="{{ path('app_donation_index', app.request.query.all|merge({status: null})) }}"
+               class="flex items-center justify-between px-3 py-2 rounded hover:bg-gray-100 {% if not status_filter %}bg-blue-50 text-blue-700{% endif %}">
+              <span>All status</span>
+              {% if not status_filter %}
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                </svg>
+              {% endif %}
+            </a>
+            <a href="{{ path('app_donation_index', app.request.query.all|merge({status: 'validated'})) }}"
+               class="flex items-center justify-between px-3 py-2 rounded hover:bg-gray-100 {% if status_filter == 'validated' %}bg-blue-50 text-blue-700{% endif %}">
+              <span>Validated</span>
+              {% if status_filter == 'validated' %}
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                </svg>
+              {% endif %}
+            </a>
+            <a href="{{ path('app_donation_index', app.request.query.all|merge({status: 'pending'})) }}"
+               class="flex items-center justify-between px-3 py-2 rounded hover:bg-gray-100 {% if status_filter == 'pending' %}bg-blue-50 text-blue-700{% endif %}">
+              <span>Pending</span>
+              {% if status_filter == 'pending' %}
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                </svg>
+              {% endif %}
+            </a>
+            {% if status_filter %}
+              <div class="border-t border-gray-100 mt-1 pt-1">
+                <a href="{{ path('app_donation_index', app.request.query.all|merge({status: null})) }}"
+                   class="flex items-center px-3 py-2 rounded hover:bg-gray-100 text-red-600">
+                  <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                  </svg>
+                  Clear filter
+                </a>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Bouton Add New -->
+    <!--<a href="#" 
+       class="inline-flex items-center gap-2 px-4 py-2 bg-paw-orange text-white rounded-lg hover:bg-paw-orange-hover font-medium js-modal-link" 
+       data-title="New Donation">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+      </svg>
+      New Donation
+    </a>
+  </div>
+-->
+  <!-- Indicateurs de filtres actifs -->
+  {% if search or status_filter %}
+    <div class="flex items-center gap-2 p-3 bg-blue-50 border border-blue-100 rounded-lg">
+      <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+      </svg>
+      <span class="text-sm text-blue-700">
+        Active filters: 
+        {% if search %}
+          <strong class="font-semibold">Search: "{{ search }}"</strong>
+        {% endif %}
+        {% if search and status_filter %} | {% endif %}
+        {% if status_filter %}
+          <strong class="font-semibold">
+            {% if status_filter == 'validated' %}Validated{% endif %}
+            {% if status_filter == 'pending' %}Pending{% endif %}
+          </strong>
+        {% endif %}
+        {% if rows|length > 0 %}
+          - Showing {{ rows|length }} of {{ total_records }} donations
+        {% endif %}
+      </span>
+      {% if search or status_filter %}
+        <a href="{{ path('app_donation_index') }}" class="ml-auto text-sm text-blue-600 hover:text-blue-800 font-medium">
+          Clear all filters
+        </a>
+      {% endif %}
+    </div>
+  {% endif %}
+  
+  <!-- Message si aucun résultat -->
+  {% if rows|length == 0 %}
+    <div class="text-center py-12 bg-white rounded-xl border border-gray-200">
+      <div class="text-gray-400 text-6xl mb-4">💰</div>
+      <p class="text-lg font-medium text-gray-700">No donations found</p>
+      <p class="mt-2 text-gray-500">
+        {% if search or status_filter %}
+          Try adjusting your search or filter criteria
+        {% else %}
+          No donations have been created yet
+        {% endif %}
+      </p>
+      {% if search or status_filter %}
+        <a href="{{ path('app_donation_index') }}" class="mt-4 inline-block px-6 py-2 bg-paw-orange text-white rounded-lg hover:bg-paw-orange-hover transition">
+          Clear filters
+        </a>
+      {% else %}
+        <a href="{{ path('app_donation_new') }}" 
+           class="mt-4 inline-flex items-center gap-2 px-6 py-2 bg-paw-orange text-white rounded-lg hover:bg-paw-orange-hover transition js-modal-link"
+           data-title="New Donation">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+          </svg>
+          Create your first donation
+        </a>
+      {% endif %}
+    </div>
+  {% else %}
+    <!-- Modern full-width donation table -->
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden w-full">
+      <div class="overflow-x-auto">
+        <table class="min-w-full w-full text-sm border-separate border-spacing-0">
+          <thead class="bg-paw-grey text-orange">
+            <tr>
+              <th class="px-6 py-4 text-left font-semibold tracking-wider">ID</th>
+              <th class="px-6 py-4 text-left font-semibold tracking-wider">Amount</th>
+              <th class="px-6 py-4 text-left font-semibold tracking-wider">Date</th>
+              <th class="px-6 py-4 text-left font-semibold tracking-wider">Donor</th>
+              <th class="px-6 py-4 text-left font-semibold tracking-wider">Email</th>
+              <th class="px-6 py-4 text-left font-semibold tracking-wider">Reference</th>
+              <th class="px-6 py-4 text-left font-semibold tracking-wider">Status</th>
+              <th class="px-6 py-4 text-left font-semibold tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in rows %}
+            <tr class="even:bg-gray-50 odd:bg-white hover:bg-orange-50 transition">
+              <td class="px-6 py-4 font-bold text-paw-orange">{{ row[0] }}</td>
+              <td class="px-6 py-4 text-gray-900 font-bold">{{ row[1] }}</td>
+              <td class="px-6 py-4 text-gray-700">{{ row[2] }}</td>
+              <td class="px-6 py-4 text-gray-700">{{ row[3] }}</td>
+              <td class="px-6 py-4 text-gray-700">{{ row[4] }}</td>
+              <td class="px-6 py-4 text-gray-700">{{ row[5] }}</td>
+              <td class="px-6 py-4">
+                {% if row[6] %}
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Validated</span>
+                {% else %}
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Pending</span>
+                {% endif %}
+              </td>
+              <td class="px-6 py-4">
+                {{ row[7]|raw }}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- Pagination -->
+      {% if total_pages > 1 %}
+      <div class="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+        <div class="flex-1 flex justify-between sm:hidden">
+          {% if page > 1 %}
+          <a href="?page={{ page - 1 }}&per_page={{ per_page }}&search={{ search|default('') }}&status={{ status_filter|default('') }}" 
+             class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+            Previous
+          </a>
+          {% endif %}
+          {% if page < total_pages %}
+          <a href="?page={{ page + 1 }}&per_page={{ per_page }}&search={{ search|default('') }}&status={{ status_filter|default('') }}" 
+             class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+            Next
+          </a>
+          {% endif %}
+        </div>
+        
+        <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+          <div>
+            <p class="text-sm text-gray-700">
+              Showing <span class="font-medium">{{ ((page - 1) * per_page) + 1 }}</span>
+              to <span class="font-medium">{{ min(page * per_page, total_records) }}</span>
+              of <span class="font-medium">{{ total_records }}</span> results
+            </p>
+          </div>
+          <div>
+            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+              {% if page > 1 %}
+              <a href="?page={{ page - 1 }}&per_page={{ per_page }}&search={{ search|default('') }}&status={{ status_filter|default('') }}" 
+                 class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                <span class="sr-only">Previous</span>
+                <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                </svg>
+              </a>
+              {% endif %}
+              
+              {% for p in range(max(1, page - 2), min(total_pages, page + 2)) %}
+              <a href="?page={{ p }}&per_page={{ per_page }}&search={{ search|default('') }}&status={{ status_filter|default('') }}" 
+                 class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium {% if p == page %}text-paw-orange bg-orange-50{% else %}text-gray-700 hover:bg-gray-50{% endif %}">
+                {{ p }}
+              </a>
+              {% endfor %}
+              
+              {% if page < total_pages %}
+              <a href="?page={{ page + 1 }}&per_page={{ per_page }}&search={{ search|default('') }}&status={{ status_filter|default('') }}" 
+                 class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                <span class="sr-only">Next</span>
+                <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                </svg>
+              </a>
+              {% endif %}
+            </nav>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  {% endif %}
+
+  <!-- Delete Confirmation Modal -->
+  <div data-delete-confirm-target="modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+      <h3 class="text-lg font-semibold text-gray-900 mb-2">Delete donation</h3>
+      <p class="text-sm text-gray-600 mb-6" data-delete-confirm-target="message">Are you sure you want to delete this donation?</p>
+      <div class="flex justify-end gap-3">
+        <button type="button"
+                class="px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                data-action="delete-confirm#close">
+          Cancel
+        </button>
+        <button type="button"
+                class="px-4 py-2.5 rounded-lg bg-red-600 text-sm font-semibold text-white shadow hover:bg-red-700"
+                data-action="delete-confirm#submit">
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Gestion du dropdown de filtre par statut
+function toggleStatusFilter() {
+  const dropdown = document.getElementById('status-filter-dropdown');
+  dropdown.classList.toggle('hidden');
+}
+
+// Fermer le dropdown si on clique ailleurs
+document.addEventListener('click', function(event) {
+  const dropdown = document.getElementById('status-filter-dropdown');
+  const button = document.querySelector('[onclick="toggleStatusFilter()"]');
+  
+  if (dropdown && button) {
+    if (!dropdown.contains(event.target) && !button.contains(event.target)) {
+      dropdown.classList.add('hidden');
+    }
+  }
+});
+
+// Focus automatique sur le champ de recherche
+document.addEventListener('DOMContentLoaded', function() {
+  const searchInput = document.querySelector('input[name="search"]');
+  if (searchInput && searchInput.value) {
+    searchInput.focus();
+    searchInput.setSelectionRange(searchInput.value.length, searchInput.value.length);
+  }
+});
+</script>
+{% endblock %}

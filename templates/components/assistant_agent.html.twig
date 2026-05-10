@@ -1,0 +1,209 @@
+<div id="assistant-agent" class="fixed bottom-6 right-6 z-50">
+    <button id="assistant-toggle" class="bg-gradient-to-br from-orange-400 via-yellow-200 to-orange-600 text-white rounded-full p-2 shadow-2xl hover:bg-orange-600 focus:outline-none animate-bounce-3d">
+        <span class="block">
+            <svg width="70" height="70" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <radialGradient id="bot3d2" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stop-color="#fff" />
+                        <stop offset="100%" stop-color="#f97316" />
+                    </radialGradient>
+                    <linearGradient id="faceGradient" x1="0" y1="0" x2="96" y2="96" gradientUnits="userSpaceOnUse">
+                        <stop stop-color="#fff" />
+                        <stop offset="1" stop-color="#f97316" />
+                    </linearGradient>
+                </defs>
+                <ellipse cx="48" cy="48" rx="44" ry="44" fill="url(#bot3d2)" stroke="#fb923c" stroke-width="4" />
+                <ellipse cx="48" cy="60" rx="28" ry="12" fill="#fff" opacity="0.7" />
+                <ellipse cx="48" cy="40" rx="22" ry="18" fill="url(#faceGradient)" />
+                <circle cx="36" cy="44" r="5" fill="#f97316" />
+                <circle cx="60" cy="44" r="5" fill="#f97316" />
+                <rect x="44" y="56" width="8" height="6" rx="3" fill="#fb923c" />
+                <rect x="28" y="24" width="6" height="16" rx="3" fill="#fb923c" />
+                <rect x="62" y="24" width="6" height="16" rx="3" fill="#fb923c" />
+                <ellipse cx="48" cy="72" rx="12" ry="4" fill="#fb923c" opacity="0.2" />
+                <ellipse cx="36" cy="44" rx="2" ry="2" fill="#fff" opacity="0.7" />
+                <ellipse cx="60" cy="44" rx="2" ry="2" fill="#fff" opacity="0.7" />
+            </svg>
+        </span>
+    </button>
+    <div id="assistant-chat" class="hidden mt-2 w-[420px] bg-white rounded-2xl shadow-xl border border-gray-200 animate-fade-in">
+        <div class="p-4 border-b flex items-center justify-between">
+            <span class="font-bold text-gray-800">Ask PawTech Assistant</span>
+            <button id="assistant-close" class="text-gray-400 hover:text-gray-700"><i class="fas fa-times"></i></button>
+        </div>
+        <div id="assistant-messages" class="p-4 h-80 overflow-y-auto text-sm flex flex-col gap-2 bg-gray-50">
+            <div class="flex items-end gap-2">
+                <div class="w-20 h-20 rounded-full bg-orange-200 flex items-center justify-center text-orange-700 font-bold text-3xl">A</div>
+                <div class="bg-white rounded-2xl px-6 py-4 shadow text-gray-700 max-w-[100%] text-xl">Hi! I'm the PawTech AI Assistant. Ask me anything about our pet technology, products, or services!</div>
+            </div>
+        </div>
+        <div id="assistant-typing" class="hidden px-4 py-2 text-sm text-gray-500">
+            <i class="fas fa-ellipsis-h animate-pulse"></i> Assistant is typing...
+        </div>
+        <form id="assistant-form" class="flex border-t">
+            <input type="text" id="assistant-input" class="flex-1 p-3 border-none focus:ring-0 rounded-bl-2xl" placeholder="Type your question..." autocomplete="off" />
+            <button type="submit" class="bg-orange-500 text-white px-4 rounded-br-2xl hover:bg-orange-600"><i class="fas fa-paper-plane"></i></button>
+        </form>
+    </div>
+</div>
+
+<script>
+    const toggleBtn = document.getElementById('assistant-toggle');
+    const chatBox = document.getElementById('assistant-chat');
+    const closeBtn = document.getElementById('assistant-close');
+    const form = document.getElementById('assistant-form');
+    const input = document.getElementById('assistant-input');
+    const messages = document.getElementById('assistant-messages');
+    const typingIndicator = document.getElementById('assistant-typing');
+
+    // Toggle chat
+    toggleBtn.addEventListener('click', () => {
+        chatBox.classList.toggle('hidden');
+        if (!chatBox.classList.contains('hidden')) {
+            input.focus();
+        }
+    });
+
+    closeBtn.addEventListener('click', () => {
+        chatBox.classList.add('hidden');
+    });
+
+    // Handle form submission
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const question = input.value.trim();
+        if (!question) return;
+
+        // Add user message
+        addMessage(question, 'user');
+        input.value = '';
+
+        // Show typing indicator
+        typingIndicator.classList.remove('hidden');
+        messages.scrollTop = messages.scrollHeight;
+
+        try {
+            const response = await fetch('/assistant/ask', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ question })
+            });
+
+            const data = await response.json();
+            
+            // Hide typing indicator
+            typingIndicator.classList.add('hidden');
+
+            // Add assistant message
+            if (data.answer) {
+                addMessage(data.answer, 'assistant');
+            } else {
+                addMessage("I'm sorry, I couldn't process your request. Please try again.", 'assistant');
+            }
+        } catch (err) {
+            // Hide typing indicator
+            typingIndicator.classList.add('hidden');
+            
+            // Show error message
+            addMessage("Sorry, I'm having trouble connecting. Please check your internet connection and try again.", 'assistant');
+            console.error('Error:', err);
+        }
+
+        messages.scrollTop = messages.scrollHeight;
+    });
+
+    // Helper function to add messages
+    function addMessage(text, sender) {
+        const messageDiv = document.createElement('div');
+        if (sender === 'user') {
+            messageDiv.className = 'flex items-end justify-end gap-2';
+            messageDiv.innerHTML = `
+                <div class="bg-orange-500 text-white rounded-2xl px-6 py-4 shadow max-w-[100%] text-xl">${escapeHtml(text)}</div>
+                <div class="w-20 h-20 rounded-full bg-gray-300 flex items-center justify-center font-bold overflow-hidden">
+                    {% if app.user and app.user.userImage is defined and app.user.userImage %}
+                        <img src='{{ app.user.userImage }}' alt='User' class='w-full h-full object-cover rounded-full' />
+                    {% elseif app.user and app.user.prenom is defined and app.user.nom is defined %}
+                        <span class='text-2xl'>{{ app.user.prenom|first|upper }}{{ app.user.nom|first|upper }}</span>
+                    {% else %}
+                        <span class='text-2xl'>You</span>
+                    {% endif %}
+                </div>
+            `;
+        } else {
+            messageDiv.className = 'flex items-end gap-2 mt-2';
+            messageDiv.innerHTML = `
+                <div class="w-20 h-20 rounded-full bg-orange-200 flex items-center justify-center text-orange-700 font-bold text-3xl">A</div>
+                <div class="bg-white rounded-2xl px-6 py-4 shadow text-gray-700 max-w-[100%] text-xl">${escapeHtml(text)}</div>
+            `;
+        }
+        messages.appendChild(messageDiv);
+    }
+
+    // Helper function to escape HTML
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // Allow Enter key to submit (with Shift+Enter for new line)
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            form.dispatchEvent(new Event('submit'));
+        }
+    });
+</script>
+
+<style>
+#assistant-agent { 
+    font-family: inherit; 
+}
+#assistant-chat { 
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+    transition: all 0.3s ease;
+}
+#assistant-input { 
+    outline: none; 
+}
+#assistant-messages { 
+    background: #f6f6f6;
+}
+#assistant-typing {
+    font-style: italic;
+}
+.bg-orange-500 { 
+    background-color: #f97316 !important; 
+}
+.bg-orange-200 { 
+    background-color: #fed7aa !important; 
+}
+.text-orange-700 { 
+    color: #c2410c !important; 
+}
+.rounded-2xl { 
+    border-radius: 1rem !important; 
+}
+.shadow { 
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08) !important; 
+}
+.max-w-\[100\%\] { 
+    max-width: 100% !important; 
+}
+.animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+.w-20 { width: 5rem !important; }
+.h-20 { height: 5rem !important; }
+.text-xl { font-size: 1.25rem !important; }
+.text-2xl { font-size: 2rem !important; }
+.text-3xl { font-size: 2.5rem !important; }
+.w-\[420px\] { width: 420px !important; }
+</style>

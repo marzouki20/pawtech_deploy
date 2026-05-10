@@ -1,0 +1,227 @@
+{% extends 'base_front.html.twig' %}
+
+{% block title %}Donate with Stripe - PawTech{% endblock %}
+
+{% block body %}
+<section class="container mx-auto px-4 lg:px-8 py-14">
+    <div class="max-w-xl mx-auto">
+        <!-- Back link -->
+        <a href="{{ path('app_donation') }}" class="inline-flex items-center gap-2 text-gray-600 hover:text-orange-500 mb-6 transition">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+            Back to Donation
+        </a>
+        
+        <div class="rounded-3xl bg-white border border-gray-100 shadow-lg overflow-hidden">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-orange-500 to-orange-600 px-7 py-6">
+                <h2 class="text-2xl font-extrabold text-white">Donate with Stripe</h2>
+                <p class="mt-1 text-orange-100">Complete your donation securely</p>
+            </div>
+            
+            <div class="p-7">
+                {% if default_amount %}
+                <div class="bg-orange-50 border border-orange-200 rounded-xl p-4 mb-6">
+                    <p class="text-sm text-orange-700">
+                        <span class="font-semibold">Selected Amount:</span>
+                        <span class="text-3xl font-bold text-orange-600 ml-2">{{ default_amount }} TND</span>
+                    </p>
+                </div>
+                {% endif %}
+
+                <form id="donation-form" class="space-y-5">
+                    <!-- Amount -->
+                    <div>
+                        <label class="text-sm font-semibold text-gray-700">Donation Amount (TND)</label>
+                        <div class="grid grid-cols-4 gap-2 mb-3 mt-2">
+                            {% set amounts = [10, 25, 50, 100] %}
+                            {% for amount in amounts %}
+                            <button type="button" 
+                                    class="amount-btn py-2.5 px-3 rounded-xl border-2 {% if default_amount == amount %}border-orange-500 bg-orange-50 text-orange-700{% else %}border-gray-200 bg-white text-gray-700{% endif %} font-semibold hover:border-orange-400 hover:bg-orange-50 transition text-sm"
+                                    onclick="selectAmount({{ amount }})">
+                                {{ amount }}
+                            </button>
+                            {% endfor %}
+                        </div>
+                        <div class="relative">
+                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium">TND</span>
+                            <input type="number" 
+                                   id="donation-amount" 
+                                   name="amount" 
+                                   value="{{ default_amount|default('') }}"
+                                   class="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 bg-white text-gray-900 text-lg focus:outline-none focus:ring-2 focus:ring-orange-300 focus:border-orange-400"
+                                   placeholder="Enter amount"
+                                   min="1"
+                                   step="0.01"
+                                   required>
+                        </div>
+                    </div>
+
+                    <!-- Name -->
+                    <div>
+                        <label class="text-sm font-semibold text-gray-700">Your Name</label>
+                        <input type="text" 
+                               id="donation-name" 
+                               name="name" 
+                               value="{{ default_name|default('') }}"
+                               class="mt-2 w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300 focus:border-orange-400"
+                               placeholder="Enter your name"
+                               required>
+                    </div>
+
+                    <!-- Email -->
+                    <div>
+                        <label class="text-sm font-semibold text-gray-700">Email Address</label>
+                        <input type="email" 
+                               id="donation-email" 
+                               name="email" 
+                               value="{{ default_email|default('') }}"
+                               class="mt-2 w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300 focus:border-orange-400"
+                               placeholder="Enter your email"
+                               required>
+                    </div>
+
+                    <!-- Card Element -->
+                    <div>
+                        <label class="text-sm font-semibold text-gray-700">Card Details</label>
+                        <div id="card-element" class="mt-2 p-4 border border-gray-200 rounded-xl bg-white"></div>
+                        <div id="card-errors" class="text-red-500 text-sm mt-2"></div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" 
+                            id="donate-button"
+                            class="w-full rounded-xl bg-orange-500 px-6 py-4 text-white font-extrabold hover:bg-orange-600 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl">
+                        <span id="btn-text" class="flex items-center justify-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                            </svg>
+                            Donate Now
+                        </span>
+                        <div id="loading-spinner" class="inline-block w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin ml-2" style="display: none;"></div>
+                    </button>
+                </form>
+                
+                <div class="mt-6 pt-4 border-t border-gray-100 text-center">
+                    <p class="text-xs text-gray-500 flex items-center justify-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                        </svg>
+                        Secured by Stripe - Your payment information is encrypted
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+    // Initialize Stripe
+    const stripe = Stripe('{{ publishable_key }}');
+    const elements = stripe.elements();
+
+    // Create and mount the card element - matching site style
+    const cardStyle = {
+        base: {
+            color: '#32325d',
+            fontFamily: '\"Helvetica Neue\", Helvetica, sans-serif',
+            fontSmoothing: 'antialiased',
+            fontSize: '16px',
+            '::placeholder': {
+                color: '#aab7c4'
+            }
+        },
+        invalid: {
+            color: '#fa755a',
+            iconColor: '#fa755a'
+        }
+    };
+
+    const card = elements.create('card', { 
+        style: cardStyle,
+        hidePostalCode: false
+    });
+    card.mount('#card-element');
+
+    // Handle validation errors
+    card.addEventListener('change', function(event) {
+        const displayError = document.getElementById('card-errors');
+        if (event.error) {
+            displayError.textContent = event.error.message;
+        } else {
+            displayError.textContent = '';
+        }
+    });
+
+    // Handle amount selection - using site orange theme
+    function selectAmount(amount) {
+        document.getElementById('donation-amount').value = amount;
+        
+        // Update button styles with orange theme
+        document.querySelectorAll('.amount-btn').forEach(btn => {
+            if (parseInt(btn.textContent) === amount) {
+                btn.classList.add('border-orange-500', 'bg-orange-50', 'text-orange-700');
+                btn.classList.remove('border-gray-200', 'bg-white', 'text-gray-700');
+            } else {
+                btn.classList.remove('border-orange-500', 'bg-orange-50', 'text-orange-700');
+                btn.classList.add('border-gray-200', 'bg-white', 'text-gray-700');
+            }
+        });
+    }
+
+    // Handle form submission
+    const form = document.getElementById('donation-form');
+    form.addEventListener('submit', async function(event) {
+        event.preventDefault();
+        
+        const donateButton = document.getElementById('donate-button');
+        const btnText = document.getElementById('btn-text');
+        const spinner = document.getElementById('loading-spinner');
+        
+        donateButton.disabled = true;
+        btnText.innerHTML = 'Processing...';
+        spinner.style.display = 'inline-block';
+        
+        const amount = parseFloat(document.getElementById('donation-amount').value);
+        const name = document.getElementById('donation-name').value;
+        const email = document.getElementById('donation-email').value;
+        
+        try {
+            const response = await fetch('{{ path("app_stripe_donation_checkout") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    amount: amount,
+                    name: name,
+                    email: email
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success && data.url) {
+                window.location.href = data.url;
+            } else {
+                throw new Error(data.error || 'Payment failed');
+            }
+        } catch (error) {
+            alert('Error: ' + error.message);
+            donateButton.disabled = false;
+            btnText.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg> Donate Now';
+            spinner.style.display = 'none';
+        }
+    });
+
+    // Initialize amount from URL parameter
+    {% if default_amount %}
+    selectAmount({{ default_amount }});
+    {% endif %}
+</script>
+{% endblock %}

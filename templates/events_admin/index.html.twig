@@ -1,0 +1,244 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Events | PawTech Admin{% endblock %}
+
+{% block main %}
+<div data-controller="modal confirm" class="space-y-4">
+    {# Toolbar #}
+    <div class="flex flex-wrap items-center justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800">Events Management</h1>
+            <p class="text-sm text-gray-500 mt-1">{{ events|length }} total events</p>
+        </div>
+        <button type="button" data-action="click->modal#open" class="inline-flex items-center gap-2 px-4 py-2.5 bg-paw-orange text-white rounded-lg hover:bg-paw-orange-hover font-medium">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            Add Event
+        </button>
+    </div>
+
+    {# Flash Messages #}
+    {% for message in app.flashes('success') %}
+        <div class="p-4 bg-green-50 border border-green-200 rounded-lg text-green-700 flex items-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            {{ message }}
+        </div>
+    {% endfor %}
+    {% for message in app.flashes('error') %}
+        <div class="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 flex items-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+            {{ message }}
+        </div>
+    {% endfor %}
+
+    {# DataTable #}
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <table id="eventsTable" class="w-full">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Title</th>
+                    <th>Type</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    <th>City</th>
+                    <th>Capacity</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for event in events %}
+                    <tr>
+                        <td data-order="{{ event.id }}">
+                            <span class="font-mono text-gray-500">#{{ event.id }}</span>
+                        </td>
+                        <td>
+                            <span class="font-medium text-gray-900">{{ event.titre }}</span>
+                        </td>
+                        <td>
+                            {% set typeColors = {
+                                'VACCINATION': 'bg-green-100 text-green-800',
+                                'ADOPTION': 'bg-blue-100 text-blue-800',
+                                'SENSIBILISATION': 'bg-purple-100 text-purple-800',
+                                'COLLECTE_DONS': 'bg-yellow-100 text-yellow-800'
+                            } %}
+                            <span class="px-2 py-1 rounded-full text-xs font-semibold {{ typeColors[event.type] ?? 'bg-gray-100 text-gray-800' }}">
+                                {{ event.type|replace({'_': ' '}) }}
+                            </span>
+                        </td>
+                        <td data-order="{{ event.dateDebut|date('Y-m-d H:i:s') }}">
+                            <div class="text-gray-900">{{ event.dateDebut|date('d/m/Y') }}</div>
+                            <div class="text-xs text-gray-500">{{ event.dateDebut|date('H:i') }}</div>
+                        </td>
+                        <td data-order="{{ event.dateFin ? event.dateFin|date('Y-m-d H:i:s') : '9999-12-31' }}">
+                            {% if event.dateFin %}
+                                <div class="text-gray-900">{{ event.dateFin|date('d/m/Y') }}</div>
+                                <div class="text-xs text-gray-500">{{ event.dateFin|date('H:i') }}</div>
+                            {% else %}
+                                <span class="text-gray-400">—</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ event.ville }}</td>
+                        <td data-order="{{ event.capaciteMax ?? 999999 }}">
+                            {% if event.capaciteMax %}
+                                <span class="font-medium">{{ event.capaciteMax }}</span>
+                            {% else %}
+                                <span class="text-gray-400">∞</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% set statutColors = {
+                                'PLANIFIE': 'bg-green-100 text-green-800',
+                                'ANNULE': 'bg-red-100 text-red-800',
+                                'TERMINE': 'bg-gray-100 text-gray-800'
+                            } %}
+                            <span class="px-2 py-1 rounded-full text-xs font-semibold {{ statutColors[event.statut] ?? 'bg-gray-100 text-gray-800' }}">
+                                {{ event.statut }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="flex items-center gap-1">
+                                <a href="{{ path('app_admin_events_edit', {id: event.id}) }}" 
+                                   class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" 
+                                   title="Edit">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                    </svg>
+                                </a>
+                                {% if event.statut != 'ANNULE' %}
+                                    <form action="{{ path('app_admin_events_cancel', {id: event.id}) }}" method="POST" class="inline">
+                                        <button type="button" 
+                                                class="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition-colors" 
+                                                title="Cancel Event"
+                                                data-action="click->confirm#show"
+                                                data-confirm-title="Cancel Event"
+                                                data-confirm-message="This will mark '{{ event.titre|e('js') }}' as cancelled."
+                                                data-confirm-text="Cancel Event"
+                                                data-confirm-class="bg-orange-600 hover:bg-orange-700">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+                                            </svg>
+                                        </button>
+                                    </form>
+                                {% endif %}
+                                <form action="{{ path('app_admin_events_delete', {id: event.id}) }}" method="POST" class="inline">
+                                    <button type="button" 
+                                            class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors" 
+                                            title="Delete Permanently"
+                                            data-action="click->confirm#show"
+                                            data-confirm-title="Delete Permanently"
+                                            data-confirm-message="This will PERMANENTLY delete '{{ event.titre|e('js') }}' and all its participations. This cannot be undone!"
+                                            data-confirm-text="Delete Forever"
+                                            data-confirm-class="bg-red-600 hover:bg-red-700">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                        </svg>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {# Add Modal #}
+    <div data-modal-target="backdrop" class="hidden fixed inset-0 z-40 bg-black/30 modal-backdrop" data-action="click->modal#close"></div>
+    <div data-modal-target="dialog" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" aria-modal="true">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
+            <h2 class="text-lg font-bold text-gray-800 mb-4">Add New Event</h2>
+            <form id="addEventForm" method="POST" action="{{ path('app_admin_events_create') }}" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Title *</label>
+                    <input type="text" name="titre" required minlength="3" maxlength="255" class="form-input w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-paw-orange focus:border-paw-orange outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Type *</label>
+                    <select name="type" required class="form-input w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-paw-orange focus:border-paw-orange outline-none">
+                        <option value="">Select type...</option>
+                        <option value="VACCINATION">Vaccination</option>
+                        <option value="ADOPTION">Adoption</option>
+                        <option value="SENSIBILISATION">Sensibilisation</option>
+                        <option value="COLLECTE_DONS">Collecte de dons</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Start Date *</label>
+                        <input type="datetime-local" name="dateDebut" required class="form-input w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-paw-orange focus:border-paw-orange outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                        <input type="datetime-local" name="dateFin" class="form-input w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-paw-orange focus:border-paw-orange outline-none">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Location *</label>
+                        <input type="text" name="lieu" required maxlength="255" class="form-input w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-paw-orange focus:border-paw-orange outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">City *</label>
+                        <input type="text" name="ville" required maxlength="100" class="form-input w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-paw-orange focus:border-paw-orange outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                    <textarea name="description" rows="3" class="form-input w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-paw-orange focus:border-paw-orange outline-none"></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Max Capacity</label>
+                    <input type="number" name="capaciteMax" min="1" class="form-input w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-paw-orange focus:border-paw-orange outline-none" placeholder="Leave empty for unlimited">
+                </div>
+                <div class="flex gap-3 pt-2">
+                    <button type="button" data-action="click->modal#close" class="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button type="submit" class="flex-1 px-4 py-2.5 bg-paw-orange text-white rounded-lg hover:bg-paw-orange-hover font-medium">
+                        Create Event
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+$(function() {
+    // Initialize DataTable
+    $('#eventsTable').DataTable({
+        paging: true,
+        pageLength: 10,
+        lengthMenu: [5, 10, 25, 50, 100],
+        ordering: true,
+        order: [[0, 'asc']],
+        searching: true,
+        info: true,
+        columnDefs: [
+            { orderable: false, targets: 8 }
+        ],
+        language: {
+            search: "Search:",
+            lengthMenu: "Show _MENU_ entries",
+            info: "Showing _START_ to _END_ of _TOTAL_ events",
+            infoEmpty: "No events available",
+            infoFiltered: "(filtered from _MAX_ total events)",
+            paginate: {
+                first: "First",
+                last: "Last",
+                next: "Next",
+                previous: "Previous"
+            },
+            zeroRecords: "No matching events found"
+        }
+    });
+});
+</script>
+{% endblock %}

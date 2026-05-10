@@ -1,0 +1,398 @@
+{% extends 'base_front.html.twig' %}
+
+{% block title %}{{ dog.name|default('Dog') }} - PawTech{% endblock %}
+
+{% block body %}
+    <div class="max-w-6xl mx-auto" x-data="{
+        deleteModalOpen: false
+    }">
+        
+
+        <!-- Hero Profile Card -->
+        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden mb-6">
+            <div class="flex flex-col lg:flex-row">
+                <!-- Image Section -->
+                <div class="lg:w-2/5 relative">
+                    {% if dog.image %}
+                        <img src="{{ dog.image }}" alt="{{ dog.name }}" class="w-full h-64 lg:h-full object-cover">
+                    {% else %}
+                        <div class="w-full h-64 lg:h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                            <span class="text-8xl font-bold text-gray-300">{{ dog.name|slice(0, 1)|upper }}</span>
+                        </div>
+                    {% endif %}
+                    <!-- Status Badge Overlay -->
+                    <div class="absolute top-4 left-4">
+                        {% set adoptionStatus = dog.adoptionStatus|default('Available') %}
+                        <span class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold shadow-lg
+                            {% if adoptionStatus == 'Available' %}bg-green-500 text-white
+                            {% elseif adoptionStatus == 'Reserved' %}bg-yellow-500 text-white
+                            {% elseif adoptionStatus == 'Adopted' %}bg-blue-500 text-white
+                            {% else %}bg-gray-500 text-white{% endif %}">
+                            {% if adoptionStatus == 'Available' %}
+                                <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                            {% endif %}
+                            {{ adoptionStatus }}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Info Section -->
+                <div class="lg:w-3/5 p-6 lg:p-8">
+                    <div class="flex items-start justify-between mb-4">
+                        <div>
+                            <h1 class="text-3xl font-bold text-gray-900">{{ dog.name|default('Unnamed') }}</h1>
+                            <p class="text-lg text-gray-600 mt-1">{{ dog.breed|default('Unknown') }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Quick Stats -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+                        <div class="text-center p-3 bg-gray-50 rounded-xl">
+                            <p class="text-2xl font-bold text-gray-900">{{ dog.age|default('Unknown') }}</p>
+                            <p class="text-xs text-gray-500 uppercase tracking-wide">Years Old</p>
+                        </div>
+                        <div class="text-center p-3 bg-gray-50 rounded-xl">
+                            <p class="text-2xl font-bold text-gray-900">{{ dog.weight|default('N/A') }}</p>
+                            <p class="text-xs text-gray-500 uppercase tracking-wide">Kg</p>
+                        </div>
+                        <div class="text-center p-3 bg-gray-50 rounded-xl">
+                            <p class="text-2xl font-bold text-gray-900">{{ dog.size|default('Medium') }}</p>
+                            <p class="text-xs text-gray-500 uppercase tracking-wide">Size</p>
+                        </div>
+                        <div class="text-center p-3 bg-gray-50 rounded-xl">
+                            <p class="text-2xl font-bold text-gray-900">{{ dog.gender|default('Unknown') }}</p>
+                            <p class="text-xs text-gray-500 uppercase tracking-wide">Gender</p>
+                        </div>
+                    </div>
+
+                    <!-- Compatibility Icons -->
+                    <div class="flex flex-wrap gap-3 mb-6">
+                        {% set friendlyWithKids = dog.friendlyWithKids|default(false) %}
+                        <div class="flex items-center gap-2 px-3 py-2 rounded-lg {{ friendlyWithKids ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-400' }}">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.182 15.182a4.5 4.5 0 01-6.364 0M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75zm-.375 0h.008v.015h-.008V9.75zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75zm-.375 0h.008v.015h-.008V9.75z" />
+                            </svg>
+                            <span class="text-sm font-medium">Kids {{ friendlyWithKids ? 'Friendly' : 'Not Tested' }}</span>
+                        </div>
+                        
+                        {% set friendlyWithDogs = dog.friendlyWithDogs|default(false) %}
+                        <div class="flex items-center gap-2 px-3 py-2 rounded-lg {{ friendlyWithDogs ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-400' }}">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6.633 10.5c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 012.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 00.322-1.672V3" />
+                            </svg>
+                            <span class="text-sm font-medium">Dogs {{ friendlyWithDogs ? 'Friendly' : 'Not Tested' }}</span>
+                        </div>
+                        
+                        {% set friendlyWithCats = dog.friendlyWithCats|default(false) %}
+                        <div class="flex items-center gap-2 px-3 py-2 rounded-lg {{ friendlyWithCats ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-400' }}">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
+                            </svg>
+                            <span class="text-sm font-medium">Cats {{ friendlyWithCats ? 'Friendly' : 'Not Tested' }}</span>
+                        </div>
+                        
+                        {% set vaccinated = dog.vaccinated|default(false) %}
+                        <div class="flex items-center gap-2 px-3 py-2 rounded-lg {{ vaccinated ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600' }}">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                            </svg>
+                            <span class="text-sm font-medium">{{ vaccinated ? 'Vaccinated' : 'Not Vaccinated' }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="border-t border-gray-100 pt-5">
+                        <div class="rounded-2xl border border-orange-100 bg-gradient-to-br from-orange-50 to-amber-50 p-5">
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="h-10 w-10 rounded-xl bg-white shadow-sm border border-orange-100 flex items-center justify-center">
+                                        <svg class="h-5 w-5 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18l-.813-2.096a4.5 4.5 0 00-2.87-2.87L3.222 12l2.095-.813a4.5 4.5 0 002.87-2.87L9 6.222l.813 2.095a4.5 4.5 0 002.87 2.87l2.096.813-2.095.813a4.5 4.5 0 00-2.87 2.87z" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-semibold text-gray-900">AI Story</h3>
+                                        <p class="text-xs text-gray-500">Generate a warm, adoptable profile description.</p>
+                                    </div>
+                                </div>
+                                <button id="useAiDescriptionBtn"
+                                        type="button"
+                                        onclick="generateDogDescription(this)"
+                                        class="inline-flex items-center justify-center gap-2 rounded-lg bg-orange-600 px-4 py-2 text-xs font-semibold text-white hover:bg-orange-700 transition shadow-sm">
+                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                                    </svg>
+                                    Use AI
+                                </button>
+                            </div>
+                            <div id="dogDescriptionText"
+                                 class="rounded-xl bg-white border border-orange-100 p-4 text-gray-700 leading-relaxed text-[15px] space-y-3">
+                                {{ dog.description|default('No description yet. Click "Use AI" to generate one.') }}
+                            </div>
+                            <p id="dogDescriptionStatus" class="hidden mt-3 text-xs text-gray-500"></p>
+                        </div>
+                    </div>
+
+                    <!-- Adoption Action -->
+                    <div class="mt-5">
+                        {% if adoptionStatus == 'Adopted' %}
+                            <button disabled class="w-full inline-flex items-center justify-center rounded-xl bg-gray-100 px-4 py-3 text-sm font-semibold text-gray-400 cursor-not-allowed border border-gray-200">
+                                Adopted
+                            </button>
+                        {% elseif sessionUser is defined and sessionUser %}
+                            <a href="{{ path('app_apply_adoption', {'id': dog.id}) }}" class="w-full inline-flex items-center justify-center rounded-xl bg-orange-600 px-4 py-3 text-sm font-semibold text-white hover:bg-orange-700 hover:shadow-lg active:scale-95 transition-all duration-200">
+                                Apply for Adoption
+                            </a>
+                        {% else %}
+                            <a href="{{ path('app_signin') }}" class="w-full inline-flex items-center justify-center rounded-xl bg-orange-100 px-4 py-3 text-sm font-semibold text-orange-700 hover:bg-orange-200 transition shadow-sm">
+                                Login to Adopt
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Details Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            <!-- Health & Medical -->
+            <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+                <div class="flex items-center gap-3 mb-5">
+                    <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50">
+                        <svg class="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900">Health & Medical</h3>
+                </div>
+                <dl class="space-y-4">
+                    <div class="flex items-center justify-between py-2 border-b border-gray-100">
+                        <dt class="text-sm text-gray-500">Health Status</dt>
+                        <dd class="text-sm font-semibold text-gray-900">
+                            {% set healthStatus = dog.healthStatus|default('Healthy') %}
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium
+                                {% if healthStatus == 'Healthy' %}bg-green-100 text-green-700
+                                {% elseif healthStatus == 'Under Treatment' %}bg-yellow-100 text-yellow-700
+                                {% else %}bg-gray-100 text-gray-700{% endif %}">
+                                {{ healthStatus }}
+                            </span>
+                        </dd>
+                    </div>
+                    <div class="flex items-center justify-between py-2 border-b border-gray-100">
+                        <dt class="text-sm text-gray-500">Vaccinated</dt>
+                        <dd class="text-sm font-semibold {{ vaccinated ? 'text-green-600' : 'text-red-600' }}">
+                            {{ vaccinated ? 'Yes' : 'No' }}
+                        </dd>
+                    </div>
+                    <div class="flex items-center justify-between py-2">
+                        <dt class="text-sm text-gray-500">Microchip</dt>
+                        <dd class="text-sm font-mono text-gray-900">{{ dog.microchipNumber|default('N/A') }}</dd>
+                    </div>
+                </dl>
+            </div>
+
+            <!-- Identification -->
+            <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+                <div class="flex items-center gap-3 mb-5">
+                    <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50">
+                        <svg class="h-5 w-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900">Identification</h3>
+                </div>
+                <dl class="space-y-4">
+                    <div class="flex items-center justify-between py-2 border-b border-gray-100">
+                        <dt class="text-sm text-gray-500">Name</dt>
+                        <dd class="text-sm font-semibold text-gray-900">{{ dog.name|default('Unnamed') }}</dd>
+                    </div>
+                    <div class="flex items-center justify-between py-2 border-b border-gray-100">
+                        <dt class="text-sm text-gray-500">Breed</dt>
+                        <dd class="text-sm font-semibold text-gray-900">{{ dog.breed|default('Unknown') }}</dd>
+                    </div>
+                    <div class="flex items-center justify-between py-2">
+                        <dt class="text-sm text-gray-500">Color</dt>
+                        <dd class="text-sm font-semibold text-gray-900">{{ dog.color|default('Various') }}</dd>
+                    </div>
+                </dl>
+            </div>
+
+            <!-- Timeline -->
+            <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+                <div class="flex items-center gap-3 mb-5">
+                    <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-50">
+                        <svg class="h-5 w-5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900">Timeline</h3>
+                </div>
+                <dl class="space-y-4">
+                    <div class="flex items-center justify-between py-2 border-b border-gray-100">
+                        <dt class="text-sm text-gray-500">Arrival Date</dt>
+                        <dd class="text-sm font-semibold text-gray-900">
+                            {{ dog.arrivalDate ? dog.arrivalDate|date('M d, Y') : 'Unknown' }}
+                        </dd>
+                    </div>
+                    <div class="flex items-center justify-between py-2 border-b border-gray-100">
+                        <dt class="text-sm text-gray-500">Days in Shelter</dt>
+                        <dd class="text-sm font-semibold text-gray-900">
+                            {% if dog.arrivalDate %}
+                                {{ date().diff(dog.arrivalDate).days }} days
+                            {% else %}
+                                Unknown
+                            {% endif %}
+                        </dd>
+                    </div>
+                    <div class="flex items-center justify-between py-2">
+                        <dt class="text-sm text-gray-500">Adoption Status</dt>
+                        <dd>
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium
+                                {% if adoptionStatus == 'Available' %}bg-green-100 text-green-700
+                                {% elseif adoptionStatus == 'Reserved' %}bg-yellow-100 text-yellow-700
+                                {% elseif adoptionStatus == 'Adopted' %}bg-blue-100 text-blue-700
+                                {% else %}bg-gray-100 text-gray-700{% endif %}">
+                                {{ adoptionStatus }}
+                            </span>
+                        </dd>
+                    </div>
+                </dl>
+            </div>
+        </div>
+
+        <!-- Physical Characteristics -->
+        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 mb-6">
+            <div class="flex items-center gap-3 mb-5">
+                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50">
+                    <svg class="h-5 w-5 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
+                    </svg>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900">Physical Characteristics</h3>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-6">
+                <div class="text-center">
+                    <div class="inline-flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 mb-2">
+                        <svg class="h-7 w-7 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <p class="text-lg font-bold text-gray-900">{{ dog.age|default('Unknown') }}</p>
+                    <p class="text-xs text-gray-500 uppercase tracking-wide">Years</p>
+                </div>
+                <div class="text-center">
+                    <div class="inline-flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 mb-2">
+                        <svg class="h-7 w-7 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v17.25m0 0c-1.472 0-2.882.265-4.185.75M12 20.25c1.472 0 2.882.265 4.185.75M18.75 4.97A48.416 48.416 0 0012 4.5c-2.291 0-4.545.16-6.75.47m13.5 0c1.01.143 2.01.317 3 .52m-3-.52l2.62 10.726c.122.499-.106 1.028-.589 1.202a5.988 5.988 0 01-2.031.352 5.988 5.988 0 01-2.031-.352c-.483-.174-.711-.703-.59-1.202L18.75 4.971z" />
+                        </svg>
+                    </div>
+                    <p class="text-lg font-bold text-gray-900">{{ dog.weight|default('N/A') }} kg</p>
+                    <p class="text-xs text-gray-500 uppercase tracking-wide">Weight</p>
+                </div>
+                <div class="text-center">
+                    <div class="inline-flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 mb-2">
+                        <svg class="h-7 w-7 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
+                        </svg>
+                    </div>
+                    <p class="text-lg font-bold text-gray-900">{{ dog.size|default('Medium') }}</p>
+                    <p class="text-xs text-gray-500 uppercase tracking-wide">Size</p>
+                </div>
+                <div class="text-center">
+                    <div class="inline-flex h-14 w-14 items-center justify-center rounded-full {{ dog.gender == 'Male' ? 'bg-blue-100' : 'bg-pink-100' }} mb-2">
+                        {% if dog.gender == 'Male' %}
+                            <svg class="h-7 w-7 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />
+                            </svg>
+                        {% else %}
+                            <svg class="h-7 w-7 text-pink-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m0 0l6.75-6.75M12 19.5l-6.75-6.75" />
+                            </svg>
+                        {% endif %}
+                    </div>
+                    <p class="text-lg font-bold text-gray-900">{{ dog.gender|default('Unknown') }}</p>
+                    <p class="text-xs text-gray-500 uppercase tracking-wide">Gender</p>
+                </div>
+                <div class="text-center">
+                    <div class="inline-flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 mb-2">
+                        <svg class="h-7 w-7 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6z" />
+                        </svg>
+                    </div>
+                    <p class="text-lg font-bold text-gray-900">{{ (dog.breed|default('Unknown'))|slice(0, 10) }}{% if dog.breed|default('')|length > 10 %}...{% endif %}</p>
+                    <p class="text-xs text-gray-500 uppercase tracking-wide">Breed</p>
+                </div>
+                <div class="text-center">
+                    <div class="inline-flex h-14 w-14 items-center justify-center rounded-full {{ vaccinated ? 'bg-green-100' : 'bg-red-100' }} mb-2">
+                        <svg class="h-7 w-7 {{ vaccinated ? 'text-green-600' : 'text-red-600' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                        </svg>
+                    </div>
+                    <p class="text-lg font-bold {{ vaccinated ? 'text-green-600' : 'text-red-600' }}">{{ vaccinated ? 'Yes' : 'No' }}</p>
+                    <p class="text-xs text-gray-500 uppercase tracking-wide">Vaccinated</p>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+window.generateDogDescription = async function(button) {
+    const descriptionText = document.getElementById('dogDescriptionText');
+    const descriptionStatus = document.getElementById('dogDescriptionStatus');
+
+    if (!button || !descriptionText || !descriptionStatus) {
+        console.error('AI description elements not found in DOM.');
+        return;
+    }
+
+    button.disabled = true;
+    const originalLabel = button.textContent;
+    button.textContent = 'Generating...';
+    descriptionStatus.classList.remove('hidden');
+    descriptionStatus.textContent = 'Generating AI description...';
+    descriptionStatus.className = 'mt-3 text-xs text-orange-600';
+
+    const formatDescription = (text) => {
+        const safe = String(text ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+        const withBold = safe.replace(/\*\*(.*?)\*\*/g, '<strong class="text-gray-900">$1</strong>');
+        return withBold
+            .split(/\n{2,}/)
+            .map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`)
+            .join('');
+    };
+
+    try {
+        const response = await fetch('{{ path('app_front_dogs_generate_description', {'id': dog.id}) }}', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const data = await response.json();
+        if (!response.ok || !data.ok) {
+            throw new Error(data.message || 'Failed to generate description');
+        }
+
+        descriptionText.innerHTML = formatDescription(data.description || 'No description returned by API.');
+        descriptionStatus.textContent = 'Description generated successfully.';
+        descriptionStatus.className = 'mt-3 text-xs text-green-600';
+    } catch (error) {
+        console.error('Generate description error:', error);
+        descriptionStatus.textContent = error.message || 'Error while generating description.';
+        descriptionStatus.className = 'mt-3 text-xs text-red-600';
+    } finally {
+        button.disabled = false;
+        button.textContent = originalLabel;
+    }
+};
+</script>
+{% endblock %}

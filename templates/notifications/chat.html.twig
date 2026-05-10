@@ -1,0 +1,242 @@
+{% extends 'base_front.html.twig' %}
+
+{% block title %}Notification Chat - PawTech{% endblock %}
+
+{% block body %}
+<section class="container mx-auto px-4 lg:px-8 py-12">
+    <div class="max-w-4xl mx-auto space-y-5">
+        <div class="flex items-center justify-between gap-4">
+            <div>
+                <p class="text-orange-600 font-semibold text-xs uppercase tracking-wide">Notifications</p>
+                <h1 class="text-3xl font-extrabold text-gray-900 mt-1">Chat Conversation</h1>
+                <p class="text-sm text-gray-600 mt-1">
+                    Thread for notification #{{ notification.id }} ({{ notification.type }})
+                </p>
+            </div>
+            <div class="flex items-center gap-2">
+                <a href="{{ voip_room_url }}"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   class="inline-flex items-center rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
+                    Start VOIP
+                </a>
+                <a href="{{ path('app_notifications') }}"
+                   class="inline-flex items-center rounded-full bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-200">
+                    Back to notifications
+                </a>
+            </div>
+        </div>
+
+        <div class="rounded-2xl border border-orange-100 bg-orange-50/50 p-4">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <p class="text-sm text-gray-700">{{ notification.message }}</p>
+                <span id="notification-status-badge" class="text-xs font-semibold {{ notification.statut == 'unread' ? 'text-orange-600' : 'text-gray-500' }}">
+                    {{ notification.statut|upper }}
+                </span>
+            </div>
+            <div class="mt-3 rounded-xl border border-orange-200 bg-white px-3 py-2 text-xs text-gray-700 space-y-1">
+                <p>
+                    Assigned veterinarian:
+                    <span id="participant-vet" class="font-semibold text-gray-900">
+                        {{ participants.vet is not null and participants.vet.name is defined and participants.vet.name ? participants.vet.name : 'Waiting for veterinarian' }}
+                    </span>
+                </p>
+                <p>
+                    Assigned municipal agent:
+                    <span id="participant-agent" class="font-semibold text-gray-900">
+                        {{ participants.agent is not null and participants.agent.name is defined and participants.agent.name ? participants.agent.name : 'Waiting for municipal agent' }}
+                    </span>
+                </p>
+                <p id="entry-state-text" class="font-medium {{ both_entered ? 'text-green-700' : 'text-orange-700' }}">
+                    {{ both_entered ? 'Both participants entered. Notification is marked as read.' : 'Notification stays unread until one veterinarian and one municipal agent enter this conversation.' }}
+                </p>
+                <p class="text-gray-600">
+                    VOIP room:
+                    <a href="{{ voip_room_url }}" target="_blank" rel="noopener noreferrer" class="font-semibold text-emerald-700 hover:text-emerald-800">
+                        {{ voip_room_url }}
+                    </a>
+                </p>
+            </div>
+        </div>
+
+        <div class="rounded-2xl border border-gray-200 bg-white shadow-sm">
+            <div class="border-b border-gray-100 px-5 py-3 text-sm text-gray-600">
+                You are logged in as <span class="font-semibold text-gray-900">{{ current_user_name }}</span>
+                ({{ current_role }})
+            </div>
+
+            <div id="messages-list" class="max-h-[460px] overflow-y-auto px-5 py-5 space-y-3 bg-gray-50">
+                {% for message in messages %}
+                    {% set isMine = (message.sender_user_id|default(0)) == current_user_id %}
+                    <div class="flex {{ isMine ? 'justify-end' : 'justify-start' }}">
+                        <article class="max-w-[80%] rounded-2xl px-4 py-3 shadow-sm {{ isMine ? 'bg-blue-600 text-white' : 'bg-white border border-gray-200 text-gray-800' }}">
+                            <div class="flex items-center justify-between gap-3 text-[11px] {{ isMine ? 'text-blue-100' : 'text-gray-500' }}">
+                                <span class="font-semibold">{{ message.sender_name }}</span>
+                                <span>{{ message.created_at|date('Y-m-d H:i') }}</span>
+                            </div>
+                            <p class="mt-1 text-sm whitespace-pre-wrap">{{ message.content }}</p>
+                        </article>
+                    </div>
+                {% else %}
+                    <div class="rounded-xl border border-dashed border-gray-300 bg-white p-6 text-center text-sm text-gray-500">
+                        No messages yet. Start the conversation with the other role.
+                    </div>
+                {% endfor %}
+            </div>
+
+            <form id="chat-message-form" method="post" class="border-t border-gray-100 p-4">
+                <input type="hidden" name="_token" value="{{ csrf_token('chat_message_' ~ notification.id) }}">
+                <label for="message" class="sr-only">Message</label>
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-end">
+                    <textarea id="message"
+                              name="message"
+                              rows="3"
+                              required
+                              class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-100"
+                              placeholder="Write your message for this notification..."></textarea>
+                    <button type="submit"
+                            class="inline-flex items-center justify-center rounded-xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white hover:bg-orange-600">
+                        Send
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const endpoint = '{{ path('app_notifications_chat_messages', { id: notification.id }) }}';
+            const listEl = document.getElementById('messages-list');
+            const statusEl = document.getElementById('notification-status-badge');
+            const vetEl = document.getElementById('participant-vet');
+            const agentEl = document.getElementById('participant-agent');
+            const entryStateEl = document.getElementById('entry-state-text');
+            const textareaEl = document.getElementById('message');
+            const formEl = document.getElementById('chat-message-form');
+
+            if (!listEl || !statusEl || !vetEl || !agentEl || !entryStateEl) {
+                return;
+            }
+
+            let currentUserId = Number('{{ current_user_id }}') || 0;
+            let currentRole = '{{ current_role|e('js') }}';
+
+            function escapeHtml(value) {
+                return String(value ?? '')
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#39;');
+            }
+
+            function formatDate(value) {
+                const date = new Date(value);
+                if (Number.isNaN(date.getTime())) {
+                    return '';
+                }
+
+                const two = (n) => String(n).padStart(2, '0');
+                return `${date.getFullYear()}-${two(date.getMonth() + 1)}-${two(date.getDate())} ${two(date.getHours())}:${two(date.getMinutes())}`;
+            }
+
+            function renderMessages(messages) {
+                if (!Array.isArray(messages) || messages.length === 0) {
+                    listEl.innerHTML = '<div class="rounded-xl border border-dashed border-gray-300 bg-white p-6 text-center text-sm text-gray-500">No messages yet. Start the conversation with the other role.</div>';
+                    return;
+                }
+
+                const nearBottom = listEl.scrollTop + listEl.clientHeight >= listEl.scrollHeight - 24;
+                listEl.innerHTML = messages.map((message) => {
+                    const mine = Number(message.sender_user_id || 0) === currentUserId;
+                    const wrapperClass = mine ? 'justify-end' : 'justify-start';
+                    const cardClass = mine
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-white border border-gray-200 text-gray-800';
+                    const metaClass = mine ? 'text-blue-100' : 'text-gray-500';
+
+                    return `
+                        <div class="flex ${wrapperClass}">
+                            <article class="max-w-[80%] rounded-2xl px-4 py-3 shadow-sm ${cardClass}">
+                                <div class="flex items-center justify-between gap-3 text-[11px] ${metaClass}">
+                                    <span class="font-semibold">${escapeHtml(message.sender_name || '')}</span>
+                                    <span>${escapeHtml(formatDate(message.created_at || ''))}</span>
+                                </div>
+                                <p class="mt-1 text-sm whitespace-pre-wrap">${escapeHtml(message.content || '')}</p>
+                            </article>
+                        </div>
+                    `;
+                }).join('');
+
+                if (nearBottom) {
+                    listEl.scrollTop = listEl.scrollHeight;
+                }
+            }
+
+            function renderParticipants(participants) {
+                const vetName = participants && participants.vet && participants.vet.name ? participants.vet.name : 'Waiting for veterinarian';
+                const agentName = participants && participants.agent && participants.agent.name ? participants.agent.name : 'Waiting for municipal agent';
+                vetEl.textContent = vetName;
+                agentEl.textContent = agentName;
+            }
+
+            function renderStatus(payload) {
+                const status = String(payload.notification_status || '').toUpperCase() || 'UNREAD';
+                statusEl.textContent = status;
+                statusEl.classList.remove('text-orange-600', 'text-gray-500');
+                statusEl.classList.add(status === 'UNREAD' ? 'text-orange-600' : 'text-gray-500');
+
+                if (payload.both_entered) {
+                    entryStateEl.textContent = 'Both participants entered. Notification is marked as read.';
+                    entryStateEl.classList.remove('text-orange-700');
+                    entryStateEl.classList.add('text-green-700');
+                } else {
+                    entryStateEl.textContent = 'Notification stays unread until one veterinarian and one municipal agent enter this conversation.';
+                    entryStateEl.classList.remove('text-green-700');
+                    entryStateEl.classList.add('text-orange-700');
+                }
+            }
+
+            async function refreshMessages() {
+                try {
+                    const response = await fetch(endpoint, {
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                        credentials: 'same-origin',
+                        cache: 'no-store'
+                    });
+
+                    if (!response.ok) {
+                        return;
+                    }
+
+                    const payload = await response.json();
+                    if (!payload || payload.ok !== true) {
+                        return;
+                    }
+
+                    currentUserId = Number(payload.current_user_id || currentUserId || 0);
+                    currentRole = String(payload.current_role || currentRole || 'ROLE_USER');
+
+                    renderStatus(payload);
+                    renderParticipants(payload.participants || {});
+                    renderMessages(payload.messages || []);
+                } catch (e) {
+                    // Keep UI stable on transient network errors.
+                }
+            }
+
+            listEl.scrollTop = listEl.scrollHeight;
+            setInterval(refreshMessages, 4000);
+
+            if (formEl && textareaEl) {
+                formEl.addEventListener('submit', function () {
+                    textareaEl.setAttribute('data-submitting', '1');
+                });
+            }
+        });
+    </script>
+{% endblock %}

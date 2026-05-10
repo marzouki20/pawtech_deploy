@@ -1,0 +1,220 @@
+{% extends 'base_front.html.twig' %}
+
+{% block title %}{{ event.titre }} - PawTech{% endblock %}
+
+{% block body %}
+{% set errors = errors is defined ? errors : {} %}
+{% set formData = formData is defined ? formData : {prenom: '', nom: '', email: '', telephone: ''} %}
+<section class="container mx-auto px-4 lg:px-8 py-12">
+    {# Back Link #}
+    <a href="{{ path('app_events') }}" class="inline-flex items-center gap-2 text-orange-600 hover:text-orange-700 font-semibold mb-6">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+        Back to Events
+    </a>
+
+    {# Flash Messages #}
+    {% for message in app.flashes('success') %}
+        <div class="mb-6 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg">
+            {{ message }}
+        </div>
+    {% endfor %}
+    {% for message in app.flashes('error') %}
+        <div class="mb-6 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
+            {{ message }}
+        </div>
+    {% endfor %}
+    {% for message in app.flashes('warning') %}
+        <div class="mb-6 bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-lg">
+            {{ message }}
+        </div>
+    {% endfor %}
+
+    {# Default images by event type #}
+    {% set typeImages = {
+        'VACCINATION': 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=800&h=450&fit=crop',
+        'ADOPTION': 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=800&h=450&fit=crop',
+        'SENSIBILISATION': 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=800&h=450&fit=crop',
+        'COLLECTE_DONS': 'https://images.unsplash.com/photo-1450778869180-41d0601e046e?w=800&h=450&fit=crop'
+    } %}
+
+    <div class="grid lg:grid-cols-3 gap-8">
+        {# Main Content #}
+        <div class="lg:col-span-2 space-y-6">
+            {# Event Image #}
+            <div class="rounded-2xl overflow-hidden bg-gray-100 aspect-[16/9]">
+                {% if event.image %}
+                    <img src="{{ event.image }}" alt="{{ event.titre }}" class="w-full h-full object-cover">
+                {% else %}
+                    <img src="{{ typeImages[event.type] ?? 'https://images.unsplash.com/photo-1534361960057-19889db9621e?w=800&h=450&fit=crop' }}" 
+                         alt="{{ event.titre }}" class="w-full h-full object-cover">
+                {% endif %}
+            </div>
+
+            {# Event Details #}
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                <div class="flex flex-wrap gap-3 mb-4">
+                    <span class="rounded-full bg-orange-100 px-3 py-1 text-sm font-semibold text-orange-700">
+                        {{ event.type }}
+                    </span>
+                    <span class="rounded-full bg-gray-100 px-3 py-1 text-sm font-semibold text-gray-700">
+                        {{ event.statut }}
+                    </span>
+                </div>
+
+                <h1 class="text-3xl font-extrabold text-gray-900">{{ event.titre }}</h1>
+                
+                <div class="mt-4 flex flex-wrap gap-6 text-gray-600">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        <span>{{ event.dateDebut|date('F d, Y - H:i') }}</span>
+                    </div>
+                    {% if event.dateFin %}
+                        <div class="flex items-center gap-2">
+                            <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <span>Until {{ event.dateFin|date('F d, Y - H:i') }}</span>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="mt-3 flex flex-wrap gap-6 text-gray-600">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                        <span>{{ event.lieu }}, {{ event.ville }}</span>
+                    </div>
+                    {% if event.capaciteMax %}
+                        <div class="flex items-center gap-2">
+                            <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                            <span>{{ event.participations|length }} / {{ event.capaciteMax }} participants</span>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="mt-6 prose prose-gray max-w-none">
+                    <h3 class="text-lg font-bold text-gray-900">About this event</h3>
+                    <p class="text-gray-600 whitespace-pre-line">{{ event.description }}</p>
+                </div>
+            </div>
+
+            {# Guests / Speakers #}
+            {% if event.guests|length > 0 %}
+                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                    <h3 class="text-lg font-bold text-gray-900 mb-4">Guests & Speakers</h3>
+                    <div class="grid sm:grid-cols-2 gap-4">
+                        {% for guest in event.guests %}
+                            <div class="flex items-center gap-4 p-4 bg-gray-50 rounded-xl">
+                                <div class="w-14 h-14 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold text-lg">
+                                    {{ guest.prenom|slice(0,1) }}{{ guest.nom|slice(0,1) }}
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-gray-900">{{ guest.prenom }} {{ guest.nom }}</p>
+                                    <p class="text-sm text-orange-600">{{ guest.role }}</p>
+                                    {% if guest.organisation %}
+                                        <p class="text-sm text-gray-500">{{ guest.organisation }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        {# Sidebar - Registration Form #}
+        <div class="lg:col-span-1">
+            <div class="sticky top-6 bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                <h3 class="text-xl font-bold text-gray-900 mb-2">Register for this Event</h3>
+                <p class="text-gray-600 text-sm mb-6">Fill out the form below to participate in this event.</p>
+
+                {% set spotsLeft = event.capaciteMax ? (event.capaciteMax - event.participations|length) : null %}
+                
+                {# Check if event has ended #}
+                {% if eventPassed is defined and eventPassed %}
+                    <div class="mb-4 p-4 rounded-lg bg-gray-100 text-gray-700 border border-gray-200">
+                        <div class="flex items-center gap-3">
+                            <svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <div>
+                                <p class="font-semibold">Registration Closed</p>
+                                <p class="text-sm">This event has already ended.</p>
+                            </div>
+                        </div>
+                    </div>
+                {% elseif spotsLeft is not null %}
+                    <div class="mb-4 p-3 rounded-lg {{ spotsLeft > 0 ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800' }}">
+                        {% if spotsLeft > 0 %}
+                            <span class="font-semibold">{{ spotsLeft }}</span> spots remaining
+                        {% else %}
+                            <span class="font-semibold">Event is full</span>
+                        {% endif %}
+                    </div>
+                {% endif %}
+
+                {% if (eventPassed is not defined or not eventPassed) and (spotsLeft is null or spotsLeft > 0) %}
+                    {# Show general error if there are validation errors #}
+                    {% if errors is not empty %}
+                        <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                            Please correct the errors below.
+                        </div>
+                    {% endif %}
+
+                    <form action="{{ path('app_event_detail', {id: event.id}) }}" method="post" class="space-y-4" novalidate data-turbo="false">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">First Name *</label>
+                            <input type="text" name="prenom" value="{{ formData.prenom ?? '' }}"
+                                   class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none {{ errors.prenom is defined ? 'border-red-500' : 'border-gray-200' }}"
+                                   placeholder="Your first name">
+                            {% if errors.prenom is defined %}
+                                <p class="text-red-500 text-sm mt-1">{{ errors.prenom }}</p>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Last Name *</label>
+                            <input type="text" name="nom" value="{{ formData.nom ?? '' }}"
+                                   class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none {{ errors.nom is defined ? 'border-red-500' : 'border-gray-200' }}"
+                                   placeholder="Your last name">
+                            {% if errors.nom is defined %}
+                                <p class="text-red-500 text-sm mt-1">{{ errors.nom }}</p>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                            <input type="email" name="email" value="{{ formData.email ?? '' }}"
+                                   class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none {{ errors.email is defined ? 'border-red-500' : 'border-gray-200' }}"
+                                   placeholder="your@email.com">
+                            {% if errors.email is defined %}
+                                <p class="text-red-500 text-sm mt-1">{{ errors.email }}</p>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                            <input type="tel" name="telephone" value="{{ formData.telephone ?? '' }}"
+                                   class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none {{ errors.telephone is defined ? 'border-red-500' : 'border-gray-200' }}"
+                                   placeholder="Your phone number">
+                            {% if errors.telephone is defined %}
+                                <p class="text-red-500 text-sm mt-1">{{ errors.telephone }}</p>
+                            {% endif %}
+                        </div>
+                        <button type="submit" class="w-full py-3 bg-orange-500 text-white font-bold rounded-lg hover:bg-orange-600 transition">
+                            Register Now
+                        </button>
+                    </form>
+                {% else %}
+                    <p class="text-center text-gray-500 py-4">Registration is closed for this event.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

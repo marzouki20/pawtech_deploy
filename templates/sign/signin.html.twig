@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In - PawTech</title>
+    
+    {# Tailwind CSS #}
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    {# Font Awesome for icons #}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* Background */
+        .page-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            z-index: -2;
+        }
+        
+        /* Form input styling */
+        .form-input {
+            transition: all 0.2s;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #f97316;
+            box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+        }
+        
+        /* Validation styling */
+        .is-invalid {
+            border-color: #f56565 !important;
+        }
+        
+        .invalid-feedback {
+            color: #f56565;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+        
+        /* Error container */
+        .error-container {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+        }
+        
+        /* No scrollbars */
+        * {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        *::-webkit-scrollbar {
+            display: none;
+        }
+        
+        /* Close button */
+        .close-btn {
+            transition: all 0.2s;
+        }
+        
+        .close-btn:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        /* Image side overlay */
+        .image-overlay {
+            background: linear-gradient(135deg, rgba(249,115,22,0.9) 0%, rgba(234,88,12,0.95) 100%);
+        }
+    </style>
+</head>
+<body class="fixed inset-0">
+    
+    {# Background #}
+    <div class="page-bg"></div>
+    
+    {# Main container - Split layout #}
+    <div class="fixed inset-0 flex">
+        
+        {# Left side - Image & Description #}
+        <div class="hidden md:flex md:w-1/2 image-overlay relative overflow-hidden">
+            {# Back to Home button #}
+            <a href="{{ path('app_home') }}" class="absolute top-6 left-6 z-20 inline-flex items-center gap-2 text-white/80 hover:text-white transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                <span class="font-medium">Back to Home Screen</span>
+            </a>
+            
+            {# Decorative elements #}
+            <div class="absolute top-0 left-0 w-full h-full">
+                <div class="absolute top-20 left-20 w-72 h-72 bg-white opacity-10 rounded-full"></div>
+                <div class="absolute bottom-20 right-20 w-96 h-96 bg-white opacity-10 rounded-full"></div>
+                <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 border-4 border-white opacity-20 rounded-full"></div>
+            </div>
+            
+            {# Content #}
+            <div class="relative z-10 flex flex-col justify-center items-center w-full p-12 text-white">
+                {# Logo #}
+                <div class="mb-8">
+                    <img src="{{ asset('logo.png') }}" alt="PawTech" class="h-20" >
+                </div>
+                
+                {# Main heading #}
+                <h1 class="text-4xl font-bold text-center mb-6">Welcome to PawTech</h1>
+                
+                {# Description #}
+                <p class="text-lg text-center text-white/90 max-w-md mb-8">
+                    Your trusted platform for pet care services. Connect with veterinarians, find products, and join our community of pet lovers.
+                </p>
+                
+                {# Features #}
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                            <i class="fas fa-stethoscope"></i>
+                        </div>
+                        <span class="text-white/90">Expert Veterinary Care</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                            <i class="fas fa-shopping-bag"></i>
+                        </div>
+                        <span class="text-white/90">Quality Pet Products</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                        <span class="text-white/90">Event Management</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        {# Right side - Form #}
+        <div class="w-full md:w-1/2 flex items-center justify-center p-4 md:p-8 bg-white overflow-y-auto" style="height: 100vh;">
+            <div class="w-full max-w-md">
+                
+                {# Close button for mobile #}
+                <button onclick="window.location.href='{{ path('app_home') }}'" 
+                        class="close-btn md:hidden absolute top-6 right-6 z-50 w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center transition-all duration-200">
+                    <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+                
+                
+                
+                {# Logo for mobile #}
+                <div class="lg:hidden text-center mb-8">
+                    <img src="{{ asset('logo.png') }}" alt="PawTech" class="h-16 mx-auto" >
+                </div>
+                
+                {# Title #}
+                <div class="text-center mb-8">
+                    <h1 class="text-2xl font-bold text-gray-900">Welcome Back</h1>
+                    <p class="text-gray-500 mt-1 text-sm">Sign in to your PawTech account</p>
+                </div>
+
+                {# Social & Face Login #}
+                <div class="space-y-3 mb-6">
+                    <a href="{{ path('app_google_auth_start') }}" class="w-full flex items-center justify-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-700 font-medium hover:border-gray-300 hover:bg-gray-50 transition">
+                        <svg class="h-5 w-5" viewBox="0 0 48 48" aria-hidden="true">
+                            <path fill="#FFC107" d="M43.6 20.4H42V20H24v8h11.3C33.9 32.7 29.4 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.1 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.6z"/>
+                            <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.1 18.9 12 24 12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.1 6.1 29.3 4 24 4c-7.7 0-14.4 3.9-18 10.7z"/>
+                            <path fill="#4CAF50" d="M24 44c5.2 0 10-2 13.6-5.2l-6.3-5.3c-1.9 1.3-4.3 2.1-7.3 2.1-5.4 0-10-3.3-11.6-7.9l-6.5 5C9.5 39.9 16.3 44 24 44z"/>
+                            <path fill="#1976D2" d="M43.6 20.4H42V20H24v8h11.3c-1.1 2.9-3.4 5.2-6.3 6.6l6.3 5.3C39 36.4 44 30.8 44 24c0-1.3-.1-2.7-.4-3.6z"/>
+                        </svg>
+                        <span>Continue with Google</span>
+                    </a>
+                    
+                    {# Face Scan #}
+                    <div class="flex justify-center mb-4">
+                        <button type="button" onclick="openFaceScanModal()" class="w-20 h-20 rounded-full bg-white flex items-center justify-center shadow-lg border border-gray-200 hover:shadow-xl transition">
+                            <svg class="h-14 w-14 text-blue-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10" stroke="#4F46E5" stroke-width="2" fill="#EEF2FF"/>
+                                <path d="M9.5 10.5c0-1.38 1.12-2.5 2.5-2.5s2.5 1.12 2.5 2.5-.62 2.5-2.5 2.5-2.5-1.12-2.5-2.5z" fill="#6366F1"/>
+                                <rect x="10.5" y="14" width="3" height="1.5" rx="0.75" fill="#6366F1"/>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    {# Hidden input for face image #}
+                    <input type="hidden" name="user_face" id="face-image-input" style="display: none;" />
+                    
+                    {# Face capture status #}
+                    <div id="face-capture-status" class="text-sm text-gray-500 text-center"></div>
+                    
+                    {# Preview container #}
+                    <div id="face-preview-container" class="hidden flex justify-center mb-2">
+                        <img id="face-preview" src="" alt="Face preview" class="w-24 h-24 rounded-full border-2 border-orange-500 object-cover">
+                    </div>
+
+                    {# Verify Identity Button #}
+                    <div class="flex justify-center">
+                        <button
+                            type="button"
+                            id="verify-identity-btn"
+                            onclick="verifyEndentity()"
+                            class="hidden rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition"
+                        >
+                            verify endentity
+                        </button>
+                    </div>
+                    
+                    {# Face Scan Modal #}
+                    <div id="faceScanModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 hidden">
+                        <div class="bg-white rounded-2xl p-6 w-full max-w-sm relative flex flex-col items-center shadow-xl">
+                            <button onclick="closeFaceScanModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl font-bold">&times;</button>
+                            <h2 class="text-lg font-semibold mb-4 text-gray-800">Face Recognition</h2>
+                            <video id="face-video" autoplay playsinline class="rounded-xl border border-gray-200 mb-4" width="280" height="210"></video>
+                            <button type="button" onclick="captureFaceImage()" class="w-full bg-orange-500 text-white px-4 py-2.5 rounded-xl font-medium hover:bg-orange-600 transition">Capture Face</button>
+                        </div>
+                    </div>
+
+                    {# Welcome Modal #}
+                    <div id="faceWelcomeModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 hidden">
+                        <div class="bg-white rounded-2xl p-6 w-full max-w-sm relative text-center shadow-xl">
+                            <button type="button" onclick="closeFaceWelcomeModal()" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-2xl font-bold">&times;</button>
+                            <h3 class="text-2xl font-bold text-gray-900 mb-2">Welcome</h3>
+                            <p id="face-welcome-text" class="text-gray-700 text-base"></p>
+                            <button type="button" onclick="closeFaceWelcomeModal()" class="mt-5 w-full rounded-xl bg-blue-600 px-4 py-2.5 text-white font-medium hover:bg-blue-700 transition">OK</button>
+                        </div>
+                    </div>
+                    
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    <script>
+                        let faceStream = null;
+                        let capturedFaceImage = '';
+                        function openFaceWelcomeModal(username) {
+                            const text = document.getElementById('face-welcome-text');
+                            text.textContent = username ? username : 'User';
+                            document.getElementById('faceWelcomeModal').classList.remove('hidden');
+                        }
+                        function closeFaceWelcomeModal() {
+                            document.getElementById('faceWelcomeModal').classList.add('hidden');
+                        }
+                        function openFaceScanModal() {
+                            document.getElementById('faceScanModal').classList.remove('hidden');
+                            const video = document.getElementById('face-video');
+                            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                                navigator.mediaDevices.getUserMedia({ video: true }).then(function(stream) {
+                                    faceStream = stream;
+                                    video.srcObject = stream;
+                                    video.play();
+                                });
+                            }
+                        }
+                        function closeFaceScanModal() {
+                            document.getElementById('faceScanModal').classList.add('hidden');
+                            if (faceStream) {
+                                faceStream.getTracks().forEach(track => track.stop());
+                                faceStream = null;
+                            }
+                        }
+                        function captureFaceImage() {
+                            const video = document.getElementById('face-video');
+                            const canvas = document.createElement('canvas');
+                            canvas.width = video.videoWidth;
+                            canvas.height = video.videoHeight;
+                            canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+                            const dataUrl = canvas.toDataURL('image/png');
+                            capturedFaceImage = dataUrl;
+                            document.getElementById('face-image-input').value = dataUrl;
+                            document.getElementById('face-preview').src = dataUrl;
+                            document.getElementById('face-preview-container').classList.remove('hidden');
+                            document.getElementById('face-capture-status').innerHTML = '<span class="text-green-600"><i class="fas fa-check-circle"></i> Face captured! Click verify endentity.</span>';
+                            document.getElementById('verify-identity-btn').classList.remove('hidden');
+                            closeFaceScanModal();
+                        }
+
+                        async function verifyEndentity() {
+                            const statusEl = document.getElementById('face-capture-status');
+                            const buttonEl = document.getElementById('verify-identity-btn');
+
+                            if (!capturedFaceImage) {
+                                statusEl.innerHTML = '<span class="text-red-600"><i class="fas fa-exclamation-circle"></i> Capture a face image first.</span>';
+                                return;
+                            }
+
+                            buttonEl.disabled = true;
+                            buttonEl.classList.add('opacity-60', 'cursor-not-allowed');
+                            statusEl.innerHTML = '<span class="text-blue-600"><i class="fas fa-spinner fa-spin"></i> Verifying identity...</span>';
+
+                            try {
+                                const response = await fetch('{{ path('app_verify_face_proxy') }}', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify({
+                                        user_face: capturedFaceImage,
+                                    }),
+                                });
+
+                                const result = await response.json();
+
+                                if (result && result.message === 'yes') {
+                                    const username = result.username || 'Unknown';
+                                    statusEl.innerHTML = '<span class="text-green-600"><i class="fas fa-check-circle"></i> Verified: ' + username + '</span>';
+                                    openFaceWelcomeModal(username);
+                                    setTimeout(function() {
+                                        window.location.href = '{{ path('app_home') }}';
+                                    }, 1500);
+                                } else {
+                                    statusEl.innerHTML = '<span class="text-red-600"><i class="fas fa-times-circle"></i> No match found.</span>';
+                                }
+                            } catch (error) {
+                                statusEl.innerHTML = '<span class="text-red-600"><i class="fas fa-exclamation-triangle"></i> Verification request failed.</span>';
+                            } finally {
+                                buttonEl.disabled = false;
+                                buttonEl.classList.remove('opacity-60', 'cursor-not-allowed');
+                            }
+                        }
+                    </script>
+                    
+                    <div class="flex items-center gap-3 text-xs text-gray-400">
+                        <span class="h-px flex-1 bg-gray-200"></span>
+                        <span>or</span>
+                        <span class="h-px flex-1 bg-gray-200"></span>
+                    </div>
+                </div>
+                
+
+
+
+
+
+
+
+
+
+
+                {# Sign in form #}
+                {{ form_start(form, {'attr': {'class': 'space-y-5', 'id': 'signin-form'}}) }}
+                    
+                    {# Show form_error from controller #}
+                    {% if form_error is defined and form_error %}
+                        <div class="rounded-lg bg-red-50 border border-red-200 p-4 text-sm text-red-700 mb-4">
+                            {{ form_error }}
+                        </div>
+                    {% endif %}
+                    
+                    {# Email #}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                        {{ form_widget(form.email, {'attr': {
+                            'class': 'form-input w-full rounded-lg px-3 py-2 text-gray-900 placeholder-gray-400',
+                            'placeholder': 'you@example.com'
+                        }}) }}
+                        <span class="text-red-500 text-xs">{{ form_errors(form.email) }}</span>
+                    </div>
+                    
+                    {# Password #}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                        {{ form_widget(form.password, {'attr': {
+                            'class': 'form-input w-full rounded-lg px-3 py-2 text-gray-900 placeholder-gray-400',
+                            'placeholder': 'Enter your password',
+                            'id': 'password'
+                        }}) }}
+                        <span class="text-red-500 text-xs">{{ form_errors(form.password) }}</span>
+                        <div class="mt-1.5">
+                            <div class="password-strength strength-weak" id="password-strength"></div>
+                        </div>
+                        <div class="mt-2 text-right">
+                            <a href="{{ path('app_forgot_password') }}" class="text-sm font-medium text-orange-500 hover:text-orange-600">
+                                Forgot password?
+                            </a>
+                        </div>
+                    </div>
+                    
+                    {# Remember Me #}
+                    <div class="flex items-center gap-3">
+                        <input 
+                            type="checkbox" 
+                            id="remember" 
+                            name="_remember_me"
+                            class="rounded border-gray-300 text-orange-500 focus:ring-orange-500"
+                        >
+                        <label for="remember" class="text-sm text-gray-600">Remember me</label>
+                    </div>
+                    
+                    {# CSRF Token #}
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+                    
+                    {# Submit button #}
+                    <button type="submit" class="w-full rounded-xl bg-orange-500 py-3 px-4 font-semibold text-white shadow-sm hover:bg-orange-600 hover:shadow-md transition-all duration-200 mt-6">
+                        <i class="fas fa-sign-in-alt mr-2"></i>Sign In
+                    </button>
+                
+                {{ form_end(form) }}
+                
+                {# Sign up link #}
+                <div class="text-center mt-6 pt-5 border-t border-gray-100">
+                    <p class="text-gray-600 text-sm">
+                        Don't have an account?
+                        <a href="{{ path('app_signup') }}" class="font-semibold text-orange-500 hover:text-orange-600">Sign up</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {# Error Container at Bottom #}
+    {% if error is defined and error %}
+        <div class="error-container fixed bottom-4 left-1/2 transform -translate-x-1/2 rounded-xl p-4 shadow-lg">
+            <div class="flex items-start">
+                <i class="fas fa-exclamation-triangle text-red-500 mt-1 mr-2"></i>
+                <div class="text-red-700 text-sm">
+                    {{ error.messageKey|trans(error.messageData, 'security') }}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+    
+    {# Prevent scrolling #}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.body.style.overflow = 'hidden';
+            document.documentElement.style.overflow = 'hidden';
+            
+            document.addEventListener('wheel', function(e) {
+                e.preventDefault();
+            }, { passive: false });
+            
+            document.addEventListener('touchmove', function(e) {
+                e.preventDefault();
+            }, { passive: false });
+        });
+    </script>
+</body>
+</html>

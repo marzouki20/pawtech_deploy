@@ -1,0 +1,141 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}New Ziptag{% endblock %}
+
+{% set active = 'ziptag' %}
+{% set page_title = 'New Ziptag' %}
+
+{% block main %}
+    <div class="mb-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <nav class="text-sm text-gray-500 mb-2">
+                    <a href="{{ path('app_ziptag_index') }}" class="hover:text-gray-700">Ziptag</a>
+                    <span class="mx-2">/</span>
+                    <span class="text-gray-700 font-semibold">New</span>
+                </nav>
+                <div class="flex items-center gap-3">
+                    <a href="{{ path('app_ziptag_index') }}"
+                       class="inline-flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-gray-800">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
+                        Back to list
+                    </a>
+                    <span class="text-xs text-gray-400">•</span>
+                    <span class="text-sm text-gray-500">Create a new tracking device</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <a href="{{ path('app_ziptag_index') }}"
+                   class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-50 transition">
+                    Cancel
+                </a>
+                <button type="submit" form="ziptag-form"
+                        class="px-5 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-sm font-semibold shadow">
+                    Save
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-2xl w-full">
+        <div class="sticky top-0 bg-white border-b border-gray-200 px-8 py-6 rounded-t-2xl">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-3xl font-bold text-gray-900">Add New Ziptag</h2>
+                    <p class="mt-1 text-sm text-gray-600">Register a new tracking device</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="px-8 py-6">
+            <style>
+                .form-error ul { margin: 0; padding-left: 1.25rem; list-style: disc; }
+                .form-error li { color: #dc2626; font-size: 0.875rem; font-weight: 600; }
+            </style>
+            {{ form_start(form, {'attr': {'id': 'ziptag-form', 'novalidate': 'novalidate', 'class': 'contact-form'}}) }}
+                <div class="space-y-5">
+                    <div>
+                        {{ form_label(form.serialNumber, 'Serial Number', {'label_attr': {'class': 'block text-xs font-semibold mb-1 ' ~ (form.serialNumber.vars.errors|length ? 'text-red-600' : 'text-gray-700')}}) }}
+                        <div class="flex gap-2">
+                            {{ form_widget(form.serialNumber, {'attr': {
+                                'readonly': 'readonly',
+                                'placeholder': 'ZT-XXXXXXX',
+                                'class': 'w-full rounded-lg border px-3 py-2 text-sm bg-gray-50 text-gray-700 transition ' ~ (form.serialNumber.vars.errors|length ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200' : 'border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-200')
+                            }}) }}
+                            <button type="button" onclick="generateZiptagSerial('{{ form.serialNumber.vars.id }}')"
+                                    class="px-3 py-2 rounded-lg border border-gray-200 text-xs font-semibold text-gray-700 hover:bg-gray-50">
+                                Regenerate
+                            </button>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-1">Auto-generated when the page opens.</p>
+                        <div class="form-error mt-2">
+                            {{ form_errors(form.serialNumber) }}
+                        </div>
+                    </div>
+                    <div>
+                        {{ form_label(form.firmwareVersion, 'Firmware Version', {'label_attr': {'class': 'block text-xs font-semibold mb-1 ' ~ (form.firmwareVersion.vars.errors|length ? 'text-red-600' : 'text-gray-700')}}) }}
+                        {{ form_widget(form.firmwareVersion, {'attr': {
+                            'placeholder': 'v1.0.0',
+                            'class': 'w-full rounded-lg border px-3 py-2 text-sm transition ' ~ (form.firmwareVersion.vars.errors|length ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200' : 'border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-200')
+                        }}) }}
+                        <div class="form-error mt-2">
+                            {{ form_errors(form.firmwareVersion) }}
+                        </div>
+                    </div>
+                    <div>
+                        {{ form_label(form.model, 'Model', {'label_attr': {'class': 'block text-xs font-semibold mb-1 ' ~ (form.model.vars.errors|length ? 'text-red-600' : 'text-gray-700')}}) }}
+                        {{ form_widget(form.model, {'attr': {
+                            'placeholder': 'Ziptag Pro',
+                            'class': 'w-full rounded-lg border px-3 py-2 text-sm transition ' ~ (form.model.vars.errors|length ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200' : 'border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-200')
+                        }}) }}
+                        <div class="form-error mt-2">
+                            {{ form_errors(form.model) }}
+                        </div>
+                    </div>
+                    <div>
+                        {{ form_label(form.dog, 'Assign to Dog', {'label_attr': {'class': 'block text-xs font-semibold mb-1 ' ~ (form.dog.vars.errors|length ? 'text-red-600' : 'text-gray-700')}}) }}
+                        {{ form_widget(form.dog, {'attr': {
+                            'class': 'w-full rounded-lg border px-3 py-2 text-sm transition ' ~ (form.dog.vars.errors|length ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200' : 'border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-200')
+                        }}) }}
+                        <div class="form-error mt-2">
+                            {{ form_errors(form.dog) }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-4 mt-8 pt-6 border-t border-gray-200">
+                    <a href="{{ path('app_ziptag_index') }}"
+                       class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition">
+                        Cancel
+                    </a>
+                    <button type="submit"
+                            class="px-8 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2">
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Add Ziptag
+                    </button>
+                </div>
+            {{ form_end(form) }}
+        </div>
+    </div>
+
+    <script>
+        function generateZiptagSerial(inputId) {
+            const input = document.getElementById(inputId);
+            if (!input) return;
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            let serial = 'ZT-';
+            for (let i = 0; i < 8; i += 1) {
+                serial += chars[Math.floor(Math.random() * chars.length)];
+            }
+            input.value = serial;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            generateZiptagSerial('{{ form.serialNumber.vars.id }}');
+        });
+    </script>
+{% endblock %}

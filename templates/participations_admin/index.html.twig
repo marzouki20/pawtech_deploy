@@ -1,0 +1,147 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Participations | PawTech Admin{% endblock %}
+
+{% block main %}
+<div class="space-y-4">
+    <div class="flex items-center justify-between gap-4">
+        <h1 class="text-2xl font-bold text-gray-800">Participations</h1>
+        <a href="{{ path('app_participation_new') }}" class="flex items-center gap-2 px-4 py-2.5 bg-paw-orange text-white rounded-lg hover:bg-paw-orange-hover font-medium">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            New Participation
+        </a>
+    </div>
+
+    {% for message in app.flashes('success') %}
+        <div class="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg">
+            {{ message }}
+        </div>
+    {% endfor %}
+
+    {# Search and Filter #}
+    <form method="get" class="bg-white rounded-xl border border-gray-200 p-4">
+        <div class="flex flex-wrap gap-4 items-end">
+            <div class="flex-1 min-w-[200px]">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Search</label>
+                <input type="text" name="q" value="{{ q }}" placeholder="Name, email or event..."
+                       class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-paw-orange focus:border-paw-orange outline-none">
+            </div>
+            <div class="w-40">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                <select name="statut" class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-paw-orange focus:border-paw-orange outline-none">
+                    <option value="">All</option>
+                    <option value="EN_ATTENTE" {{ statut == 'EN_ATTENTE' ? 'selected' }}>Pending</option>
+                    <option value="CONFIRMEE" {{ statut == 'CONFIRMEE' ? 'selected' }}>Confirmed</option>
+                    <option value="ANNULEE" {{ statut == 'ANNULEE' ? 'selected' }}>Cancelled</option>
+                </select>
+            </div>
+            <div class="w-48">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Sort by</label>
+                <select name="sort" class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-paw-orange focus:border-paw-orange outline-none">
+                    <option value="dateParticipation_desc" {{ sort == 'dateParticipation_desc' ? 'selected' }}>Date (newest)</option>
+                    <option value="dateParticipation_asc" {{ sort == 'dateParticipation_asc' ? 'selected' }}>Date (oldest)</option>
+                    <option value="user_asc" {{ sort == 'user_asc' ? 'selected' }}>Participant (A-Z)</option>
+                    <option value="user_desc" {{ sort == 'user_desc' ? 'selected' }}>Participant (Z-A)</option>
+                    <option value="evenement_asc" {{ sort == 'evenement_asc' ? 'selected' }}>Event (A-Z)</option>
+                </select>
+            </div>
+            <div class="flex gap-2">
+                <button type="submit" class="px-4 py-2 bg-paw-orange text-white rounded-lg hover:bg-paw-orange-hover">
+                    Filter
+                </button>
+                <a href="{{ path('app_participation_index') }}" class="px-4 py-2 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50">
+                    Reset
+                </a>
+            </div>
+        </div>
+    </form>
+
+    {# Results Count #}
+    <div class="text-sm text-gray-600">
+        {{ participations|length }} participation(s) found
+    </div>
+
+    {# Table #}
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <table class="w-full">
+            <thead>
+                <tr class="bg-gray-50 border-b border-gray-200">
+                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Participant</th>
+                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Event</th>
+                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Registration Date</th>
+                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Status</th>
+                    <th class="px-4 py-3 text-right text-sm font-semibold text-gray-700">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for participation in participations %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3">
+                            <div class="font-medium text-gray-900">{{ participation.user.fullName }}</div>
+                            <div class="text-sm text-gray-500">{{ participation.user.email }}</div>
+                        </td>
+                        <td class="px-4 py-3">
+                            <a href="{{ path('app_evenement_show', {'id': participation.evenement.id}) }}" class="text-paw-orange hover:underline font-medium">
+                                {{ participation.evenement.titre }}
+                            </a>
+                            <div class="text-sm text-gray-500">{{ participation.evenement.ville }}</div>
+                        </td>
+                        <td class="px-4 py-3 text-gray-600">{{ participation.dateParticipation|date('d/m/Y') }}</td>
+                        <td class="px-4 py-3">
+                            {% set statutColors = {
+                                'EN_ATTENTE': 'bg-yellow-100 text-yellow-800',
+                                'CONFIRMEE': 'bg-green-100 text-green-800',
+                                'ANNULEE': 'bg-red-100 text-red-800'
+                            } %}
+                            <span class="px-2 py-1 rounded-full text-xs font-semibold {{ statutColors[participation.statut] ?? 'bg-gray-100 text-gray-800' }}">
+                                {{ participation.statut|replace({'_': ' '}) }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 text-right">
+                            <div class="flex justify-end gap-1">
+                                {% if participation.statut == 'EN_ATTENTE' %}
+                                    <form action="{{ path('app_participation_confirm', {'id': participation.id}) }}" method="post" class="inline">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('confirm' ~ participation.id) }}">
+                                        <button type="submit" class="p-1.5 text-green-600 hover:bg-green-50 rounded" title="Confirm">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                            </svg>
+                                        </button>
+                                    </form>
+                                    <form action="{{ path('app_participation_cancel', {'id': participation.id}) }}" method="post" class="inline">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('cancel' ~ participation.id) }}">
+                                        <button type="submit" class="p-1.5 text-red-600 hover:bg-red-50 rounded" title="Cancel">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                            </svg>
+                                        </button>
+                                    </form>
+                                {% endif %}
+                                <a href="{{ path('app_participation_show', {'id': participation.id}) }}" class="p-1.5 text-gray-600 hover:bg-gray-100 rounded" title="View">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                    </svg>
+                                </a>
+                                <a href="{{ path('app_participation_edit', {'id': participation.id}) }}" class="p-1.5 text-gray-600 hover:bg-gray-100 rounded" title="Edit">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                    </svg>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="5" class="px-4 py-8 text-center text-gray-500">
+                            No participations found
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,155 @@
+{% extends 'base_front.html.twig' %}
+
+{% block title %}{{ page_title }} - PawTech Admin{% endblock %}
+
+{% block body %}
+<div class="min-h-screen bg-gray-50">
+    {# Header #}
+    <div class="bg-gradient-to-r from-red-600 to-red-700 text-white admin-header">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex flex-col-mobile items-start md:items-center justify-between">
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-bold">Health Alerts</h1>
+                    <p class="text-red-100 mt-1 text-sm md:text-base">Critical health conditions detected by AI vision system</p>
+                </div>
+                <div class="flex flex-wrap-mobile items-center gap-2 md:gap-4 mt-3 md:mt-0">
+                    <a href="{{ path('app_admin_dashboard') }}" class="bg-white/20 hover:bg-white/30 px-3 md:px-4 py-2 rounded-lg flex items-center gap-2 transition text-sm">
+                        <i class="fas fa-home"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Alert Stats #}
+    <div class="container mx-auto px-4 py-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="bg-red-50 border border-red-200 rounded-xl p-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center">
+                        <i class="fas fa-exclamation-triangle text-white"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm text-red-600">Critical</p>
+                        <p class="text-2xl font-bold text-red-800">{{ healthAlerts|filter(h => h.severity == 'critical')|length }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-orange-50 border border-orange-200 rounded-xl p-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center">
+                        <i class="fas fa-exclamation-circle text-white"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm text-orange-600">Serious</p>
+                        <p class="text-2xl font-bold text-orange-800">{{ healthAlerts|filter(h => h.severity == 'serious')|length }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                        <i class="fas fa-info-circle text-white"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm text-blue-600">Total Alerts</p>
+                        <p class="text-2xl font-bold text-blue-800">{{ healthAlerts|length }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Alerts List #}
+        <div class="space-y-4">
+            {% for alert in healthAlerts %}
+            <div class="bg-white rounded-xl shadow-lg p-4 md:p-6 border-l-4 
+                {% if alert.severity == 'critical' %}border-red-500
+                {% elseif alert.severity == 'serious' %}border-orange-500
+                {% else %}border-blue-500{% endif %} alert-card health-alert-item">
+                <div class="flex items-start justify-between">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-3 mb-2">
+                            <span class="px-3 py-1 rounded-full text-sm font-medium
+                                {% if alert.severity == 'critical' %}bg-red-500 text-white
+                                {% elseif alert.severity == 'serious' %}bg-orange-500 text-white
+                                {% else %}bg-blue-500 text-white{% endif %}">
+                                {{ alert.severity|title }}
+                            </span>
+                            <span class="text-gray-500 text-sm">{{ alert.detectedAt|date('Y-m-d H:i:s') }}</span>
+                        </div>
+                        
+                        <h3 class="text-xl font-bold text-gray-800 mb-2">
+                            {{ alert.healthCondition|replace({'_': ' '})|title }}
+                        </h3>
+                        
+                        {% if alert.healthSymptoms %}
+                        <div class="flex flex-wrap gap-2 mb-3">
+                            {% for symptom in alert.healthSymptoms %}
+                            <span class="px-2 py-1 bg-gray-100 text-gray-700 text-sm rounded">{{ symptom }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        
+                        {% if alert.description %}
+                        <p class="text-gray-600 mb-3">{{ alert.description }}</p>
+                        {% endif %}
+                        
+                        <div class="flex items-center gap-4 text-sm text-gray-500">
+                            {% if alert.camera %}
+                            <span><i class="fas fa-video mr-1"></i> {{ alert.camera.name }}</span>
+                            {% endif %}
+                            <span><i class="fas fa-percentage mr-1"></i> {{ alert.confidence }}% confidence</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-col gap-2">
+                        <button class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition text-sm">
+                            <i class="fas fa-envelope mr-1"></i> Notify Vet
+                        </button>
+                        <button class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition text-sm">
+                            <i class="fas fa-check mr-1"></i> Mark Resolved
+                        </button>
+                    </div>
+                </div>
+                
+                {# Detection Details #}
+                <div class="mt-4 pt-4 border-t border-gray-100">
+                    <h4 class="text-sm font-medium text-gray-500 mb-2">Detection Details</h4>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                        <div>
+                            <span class="text-gray-500">Behavior:</span>
+                            <span class="ml-2 font-medium">{{ alert.behaviorType|replace({'_': ' '})|title }}</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-500">Confidence:</span>
+                            <span class="ml-2 font-medium">{{ alert.confidence }}%</span>
+                        </div>
+                        {% if alert.boundingBox %}
+                        <div>
+                            <span class="text-gray-500">Position:</span>
+                            <span class="ml-2 font-medium">x: {{ alert.boundingBox.x }}, y: {{ alert.boundingBox.y }}</span>
+                        </div>
+                        {% endif %}
+                        {% if alert.imagePath %}
+                        <div>
+                            <span class="text-gray-500">Image:</span>
+                            <a href="{{ asset(alert.imagePath) }}" target="_blank" class="ml-2 text-orange-500 hover:underline">View</a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="bg-white rounded-xl shadow-lg p-12 text-center">
+                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-check text-green-500 text-2xl"></i>
+                </div>
+                <h2 class="text-xl font-bold text-gray-800">No Health Alerts</h2>
+                <p class="text-gray-500 mt-2">All dogs are healthy! No serious conditions detected.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

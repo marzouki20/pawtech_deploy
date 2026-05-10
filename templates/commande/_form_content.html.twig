@@ -1,0 +1,217 @@
+{# templates/commande/_form_content.html.twig #}
+<div class="max-w-3xl mx-auto">
+  <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+    <div class="bg-gradient-to-r from-orange-500 to-orange-600 px-8 py-6">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V9a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold text-white">{{ page_title }}</h1>
+          <p class="text-orange-100 text-sm mt-1">Manage order details</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="p-8">
+      {{ form_start(form, {
+        'attr': {
+          'class': 'space-y-6',
+          'id': 'commande-form',
+          'novalidate': 'novalidate'
+        }
+      }) }}
+
+      {% if not form.vars.valid %}
+        <div class="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          Please review the highlighted fields and try again.
+          {{ form_errors(form) }}
+        </div>
+      {% endif %}
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {# Champ DATE #}
+        <div>
+          {% set date_attr = {'class': 'w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-paw-orange focus:border-paw-orange bg-gray-50 hover:bg-white', 'placeholder': 'dd/mm/yyyy', 'data-field': 'date'} %}
+          {% if form.date.vars.errors|length %}{% set date_attr = date_attr|merge({'class': 'w-full px-4 py-3 border border-red-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50'}) %}{% endif %}
+          {{ form_label(form.date, null, {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-2'}}) }}
+          <div class="relative">
+            {{ form_widget(form.date, {'attr': date_attr, 'errors': false}) }}
+            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+              <svg class="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
+              </svg>
+            </div>
+          </div>
+          {% set date_errors = form.date.vars.errors %}
+          <div class="text-red-500 text-sm mt-1 font-medium {{ date_errors|length ? '' : 'hidden' }}" data-error-for="date">
+            {% for error in date_errors %}
+              <div>{{ error.message }}</div>
+            {% endfor %}
+          </div>
+          <p class="text-gray-500 text-xs mt-1">Format: dd/mm/yyyy. Date <= aujourd'hui.</p>
+        </div>
+
+        {# Champ TOTAL #}
+        <div>
+          {% set total_attr = {'class': 'w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-paw-orange focus:border-paw-orange bg-gray-50 hover:bg-white', 'placeholder': '0.00', 'data-field': 'total'} %}
+          {% if form.total.vars.errors|length %}{% set total_attr = total_attr|merge({'class': 'w-full px-4 py-3 border border-red-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50'}) %}{% endif %}
+          {{ form_label(form.total, null, {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-2'}}) }}
+          {{ form_widget(form.total, {'attr': total_attr, 'errors': false}) }}
+          {% set total_errors = form.total.vars.errors %}
+          <div class="text-red-500 text-sm mt-1 font-medium {{ total_errors|length ? '' : 'hidden' }}" data-error-for="total">
+            {% for error in total_errors %}
+              <div>{{ error.message }}</div>
+            {% endfor %}
+          </div>
+          <div class="text-xs text-gray-500 mt-1">Nombre >= 0. Ex: 0 ou 120.50</div>
+        </div>
+
+        {# Champ STATUT #}
+        <div class="md:col-span-2">
+          <div class="flex items-center">
+            {{ form_widget(form.statut, {'attr': {
+              'class': 'h-4 w-4 text-paw-orange focus:ring-paw-orange border-gray-300 rounded'
+            }, 'errors': false}) }}
+            {{ form_label(form.statut, null, {'label_attr': {'class': 'ml-2 text-sm text-gray-700'}}) }}
+          </div>
+          {% set statut_errors = form.statut.vars.errors %}
+          <div class="text-red-500 text-sm mt-1 font-medium {{ statut_errors|length ? '' : 'hidden' }}" data-error-for="statut">
+            {% for error in statut_errors %}
+              <div>{{ error.message }}</div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <div class="pt-6 border-t border-gray-100 flex flex-wrap gap-3">
+        <a href="{{ path('app_eshop_commande_index') }}" class="inline-flex items-center px-5 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 hover:text-gray-800 transition-colors">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+          </svg>
+          Back to list
+        </a>
+        <button type="submit" class="inline-flex items-center px-5 py-2.5 text-sm font-medium text-white bg-orange-500 rounded-lg hover:bg-orange-600 transition-all shadow-md hover:shadow-lg">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+          </svg>
+          {{ submit_label|default('Save') }}
+        </button>
+      </div>
+
+      {{ form_end(form) }}
+    </div>
+  </div>
+</div>
+
+<script>
+function initCommandeFormValidation() {
+  const form = document.getElementById('commande-form');
+  if (!form || form.dataset.validationBound === 'true') {
+    return;
+  }
+  form.dataset.validationBound = 'true';
+
+  const fields = {
+    date: form.querySelector('[data-field="date"]'),
+    total: form.querySelector('[data-field="total"]'),
+  };
+
+  function setError(field, message) {
+    const input = fields[field];
+    const container = form.querySelector('[data-error-for="' + field + '"]');
+    if (container) {
+      if (message) {
+        container.innerHTML = '<div>' + message + '</div>';
+        container.classList.remove('hidden');
+      } else {
+        container.innerHTML = '';
+        container.classList.add('hidden');
+      }
+    }
+    if (input) {
+      input.classList.toggle('border-red-500', !!message);
+      input.classList.toggle('bg-red-50', !!message);
+      input.classList.toggle('focus:ring-red-500', !!message);
+      input.classList.toggle('focus:border-red-500', !!message);
+      input.setAttribute('aria-invalid', message ? 'true' : 'false');
+    }
+  }
+
+  function parseDate(value) {
+    const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(value);
+    if (!match) return null;
+    const day = Number(match[1]);
+    const month = Number(match[2]);
+    const year = Number(match[3]);
+    const date = new Date(year, month - 1, day);
+    if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
+      return null;
+    }
+    return date;
+  }
+
+  function normalizeNumber(value) {
+    return value.replace(',', '.').trim();
+  }
+
+  function validateDate() {
+    const value = (fields.date?.value || '').trim();
+    if (!value) {
+      setError('date', 'La date est obligatoire.');
+      return false;
+    }
+    const date = parseDate(value);
+    if (!date) {
+      setError('date', 'Format invalide. Utilisez dd/mm/yyyy.');
+      return false;
+    }
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (date > today) {
+      setError('date', 'La date ne peut pas être dans le futur.');
+      return false;
+    }
+    setError('date', '');
+    return true;
+  }
+
+  function validateTotal() {
+    const value = (fields.total?.value || '').trim();
+    if (!value) {
+      setError('total', 'Le total est obligatoire.');
+      return false;
+    }
+    const numberValue = Number(normalizeNumber(value));
+    if (Number.isNaN(numberValue) || numberValue < 0) {
+      setError('total', 'Le total doit être un nombre positif ou zéro.');
+      return false;
+    }
+    setError('total', '');
+    return true;
+  }
+
+  if (fields.date) {
+    fields.date.addEventListener('input', validateDate);
+    fields.date.addEventListener('change', validateDate);
+  }
+  if (fields.total) {
+    fields.total.addEventListener('input', validateTotal);
+    fields.total.addEventListener('change', validateTotal);
+  }
+
+  form.addEventListener('submit', function(event) {
+    const okDate = validateDate();
+    const okTotal = validateTotal();
+    if (!okDate || !okTotal) {
+      event.preventDefault();
+      (fields.date && !okDate ? fields.date : fields.total)?.focus();
+    }
+  });
+}
+
+document.addEventListener('DOMContentLoaded', initCommandeFormValidation);
+document.addEventListener('turbo:load', initCommandeFormValidation);
+</script>

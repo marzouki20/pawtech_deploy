@@ -1,0 +1,347 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Stations | PawTech{% endblock %}
+
+{% set active = 'stations' %}
+{% set page_title = 'Stations' %}
+
+{# Calculate records here so they're available in both main and javascripts blocks #}
+{% set total_records = observation_stations|length %}
+{% set active_records = observation_stations|filter(s => s.statut == 'active')|length %}
+{% set inactive_records = observation_stations|filter(s => s.statut == 'inactive')|length %}
+{% set maintenance_records = observation_stations|filter(s => s.statut == 'maintenance')|length %}
+
+{% block main %}
+<div x-data="{
+    searchQuery: '',
+    showGridOnly: false,
+    deleteModalOpen: false,
+    deleteAction: '',
+    deleteToken: '',
+    deleteLabel: '',
+    openDelete(action, token, label) {
+        this.deleteAction = action;
+        this.deleteToken = token;
+        this.deleteLabel = label;
+        this.deleteModalOpen = true;
+    }
+}">
+    <div class="px-4 sm:px-6 lg:px-8 py-8 max-w-7xl mx-auto">
+        <!-- Page Header -->
+        <div class="bg-white rounded-2xl border border-gray-200 p-6 mb-8 shadow-sm">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+                <div class="flex items-start gap-4 flex-1">
+                    <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-100">
+                        <svg class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <nav class="flex items-center gap-2 text-sm text-gray-500 mb-1">
+                            <a href="#" class="hover:text-gray-700 transition">Dashboard</a>
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                            <span class="text-gray-900 font-medium">Stations</span>
+                        </nav>
+                        <h1 class="text-2xl font-bold text-gray-900">Observation Stations</h1>
+                        <p class="mt-1 text-sm text-gray-600 max-w-xl">Track and manage all observation stations, monitor their status and location.</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 flex-shrink-0 mt-4 lg:mt-0">
+                    <a href="{{ path('app_admin_stations_new') }}"
+                       class="inline-flex items-center gap-2 rounded-lg bg-paw-orange px-5 py-2.5 text-sm font-semibold text-white shadow hover:bg-paw-orange-hover transition-colors">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Add Station
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- FILTERS INLINE WITH SEARCH BAR -->
+        <div class="flex flex-col gap-2 mb-8">
+            <div class="flex flex-1 items-center gap-4 max-w-5xl">
+                <!-- Filters -->
+                <span class="text-sm font-semibold text-gray-700">Filters:</span>
+                <div class="relative">
+                    <select id="statutFilter" 
+                            class="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm text-gray-900 focus:border-paw-orange focus:ring-2 focus:ring-paw-orange/30">
+                        <option value="">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                        <option value="maintenance">Maintenance</option>
+                    </select>
+                </div>
+                <div class="flex gap-2">
+                    <button type="button" 
+                            id="applyFilters"
+                            class="inline-flex items-center gap-2 rounded-lg bg-paw-orange px-5 py-2.5 text-sm font-semibold text-white shadow hover:bg-paw-orange-hover transition-colors min-w-[120px]">
+                        Apply Filters
+                    </button>
+                    <button type="button" 
+                            id="clearFilters"
+                            class="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors min-w-[120px]">
+                        Clear Filters
+                    </button>
+                </div>
+                <!-- Search -->
+                <input type="text" 
+                    id="search" 
+                    placeholder="Search stations by code..."
+                    class="w-full min-w-[250px] rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder-gray-400 shadow-sm focus:border-paw-orange focus:ring-2 focus:ring-paw-orange/30">
+            </div>
+        </div>
+
+        <!-- Overview Stats -->
+        <div class="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Total Stations</p>
+                <p class="mt-2 text-2xl font-bold text-gray-900">{{ total_records }}</p>
+            </div>
+            <div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Active</p>
+                <p class="mt-2 text-2xl font-bold text-green-600">{{ active_records }}</p>
+            </div>
+            <div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Inactive</p>
+                <p class="mt-2 text-2xl font-bold text-red-600">{{ inactive_records }}</p>
+            </div>
+            <div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Maintenance</p>
+                <p class="mt-2 text-2xl font-bold text-yellow-600">{{ maintenance_records }}</p>
+            </div>
+        </div>
+
+        <!-- Stations Table -->
+        <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-100">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 w-[10%]">ID</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 w-[14%]">Code</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 w-[12%] hidden md:table-cell">Zone</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 w-[18%] hidden lg:table-cell">Localisation</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 w-[14%] hidden sm:table-cell">Status</th>
+                            <th class="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wide text-gray-500 w-[30%]">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="all">
+                        {% if observation_stations is empty %}
+                            <tr>
+                                <td colspan="6" class="px-6 py-12 text-center">
+                                    <p class="text-sm font-semibold text-gray-600">No observation stations registered yet.</p>
+                                    <p class="text-xs text-gray-400">Click "Add Station" to create the first record.</p>
+                                </td>
+                            </tr>
+                        {% else %}
+                            {% for station in observation_stations %}
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 text-sm font-semibold text-gray-900">#{{ station.id }}</td>
+                                    <td class="px-6 py-4 text-sm text-gray-900 font-medium">{{ station.code }}</td>
+                                    <td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap hidden md:table-cell">{{ station.zone }}</td>
+                                    <td class="px-6 py-4 text-sm text-gray-600 hidden lg:table-cell">
+                                        <a href="{{ path('app_admin_station_dashboard', {'id': station.id}) }}" 
+                                           class="inline-flex items-center gap-2 text-orange-600 hover:text-orange-800 hover:underline transition-colors"
+                                           title="View Station Dashboard">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            </svg>
+                                            <span class="block truncate max-w-[150px]">{{ station.localisation }}</span>
+                                        </a>
+                                    </td>
+                                    <td class="px-6 py-4 hidden sm:table-cell">
+                                        <span class="inline-flex rounded-full px-3 py-1 text-xs font-semibold
+                                            {% if station.statut == 'active' %}bg-green-100 text-green-700
+                                            {% elseif station.statut == 'inactive' %}bg-red-100 text-red-700
+                                            {% elseif station.statut == 'maintenance' %}bg-yellow-100 text-yellow-700
+                                            {% else %}bg-orange-100 text-orange-700{% endif %}">
+                                            {{ station.statut }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 text-right text-sm">
+                                        <a href="{{ path('app_admin_stations_show', {'id': station.id}) }}"
+                                           class="text-gray-600 hover:text-gray-900 font-semibold">View</a>
+                                        <a href="{{ path('app_admin_stations_edit', {'id': station.id}) }}"
+                                           class="ml-4 text-paw-orange hover:text-paw-orange-hover font-semibold">Edit</a>
+                                        <button type="button"
+                                                class="ml-4 text-red-600 hover:text-red-700 font-semibold"
+                                                @click="openDelete('{{ path('app_admin_stations_delete', {'id': station.id}) }}', '{{ csrf_token('delete' ~ station.id) }}', '{{ station.id|e('js') }}')">
+                                            Delete
+                                        </button>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        {% endif %}
+                    </tbody>
+                    <tbody id="filtertab" style="display: none;"></tbody>
+                    <tbody id="searchtab" style="display: none;"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Modal -->
+    <div x-show="deleteModalOpen"
+         class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm"
+         @click.self="deleteModalOpen = false"
+         @keydown.escape.window="deleteModalOpen = false"
+         style="display: none;"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0 scale-95"
+         x-transition:enter-end="opacity-100 scale-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100 scale-100"
+         x-transition:leave-end="opacity-0 scale-95">
+        <div @click.stop class="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4">
+            <div class="sticky top-0 bg-white border-b border-gray-200 px-8 py-6 rounded-t-2xl">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900">Delete Station</h2>
+                        <p class="mt-1 text-sm text-gray-600">Are you sure you want to delete station <span class="font-semibold" x-text="deleteLabel"></span>?</p>
+                    </div>
+                    <button @click="deleteModalOpen = false" class="text-gray-400 hover:text-gray-600 transition-colors">
+                        <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="px-8 py-6">
+                <form method="post" :action="deleteAction">
+                    <input type="hidden" name="_token" :value="deleteToken">
+                    <div class="flex justify-end gap-3">
+                        <button type="button" @click="deleteModalOpen = false"
+                                class="px-6 py-2.5 rounded-lg border border-gray-200 bg-white text-sm font-semibold text-gray-700 hover:bg-gray-50">
+                            Cancel
+                        </button>
+                        <button type="submit"
+                                class="px-6 py-2.5 rounded-lg bg-red-600 text-sm font-semibold text-white shadow hover:bg-red-700">
+                            Delete
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block javascripts %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+$(document).ready(function() {
+    // Apply Filters
+    $('#applyFilters').on('click', function() {
+        const statut = $('#statutFilter').val()?.trim();
+        const search = $('#search').val()?.trim();
+
+        const params = new URLSearchParams();
+
+        if (statut) params.set('statut', statut);
+        if (search) params.set('search', search);
+
+        let url = "{{ path('app_admin_stations') }}";
+        if (params.toString()) {
+            url += '?' + params.toString();
+        }
+
+        window.location.href = url;
+    });
+
+    // Clear Filters
+    $('#clearFilters').on('click', function() {
+        window.location.href = "{{ path('app_admin_stations') }}";
+    });
+
+    // Search
+    $("#search").on("keyup", function() {
+        const value = $(this).val().trim();
+
+        if (!value) {
+            $('#all').show();
+            $('#searchtab').hide().empty();
+            return;
+        }
+
+        $.ajax({
+            url: "{{ path('app_admin_stations_search') }}",
+            type: "GET",
+            data: { searchValue: value },
+            dataType: "json",
+            success: function(stations) {
+                const $searchBody = $('#searchtab');
+                $searchBody.empty();
+                $('#all').hide();
+                $('#filtertab').hide();
+
+                if (stations?.length > 0) {
+                    stations.forEach(station => {
+                        const statusClass = {
+                            'active': 'bg-green-100 text-green-700',
+                            'inactive': 'bg-red-100 text-red-700',
+                            'maintenance': 'bg-yellow-100 text-yellow-700'
+                        }[station.statut] || 'bg-orange-100 text-orange-700';
+                        
+                        const escapedId = station.id;
+
+                        const row = `
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 text-sm font-semibold text-gray-900">#${station.id}</td>
+                                <td class="px-6 py-4 text-sm text-gray-900 font-medium">${station.code}</td>
+                                <td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap hidden md:table-cell">${station.zone}</td>
+                                <td class="px-6 py-4 text-sm text-gray-600 hidden lg:table-cell">
+                                    <a href="/admin/stations/" + station.id + "/dashboard" 
+                                       class="inline-flex items-center gap-2 text-orange-600 hover:text-orange-800 hover:underline transition-colors"
+                                       title="View Station Dashboard">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        </svg>
+                                        <span class="block truncate max-w-[150px]">${station.localisation}</span>
+                                    </a>
+                                </td>
+                                <td class="px-6 py-4 hidden sm:table-cell">
+                                    <span class="inline-flex rounded-full px-3 py-1 text-xs font-semibold ${statusClass}">${station.statut}</span>
+                                </td>
+                                <td class="px-6 py-4 text-right text-sm">
+                                    <a href="/admin/stations/${station.id}" class="text-gray-600 hover:text-gray-900 font-semibold">View</a>
+                                    <a href="/admin/stations/${station.id}/edit" class="ml-4 text-paw-orange hover:text-paw-orange-hover font-semibold">Edit</a>
+                                    <button type="button" class="ml-4 text-red-600 hover:text-red-700 font-semibold"
+                                        onclick="Alpine.store('app').openDelete('/admin/stations/${station.id}', '${station.id}', '${escapedId}')">
+                                        Delete
+                                    </button>
+                                </td>
+                            </tr>`;
+
+                        $searchBody.append(row);
+                    });
+                    $searchBody.show();
+                } else {
+                    $searchBody.html(`
+                        <tr><td colspan="6" class="px-6 py-12 text-center">
+                            <p class="text-sm font-semibold text-gray-600">No stations found for "${value}"</p>
+                        </td></tr>
+                    `).show();
+                }
+            },
+            error: function(xhr, status, err) {
+                console.error("Search failed:", status, err);
+                console.error("Response:", xhr.responseText);
+                alert("Error searching stations – check console");
+            }
+        });
+    });
+
+    // Check URL params for active filters
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('statut') || urlParams.get('search')) {
+        if (urlParams.get('statut')) $('#statutFilter').val(urlParams.get('statut'));
+        if (urlParams.get('search')) $('#search').val(urlParams.get('search'));
+    }
+});
+</script>
+{% endblock %}

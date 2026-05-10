@@ -1,0 +1,35 @@
+{#
+  One reusable page shell that matches the Clients design.
+
+  Required variables:
+  - entity_name: 'Client'
+  - columns: [...]
+  - rows: [...]
+  - modal_title: 'Add New Client'
+  - modal_fields: [...]
+#}
+
+<div data-controller="modal entity-sort" class="space-y-4">
+  {% include 'components/_entity_toolbar.html.twig' with {
+    entity_name: entity_name,
+    search_placeholder: 'Search',
+    add_href: add_href|default(null)
+  } %}
+
+  {% include 'components/_entity_table.html.twig' with {
+    columns: columns,
+    rows: rows|default([]),
+    total_records: total_records|default(60),
+    per_page: per_page|default(10),
+    page: page|default(1),
+    total_pages: total_pages|default(4)
+  } %}
+
+  {% include 'components/_modal_add.html.twig' with {
+    modal_title: modal_title|default('Add New ' ~ entity_name),
+    add_label: add_label|default('Add'),
+    fields: modal_fields|default([]),
+    form_action: form_action|default('#')
+  } %}
+</div>
+

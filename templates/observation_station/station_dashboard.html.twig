@@ -1,0 +1,1344 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Station Dashboard | PawTech{% endblock %}
+
+{% block main %}
+{% set station_health_alerts = stationHealthAlerts|default(healthAlerts|default([])) %}
+<div class="px-4 sm:px-6 lg:px-8 py-8 max-w-[1600px] mx-auto">
+    <!-- Header -->
+    <div class="bg-white rounded-2xl border border-gray-200 p-6 mb-6 shadow-sm">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div class="flex items-start gap-4 flex-1">
+                <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 to-orange-600">
+                    <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <nav class="flex items-center gap-2 text-sm text-gray-500 mb-1">
+                        <a href="{{ path('app_admin_stations') }}" class="hover:text-gray-700 transition">Stations</a>
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        <span class="text-gray-900 font-medium">Dashboard</span>
+                    </nav>
+                    <h1 class="text-2xl font-bold text-gray-900">Station: {{ station.code }}</h1>
+                    <p class="mt-1 text-sm text-gray-600">{{ station.localisation }}</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium
+                    {% if station.statut == 'active' %}bg-green-100 text-green-800
+                    {% elseif station.statut == 'inactive' %}bg-red-100 text-red-800
+                    {% elseif station.statut == 'maintenance' %}bg-yellow-100 text-yellow-800
+                    {% else %}bg-orange-100 text-orange-800{% endif %}">
+                    {{ station.statut }}
+                </span>
+                <a href="{{ path('app_admin_stations') }}" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
+                    Back
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Cameras</p>
+                    <p class="mt-2 text-2xl font-bold text-gray-900">{{ cameras|length }}</p>
+                </div>
+                <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100">
+                    <svg class="h-5 w-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">IoT Readings</p>
+                    <p id="stat-iot-readings" class="mt-2 text-2xl font-bold text-gray-900">{{ totalIotReadings|default(iotDataForCharts|length) }}</p>
+                </div>
+                <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100">
+                    <svg class="h-5 w-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Detections</p>
+                    <p id="stat-detections" class="mt-2 text-2xl font-bold text-gray-900">{{ totalDetections|default(detections|length) }}</p>
+                </div>
+                <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100">
+                    <svg class="h-5 w-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Health Alerts</p>
+                    <p id="stat-health-alerts" class="mt-2 text-2xl font-bold text-gray-900">{{ totalHealthAlerts|default(healthAlerts|length) }}</p>
+                </div>
+                <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-red-100">
+                    <svg class="h-5 w-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Left Column - Station Info & Map -->
+        <div class="lg:col-span-1 space-y-6">
+            <!-- Station Details -->
+            <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Station Details
+                </h2>
+                <dl class="space-y-3">
+                    <div class="flex justify-between">
+                        <dt class="text-sm text-gray-500">Zone</dt>
+                        <dd class="text-sm font-medium text-gray-900">{{ station.zone }}</dd>
+                    </div>
+                    <div class="flex justify-between">
+                        <dt class="text-sm text-gray-500">Status</dt>
+                        <dd class="text-sm font-medium">{{ station.statut }}</dd>
+                    </div>
+                    <div class="flex justify-between">
+                        <dt class="text-sm text-gray-500">Code</dt>
+                        <dd class="text-sm font-medium text-gray-900">{{ station.code }}</dd>
+                    </div>
+                </dl>
+            </div>
+
+            <!-- Map -->
+            <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0121 18.382V7.618a1 1 0 01-.553-.894L15 4m0 13V4m0 0L9 7"></path>
+                    </svg>
+                    Location
+                </h2>
+                <div id="stationMap" class="h-64 rounded-lg overflow-hidden bg-gray-100" 
+                     data-lat="{{ stationLat }}" 
+                     data-lng="{{ stationLng }}"
+                     data-code="{{ station.code }}">
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column - Cameras & IoT -->
+        <div class="lg:col-span-2 space-y-6">
+            
+            <!-- Cameras Section -->
+            <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                        </svg>
+                        IP Cameras
+                    </h2>
+                    {% if cameras|length > 0 %}
+                    <a href="{{ path('app_admin_station_cameras', {'id': station.id}) }}" class="text-sm text-orange-600 hover:text-orange-800">
+                        View All →
+                    </a>
+                    {% endif %}
+                </div>
+                
+                {% if cameras|length > 0 %}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {% for camera in cameras|slice(0, 2) %}
+                    <div class="border border-gray-200 rounded-lg overflow-hidden">
+                        <div class="relative bg-gray-900 aspect-video">
+                            <img
+                                id="camera-frame-{{ camera.id }}"
+                                src="/admin/cameras/{{ camera.id }}/frame.jpg?t={{ 'now'|date('U') }}"
+                                class="w-full h-full object-contain"
+                                alt="{{ camera.name }} live stream">
+                            <div id="camera-frame-fallback-{{ camera.id }}"
+                                 class="absolute inset-0 hidden items-center justify-center text-gray-400">
+                                <div class="text-center px-3">
+                                    <svg class="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                    </svg>
+                                    <p class="text-xs">Waiting for live stream...</p>
+                                </div>
+                            </div>
+                            <!-- Live indicator -->
+                            <div class="absolute top-2 left-2 flex items-center gap-1.5 px-2 py-1 bg-red-600 rounded text-white text-xs font-medium">
+                                <span class="w-2 h-2 bg-white rounded-full animate-pulse"></span>
+                                LIVE
+                            </div>
+                        </div>
+                        <div class="p-3">
+                            <div class="flex items-center justify-between">
+                                <h3 class="font-medium text-gray-900">{{ camera.name }}</h3>
+                                <div class="flex items-center gap-2">
+                                    <a href="{{ path('app_admin_station_camera_edit', {'stationId': station.id, 'id': camera.id}) }}" class="text-blue-600 hover:text-blue-800" title="Edit">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                        </svg>
+                                    </a>
+                                </div>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">{{ camera.ipAddress }}</p>
+                            <div id="camera-live-status-{{ camera.id }}"
+                                 class="mt-2 text-xs inline-flex items-center px-2 py-1 rounded bg-gray-100 text-gray-600">
+                                AI: waiting...
+                            </div>
+                            <!-- PTZ Controls -->
+                            <div class="flex items-center gap-1 mt-3">
+                                <button type="button"
+                                        data-ptz-camera-id="{{ camera.id }}"
+                                        data-ptz-action="ptz_up"
+                                        data-ptz-hold="true"
+                                        class="p-2 rounded bg-gray-100 hover:bg-gray-200"
+                                        title="Pan Up">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                                </button>
+                                <button type="button"
+                                        data-ptz-camera-id="{{ camera.id }}"
+                                        data-ptz-action="ptz_left"
+                                        data-ptz-hold="true"
+                                        class="p-2 rounded bg-gray-100 hover:bg-gray-200"
+                                        title="Pan Left">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                                </button>
+                                <button type="button"
+                                        data-ptz-camera-id="{{ camera.id }}"
+                                        data-ptz-action="ptz_home"
+                                        class="p-2 rounded bg-orange-100 hover:bg-orange-200 text-orange-600"
+                                        title="Home">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                                </button>
+                                <button type="button"
+                                        data-ptz-camera-id="{{ camera.id }}"
+                                        data-ptz-action="ptz_right"
+                                        data-ptz-hold="true"
+                                        class="p-2 rounded bg-gray-100 hover:bg-gray-200"
+                                        title="Pan Right">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                                </button>
+                                <button type="button"
+                                        data-ptz-camera-id="{{ camera.id }}"
+                                        data-ptz-action="ptz_down"
+                                        data-ptz-hold="true"
+                                        class="p-2 rounded bg-gray-100 hover:bg-gray-200"
+                                        title="Pan Down">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </button>
+                                <div class="h-4 w-px bg-gray-300 mx-1"></div>
+                                <button type="button"
+                                        data-ptz-camera-id="{{ camera.id }}"
+                                        data-ptz-action="zoom_in"
+                                        data-ptz-hold="true"
+                                        class="p-2 rounded bg-gray-100 hover:bg-gray-200"
+                                        title="Zoom In">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"></path></svg>
+                                </button>
+                                <button type="button"
+                                        data-ptz-camera-id="{{ camera.id }}"
+                                        data-ptz-action="zoom_out"
+                                        data-ptz-hold="true"
+                                        class="p-2 rounded bg-gray-100 hover:bg-gray-200"
+                                        title="Zoom Out">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% if cameras|length > 2 %}
+                <div class="mt-4 text-center">
+                    <a href="{{ path('app_admin_station_cameras', {'id': station.id}) }}" class="text-sm text-orange-600 hover:text-orange-800">
+                        +{{ cameras|length - 2 }} more cameras
+                    </a>
+                </div>
+                {% endif %}
+                {% else %}
+                <div class="text-center py-8 text-gray-500">
+                    <svg class="w-12 h-12 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                    </svg>
+                    <p>No cameras configured for this station</p>
+                    <a href="{{ path('app_admin_station_camera_new', {'stationId': station.id}) }}" class="mt-2 inline-block text-sm text-orange-600 hover:text-orange-800">
+                        + Add Camera
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- IoT Data -->
+            <div class="bg-white rounded-xl border border-gray-200 p-4 md:p-6 shadow-sm">
+                <div class="flex flex-col-sm items-start md:items-center justify-between mb-4 gap-2">
+                    <h2 class="text-base md:text-lg font-semibold text-gray-900 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-orange-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                        <span class="whitespace-nowrap">IoT Sensor Data</span>
+                    </h2>
+                    <div class="flex items-center gap-2">
+                        <a href="{{ path('app_admin_station_iot_devices', {'id': station.id}) }}" class="text-xs text-orange-600 hover:text-orange-800 font-medium">
+                            Manage Devices →
+                        </a>
+                        <span id="iot-connection-badge" class="inline-flex items-center px-2 py-1 rounded bg-gray-100 text-gray-600">
+                            ESP32: waiting...
+                        </span>
+                        <span class="text-gray-500">Last update:</span>
+                        <span id="iot-last-update" class="font-medium text-gray-700">--</span>
+                    </div>
+                </div>
+                
+                {% set latest = latestIotData|length > 0 ? latestIotData[0] : null %}
+                <!-- Current Values -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 mb-4 md:mb-6">
+                    <div class="bg-blue-50 rounded-lg p-3 md:p-4">
+                        <p class="text-xs font-medium text-blue-600 uppercase">Temperature</p>
+                        <p id="iot-temp" class="text-xl md:text-2xl font-bold text-gray-900 mt-1">
+                            {% if latest and latest.temperature is not null %}{{ latest.temperature }}°C{% else %}N/A{% endif %}
+                        </p>
+                    </div>
+                    <div class="bg-green-50 rounded-lg p-3 md:p-4">
+                        <p class="text-xs font-medium text-green-600 uppercase">Humidity</p>
+                        <p id="iot-humidity" class="text-xl md:text-2xl font-bold text-gray-900 mt-1">
+                            {% if latest and latest.humidity is not null %}{{ latest.humidity }}%{% else %}N/A{% endif %}
+                        </p>
+                    </div>
+                    <div class="bg-purple-50 rounded-lg p-3 md:p-4">
+                        <p class="text-xs font-medium text-purple-600 uppercase">Pressure</p>
+                        <p id="iot-pressure" class="text-xl md:text-2xl font-bold text-gray-900 mt-1">
+                            {% if latest and latest.pressure is not null %}{{ latest.pressure }} hPa{% else %}N/A{% endif %}
+                        </p>
+                    </div>
+                    <div class="bg-yellow-50 rounded-lg p-3 md:p-4">
+                        <p class="text-xs font-medium text-yellow-600 uppercase">Battery</p>
+                        <p id="iot-battery" class="text-xl md:text-2xl font-bold text-gray-900 mt-1">
+                            {% if latest and latest.batteryLevel is not null %}{{ latest.batteryLevel }}%{% else %}N/A{% endif %}
+                        </p>
+                    </div>
+                    <div class="bg-indigo-50 rounded-lg p-3 md:p-4">
+                        <p class="text-xs font-medium text-indigo-600 uppercase">Signal</p>
+                        <p id="iot-signal" class="text-xl md:text-2xl font-bold text-gray-900 mt-1">
+                            {% if latest and latest.signalStrength is not null %}{{ latest.signalStrength }}{% else %}N/A{% endif %}
+                        </p>
+                    </div>
+                    <div class="bg-cyan-50 rounded-lg p-3 md:p-4">
+                        <p class="text-xs font-medium text-cyan-600 uppercase">Ultrasonic Distance (cm)</p>
+                        <p id="iot-distance" class="text-xl md:text-2xl font-bold text-gray-900 mt-1">
+                            {% if latest and latest.distance is not null %}{{ latest.distance }}{% else %}N/A{% endif %}
+                        </p>
+                    </div>
+                    <div class="bg-emerald-50 rounded-lg p-3 md:p-4">
+                        <p class="text-xs font-medium text-emerald-600 uppercase">Dog Detected</p>
+                        <p id="iot-dog" class="text-xl md:text-2xl font-bold text-gray-900 mt-1">
+                            {% if latest and latest.dogDetected is same as(true) %}Yes{% elseif latest and latest.dogDetected is same as(false) %}No{% else %}N/A{% endif %}
+                        </p>
+                    </div>
+                    <div class="bg-orange-50 rounded-lg p-3 md:p-4">
+                        <p class="text-xs font-medium text-orange-600 uppercase">Food Dispensed</p>
+                        <p id="iot-food" class="text-xl md:text-2xl font-bold text-gray-900 mt-1">
+                            {% if latest and latest.foodDispensed is same as(true) %}Yes{% elseif latest and latest.foodDispensed is same as(false) %}No{% else %}N/A{% endif %}
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Manual Servo Control Buttons -->
+                <div class="mt-4 p-4 bg-gray-50 rounded-lg">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                            <span class="text-lg">⚙️</span> Servo Control
+                            <span id="servo-status-badge" class="ml-2 px-2 py-0.5 text-xs rounded-full bg-blue-100 text-blue-700 font-medium">
+                                AUTO MODE
+                            </span>
+                        </h3>
+                        <span id="servo-last-action" class="text-xs text-gray-400">
+                            Last action: --
+                        </span>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <button id="btn-servo-open" onclick="setServoCommand('open')" 
+                            class="flex items-center gap-1.5 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm font-medium transition-all hover:shadow-md active:scale-95">
+                            <span>🔓</span> OPEN
+                        </button>
+                        <button id="btn-servo-close" onclick="setServoCommand('close')" 
+                            class="flex items-center gap-1.5 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-medium transition-all hover:shadow-md active:scale-95">
+                            <span>🔒</span> CLOSE
+                        </button>
+                        <button id="btn-servo-auto" onclick="setServoCommand('auto')" 
+                            class="flex items-center gap-1.5 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-all hover:shadow-md active:scale-95">
+                            <span>🤖</span> AUTO
+                        </button>
+                    </div>
+                    <div class="mt-3 pt-3 border-t border-gray-200 grid grid-cols-2 gap-2 text-xs">
+                        <div class="flex items-center gap-2">
+                            <span class="text-gray-500">Status:</span>
+                            <span id="servo-status" class="font-medium text-gray-700">Auto</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-gray-500">Auto-feed:</span>
+                            <span id="auto-feed-status" class="font-medium text-green-600">✓ Enabled</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="iot-empty-state" class="text-center py-4 text-gray-500 {% if latestIotData|length > 0 %}hidden{% endif %}">
+                    <p class="text-sm md:text-base">No IoT data available yet</p>
+                    <p class="text-xs md:text-sm text-gray-400 mt-1">Data will appear when ESP32 sends readings</p>
+                </div>
+                
+                <!-- Chart -->
+                <div class="h-48 md:h-64">
+                    <canvas id="iotChart"></canvas>
+                </div>
+                
+                <!-- Time Range Selector -->
+                <div class="mt-3 flex flex-wrap items-center justify-between gap-2">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs text-gray-500">Time Range:</span>
+                        <div class="inline-flex rounded-md shadow-sm" role="group">
+                            <button type="button" onclick="setIotTimeRange('hour', this)" 
+                                class="time-range-btn px-3 py-1 text-xs font-medium rounded-l-lg bg-orange-500 text-white hover:bg-orange-600">
+                                1 Hour
+                            </button>
+                            <button type="button" onclick="setIotTimeRange('day', this)" 
+                                class="time-range-btn px-3 py-1 text-xs font-medium bg-gray-100 text-gray-700 hover:bg-gray-200">
+                                24 Hours
+                            </button>
+                            <button type="button" onclick="setIotTimeRange('week', this)" 
+                                class="time-range-btn px-3 py-1 text-xs font-medium rounded-r-lg bg-gray-100 text-gray-700 hover:bg-gray-200">
+                                7 Days
+                            </button>
+                        </div>
+                    </div>
+                    <div class="text-xs text-gray-500">
+                        Showing: <span id="data-point-count">--</span> data points
+                    </div>
+                </div>
+                <div class="mt-3 text-xs text-gray-500">
+                    Device: <span id="iot-device-type">{{ latest and latest.deviceType ? latest.deviceType : 'ESP32' }}</span>
+                    <span class="mx-2">|</span>
+                    ID: <span id="iot-device-id">{{ latest and latest.deviceId ? latest.deviceId : 'N/A' }}</span>
+                    <span class="mx-2">|</span>
+                    Firmware: <span id="iot-firmware">{{ latest and latest.firmwareVersion ? latest.firmwareVersion : 'N/A' }}</span>
+                </div>
+            </div>
+
+            <!-- Recent Health Alerts (same source as /admin/alerts) -->
+            <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                        </svg>
+                        Recent Health Alerts
+                    </h2>
+                    <a href="{{ path('app_admin_alerts', {'type': 'HEALTH_ALERT'}) }}" class="text-sm font-medium text-orange-600 hover:text-orange-700">
+                        /admin/alerts
+                    </a>
+                </div>
+                
+                <div id="health-alerts-list" class="space-y-3 {% if station_health_alerts|length == 0 %}hidden{% endif %}">
+                    {% for alert in station_health_alerts|slice(0, 5) %}
+                    <div class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 hover:bg-gray-50">
+                        <div class="flex-shrink-0 h-10 w-10 rounded-full 
+                            bg-red-100 flex items-center justify-center">
+                            <svg class="h-5 w-5 
+                                text-red-600" 
+                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                            </svg>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-gray-900">
+                                {{ alert.message }}
+                            </p>
+                            <p class="text-xs text-gray-500">
+                                {{ alert.date ? alert.date|date('d/m/Y H:i:s', app_timezone|default('UTC')) : '' }}
+                            </p>
+                        </div>
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium {% if alert.statut == 'read' %}bg-green-100 text-green-700{% else %}bg-red-100 text-red-700{% endif %}">
+                            {{ alert.statut|default('unread')|title }}
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div id="health-alerts-empty" class="text-center py-8 text-gray-500 {% if station_health_alerts|length > 0 %}hidden{% endif %}">
+                    <svg class="w-12 h-12 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                    </svg>
+                    <p>No health alerts yet</p>
+                    <p class="text-sm text-gray-400 mt-1">Health alerts from camera detection will appear here and in /admin/alerts</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<!-- Leaflet CSS & JS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+const stationId = {{ station.id }};
+const stationDataUrl = `/admin/stations/${stationId}/data`;
+const stationCameraIds = [{% for camera in cameras|slice(0, 2) %}{{ camera.id }}{% if not loop.last %}, {% endif %}{% endfor %}];
+
+// Time range for IoT data
+let iotTimeRange = 'hour'; // hour, day, week
+const APP_TIMEZONE = {{ (app_timezone|default('UTC'))|json_encode|raw }};
+const IOT_REFRESH_INTERVAL = 1000;
+const CAMERA_FRAME_INTERVAL = 90;
+const CAMERA_FRAME_RETRY_INTERVAL = 450;
+const STREAM_START_RETRY_MS = 10000;
+const PTZ_REFRESH_INTERVAL = 2500;
+const PTZ_TIMEOUT_SECONDS = 3;
+
+let stationLiveStatusInterval = null;
+let stationIotInterval = null;
+let stationIotChart = null;
+const stationCameraState = {};
+const stationPtzState = {};
+
+function setCameraFallback(cameraId, show) {
+    const fallback = document.getElementById(`camera-frame-fallback-${cameraId}`);
+    if (!fallback) return;
+    fallback.classList.toggle('hidden', !show);
+    fallback.classList.toggle('flex', show);
+}
+
+function scheduleNextCameraFrame(cameraId, delayMs) {
+    const state = stationCameraState[cameraId];
+    if (!state) return;
+    if (state.frameTimer) clearTimeout(state.frameTimer);
+    state.frameTimer = setTimeout(() => requestCameraFrame(cameraId), delayMs);
+}
+
+function requestCameraFrame(cameraId) {
+    const state = stationCameraState[cameraId];
+    const image = document.getElementById(`camera-frame-${cameraId}`);
+    if (!state || !image || state.inFlight) return;
+    state.inFlight = true;
+    image.src = `/admin/cameras/${cameraId}/frame.jpg?t=${Date.now()}`;
+}
+
+function startCameraStream(cameraId) {
+    return fetch(`/admin/stations/cameras/${cameraId}/stream/start`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+    })
+    .then((response) => response.json())
+    .then((payload) => payload.success === true)
+    .catch(() => false);
+}
+
+function initCameraPreview(cameraId) {
+    const image = document.getElementById(`camera-frame-${cameraId}`);
+    if (!image) return;
+
+    stationCameraState[cameraId] = {
+        inFlight: false,
+        failures: 0,
+        frameTimer: null,
+        lastStartAttempt: 0,
+    };
+
+    image.addEventListener('load', () => {
+        const state = stationCameraState[cameraId];
+        if (!state) return;
+        state.inFlight = false;
+        state.failures = 0;
+        setCameraFallback(cameraId, false);
+        scheduleNextCameraFrame(cameraId, CAMERA_FRAME_INTERVAL);
+    });
+
+    image.addEventListener('error', () => {
+        const state = stationCameraState[cameraId];
+        if (!state) return;
+
+        state.inFlight = false;
+        state.failures += 1;
+
+        const now = Date.now();
+        if (now - state.lastStartAttempt > STREAM_START_RETRY_MS) {
+            state.lastStartAttempt = now;
+            startCameraStream(cameraId);
+        }
+
+        if (state.failures >= 3) {
+            setCameraFallback(cameraId, true);
+        }
+
+        scheduleNextCameraFrame(cameraId, CAMERA_FRAME_RETRY_INTERVAL);
+    });
+
+    requestCameraFrame(cameraId);
+}
+
+function sendPtzCommand(cameraId, action, timeout = null) {
+    const body = { action };
+    if (timeout) {
+        body.timeout = timeout;
+    }
+
+    return fetch(`/admin/stations/cameras/${cameraId}/control`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+    })
+    .then((response) => response.json())
+    .then((data) => {
+        if (!data.success) {
+            const errorMessage = data.error || data.message || 'PTZ command failed';
+            throw new Error(errorMessage);
+        }
+        return data;
+    })
+    .catch((error) => {
+        console.error(`PTZ error for camera ${cameraId}:`, error);
+        return null;
+    });
+}
+
+function startPtzHold(cameraId, action) {
+    const state = stationPtzState[cameraId] || { interval: null, action: null };
+    if (state.interval) {
+        clearInterval(state.interval);
+    }
+
+    state.action = action;
+    sendPtzCommand(cameraId, action, PTZ_TIMEOUT_SECONDS);
+    state.interval = setInterval(() => {
+        if (state.action) {
+            sendPtzCommand(cameraId, state.action, PTZ_TIMEOUT_SECONDS);
+        }
+    }, PTZ_REFRESH_INTERVAL);
+
+    stationPtzState[cameraId] = state;
+}
+
+function stopPtzHold(cameraId) {
+    const state = stationPtzState[cameraId];
+    if (!state) return;
+
+    if (state.interval) {
+        clearInterval(state.interval);
+        state.interval = null;
+    }
+
+    if (state.action) {
+        sendPtzCommand(cameraId, 'ptz_stop');
+        state.action = null;
+    }
+}
+
+function initStationPtzControls() {
+    const buttons = document.querySelectorAll('[data-ptz-camera-id][data-ptz-action]');
+    buttons.forEach((button) => {
+        const cameraId = Number(button.dataset.ptzCameraId);
+        const action = button.dataset.ptzAction;
+        const isHoldButton = button.dataset.ptzHold === 'true';
+
+        if (!Number.isFinite(cameraId) || !action) return;
+
+        if (!isHoldButton) {
+            button.addEventListener('click', (event) => {
+                event.preventDefault();
+                sendPtzCommand(cameraId, action);
+            });
+            return;
+        }
+
+        const start = (event) => {
+            event.preventDefault();
+            startPtzHold(cameraId, action);
+        };
+
+        const stop = () => stopPtzHold(cameraId);
+
+        button.addEventListener('mousedown', start);
+        button.addEventListener('mouseup', stop);
+        button.addEventListener('mouseleave', stop);
+        button.addEventListener('touchstart', start, { passive: false });
+        button.addEventListener('touchend', stop);
+        button.addEventListener('touchcancel', stop);
+    });
+
+    document.addEventListener('mouseup', () => {
+        stationCameraIds.forEach((cameraId) => stopPtzHold(cameraId));
+    });
+    document.addEventListener('touchend', () => {
+        stationCameraIds.forEach((cameraId) => stopPtzHold(cameraId));
+    }, { passive: true });
+}
+
+function updateStationCameraLiveStatus(cameraId, data) {
+    const badge = document.getElementById(`camera-live-status-${cameraId}`);
+    if (!badge) return;
+
+    const dogCount = Number(data?.dogCount || 0);
+    const detections = Array.isArray(data?.detections) ? data.detections : [];
+    const illCount = detections.filter(d => (d.health_label || '').toLowerCase() === 'ill').length;
+    const stale = Boolean(data?.stale);
+
+    badge.className = 'mt-2 text-xs inline-flex items-center px-2 py-1 rounded';
+    if (stale) {
+        badge.classList.add('bg-yellow-100', 'text-yellow-800');
+        badge.textContent = 'AI: stale';
+        return;
+    }
+    if (illCount > 0) {
+        badge.classList.add('bg-red-100', 'text-red-700');
+    } else if (dogCount > 0) {
+        badge.classList.add('bg-green-100', 'text-green-700');
+    } else {
+        badge.classList.add('bg-gray-100', 'text-gray-600');
+    }
+    badge.textContent = `AI: dogs ${dogCount} | ill ${illCount}`;
+}
+
+function pollStationLiveStatus() {
+    stationCameraIds.forEach((cameraId) => {
+        fetch(`/admin/stations/cameras/${cameraId}/live-detections`, { cache: 'no-store' })
+            .then(response => response.json())
+            .then(data => updateStationCameraLiveStatus(cameraId, data))
+            .catch(() => {
+                const badge = document.getElementById(`camera-live-status-${cameraId}`);
+                if (!badge) return;
+                badge.className = 'mt-2 text-xs inline-flex items-center px-2 py-1 rounded bg-gray-100 text-gray-600';
+                badge.textContent = 'AI: offline';
+            });
+    });
+}
+
+function setElementText(id, value) {
+    const element = document.getElementById(id);
+    if (!element) return;
+    element.textContent = value;
+}
+
+function toNumeric(value) {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : null;
+}
+
+function formatMetric(value, suffix = '') {
+    if (value === null || value === undefined || value === '') return 'N/A';
+    const n = toNumeric(value);
+    if (n === null) return `${value}${suffix}`;
+    return `${n.toFixed(1)}${suffix}`;
+}
+
+function parseTimestamp(value) {
+    if (!value) return null;
+    const date = new Date(value);
+    if (!Number.isNaN(date.getTime())) return date;
+
+    if (typeof value === 'string') {
+        const fallback = new Date(value.replace(' ', 'T'));
+        if (!Number.isNaN(fallback.getTime())) return fallback;
+    }
+    return null;
+}
+
+function formatTimestamp(value) {
+    const date = parseTimestamp(value);
+    if (!date) return '--';
+    return date.toLocaleString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour12: false,
+    });
+}
+
+function formatAlertTimestamp(value) {
+    const date = parseTimestamp(value);
+    if (!date) return '--';
+    try {
+        const parts = new Intl.DateTimeFormat('en-GB', {
+            timeZone: APP_TIMEZONE,
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false,
+        }).formatToParts(date);
+
+        const token = {};
+        for (const part of parts) {
+            if (part.type !== 'literal') {
+                token[part.type] = part.value;
+            }
+        }
+
+        return `${token.day}/${token.month}/${token.year} ${token.hour}:${token.minute}:${token.second}`;
+    } catch (error) {
+        return formatTimestamp(value);
+    }
+}
+
+function escapeHtml(value) {
+    return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function updateIotConnectionBadge(latestRow) {
+    const badge = document.getElementById('iot-connection-badge');
+    if (!badge) return;
+
+    badge.className = 'inline-flex items-center px-2 py-1 rounded';
+    if (!latestRow) {
+        badge.classList.add('bg-red-100', 'text-red-700');
+        badge.textContent = 'ESP32: offline';
+        return;
+    }
+
+    const timestamp = parseTimestamp(latestRow.createdAtIso || latestRow.createdAt);
+    if (!timestamp) {
+        badge.classList.add('bg-yellow-100', 'text-yellow-800');
+        badge.textContent = 'ESP32: unknown time';
+        return;
+    }
+
+    const ageSeconds = Math.max(0, (Date.now() - timestamp.getTime()) / 1000);
+    if (ageSeconds <= 30) {
+        badge.classList.add('bg-green-100', 'text-green-700');
+        badge.textContent = 'ESP32: online';
+    } else if (ageSeconds <= 120) {
+        badge.classList.add('bg-yellow-100', 'text-yellow-800');
+        badge.textContent = `ESP32: stale (${Math.round(ageSeconds)}s)`;
+    } else {
+        badge.classList.add('bg-red-100', 'text-red-700');
+        badge.textContent = `ESP32: offline (${Math.round(ageSeconds)}s)`;
+    }
+}
+
+function ensureIotChart() {
+    if (stationIotChart) return stationIotChart;
+    const chartEl = document.getElementById('iotChart');
+    if (!chartEl) return null;
+
+    stationIotChart = new Chart(chartEl, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [
+                {
+                    label: 'Temperature (°C)',
+                    data: [],
+                    yAxisID: 'yTemp',
+                    borderColor: 'rgb(59, 130, 246)',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    tension: 0.3,
+                    fill: false,
+                    pointRadius: 2,
+                    pointHoverRadius: 6,
+                },
+                {
+                    label: 'Humidity (%)',
+                    data: [],
+                    yAxisID: 'yPercent',
+                    borderColor: 'rgb(34, 197, 94)',
+                    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                    tension: 0.3,
+                    fill: false,
+                    pointRadius: 2,
+                    pointHoverRadius: 6,
+                },
+                {
+                    label: 'Distance (cm)',
+                    data: [],
+                    yAxisID: 'yDistance',
+                    borderColor: 'rgb(168, 85, 247)',
+                    backgroundColor: 'rgba(168, 85, 247, 0.1)',
+                    borderDash: [5, 5],
+                    tension: 0.3,
+                    fill: false,
+                    pointRadius: 2,
+                    pointHoverRadius: 6,
+                },
+                {
+                    label: 'Battery (%)',
+                    data: [],
+                    yAxisID: 'yPercent',
+                    borderColor: 'rgb(234, 179, 😎',
+                    backgroundColor: 'rgba(234, 179, 8, 0.1)',
+                    borderDash: [3, 3],
+                    tension: 0.3,
+                    fill: false,
+                    pointRadius: 1,
+                    pointHoverRadius: 5,
+                },
+            ],
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: { duration: 300 },
+            interaction: {
+                mode: 'index',
+                intersect: false,
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 15,
+                        font: { size: 11 }
+                    }
+                },
+                tooltip: {
+                    enabled: true,
+                    backgroundColor: 'rgba(0, 0, 0, 0.😎',
+                    titleFont: { size: 13 },
+                    bodyFont: { size: 12 },
+                    padding: 10,
+                    cornerRadius: 8,
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.parsed.y !== null) {
+                                label += context.parsed.y;
+                                if (label.includes('Temperature')) label += '°C';
+                                else if (label.includes('Humidity')) label += '%';
+                                else if (label.includes('Distance')) label += ' cm';
+                                else if (label.includes('Battery')) label += '%';
+                            }
+                            return label;
+                        }
+                    }
+                },
+                annotation: {
+                    annotations: {
+                        tempHigh: {
+                            type: 'line',
+                            yMin: 35,
+                            yMax: 35,
+                            borderColor: 'rgb(239, 68, 68)',
+                            borderWidth: 2,
+                            borderDash: [6, 6],
+                            label: {
+                                display: true,
+                                content: 'High Temp Warning',
+                                position: 'start'
+                            }
+                        },
+                        tempLow: {
+                            type: 'line',
+                            yMin: 5,
+                            yMax: 5,
+                            borderColor: 'rgb(59, 130, 246)',
+                            borderWidth: 2,
+                            borderDash: [6, 6],
+                            label: {
+                                display: true,
+                                content: 'Low Temp Warning',
+                                position: 'start'
+                            }
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: {
+                        maxTicksLimit: 12,
+                        font: { size: 10 }
+                    },
+                    grid: {
+                        display: false
+                    }
+                },
+                yTemp: {
+                    type: 'linear',
+                    position: 'left',
+                    title: {
+                        display: true,
+                        text: 'Temperature (°C)',
+                        font: { size: 11 }
+                    },
+                    suggestedMin: 0,
+                    suggestedMax: 50,
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    }
+                },
+                yPercent: {
+                    type: 'linear',
+                    position: 'right',
+                    min: 0,
+                    max: 100,
+                    title: {
+                        display: true,
+                        text: '%',
+                        font: { size: 11 }
+                    },
+                    grid: {
+                        drawOnChartArea: false,
+                    },
+                },
+                yDistance: {
+                    type: 'linear',
+                    position: 'right',
+                    title: {
+                        display: true,
+                        text: 'Distance (cm)',
+                        font: { size: 11 }
+                    },
+                    suggestedMin: 0,
+                    suggestedMax: 200,
+                    grid: {
+                        drawOnChartArea: false,
+                    },
+                },
+            },
+        },
+    });
+
+    return stationIotChart;
+}
+
+// Time range function
+function setIotTimeRange(range, btn = null) {
+    iotTimeRange = range;
+    
+    // Update button styles
+    document.querySelectorAll('.time-range-btn').forEach(btn => {
+        btn.classList.remove('bg-orange-500', 'text-white');
+        btn.classList.add('bg-gray-100', 'text-gray-700');
+    });
+    if (btn) {
+        btn.classList.remove('bg-gray-100', 'text-gray-700');
+        btn.classList.add('bg-orange-500', 'text-white');
+    }
+    
+    // Refresh data
+    refreshStationIotData();
+}
+
+function updateIotChart(rows) {
+    const chart = ensureIotChart();
+    if (!chart) return;
+
+    // Determine max data points based on time range
+    let maxPoints = 60; // default for 1 hour
+    if (iotTimeRange === 'day') maxPoints = 288; // 24 hours * 12 (every 5 min)
+    if (iotTimeRange === 'week') maxPoints = 336; // 7 days * 48
+    
+    const ordered = [...rows].reverse().slice(-maxPoints);
+    const labels = ordered.map((row) => {
+        const date = parseTimestamp(row.createdAtIso || row.createdAt);
+        if (!date) return '--';
+        if (iotTimeRange === 'week') {
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        }
+        return date.toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: iotTimeRange === 'hour' ? '2-digit' : undefined,
+            hour12: false,
+        });
+    });
+
+    chart.data.labels = labels;
+    chart.data.datasets[0].data = ordered.map(row => toNumeric(row.temperature));
+    chart.data.datasets[1].data = ordered.map(row => toNumeric(row.humidity));
+    chart.data.datasets[2].data = ordered.map(row => toNumeric(row.ultrasonicDistanceCm ?? row.distance));
+    chart.data.datasets[3].data = ordered.map(row => toNumeric(row.batteryLevel));
+    
+    // Update point count display
+    const pointCountEl = document.getElementById('data-point-count');
+    if (pointCountEl) {
+        pointCountEl.textContent = ordered.length;
+    }
+    
+    chart.update('none');
+}
+
+function updateIotCards(latestRow) {
+    const hasData = Boolean(latestRow);
+    const emptyState = document.getElementById('iot-empty-state');
+    if (emptyState) {
+        emptyState.classList.toggle('hidden', hasData);
+    }
+
+    setElementText('iot-temp', hasData ? formatMetric(latestRow.temperature, '°C') : 'N/A');
+    setElementText('iot-humidity', hasData ? formatMetric(latestRow.humidity, '%') : 'N/A');
+    setElementText('iot-pressure', hasData ? formatMetric(latestRow.pressure, ' hPa') : 'N/A');
+    setElementText('iot-battery', hasData ? formatMetric(latestRow.batteryLevel, '%') : 'N/A');
+    setElementText('iot-signal', hasData ? formatMetric(latestRow.signalStrength) : 'N/A');
+    setElementText('iot-distance', hasData ? formatMetric(latestRow.ultrasonicDistanceCm ?? latestRow.distance, ' cm') : 'N/A');
+    setElementText(
+        'iot-dog',
+        hasData ? (latestRow.dogDetected === true ? 'Yes' : latestRow.dogDetected === false ? 'No' : 'N/A') : 'N/A'
+    );
+    setElementText(
+        'iot-food',
+        hasData ? (latestRow.foodDispensed === true ? 'Yes' : latestRow.foodDispensed === false ? 'No' : 'N/A') : 'N/A'
+    );
+
+    setElementText('iot-device-type', hasData ? (latestRow.deviceType || 'ESP32') : 'ESP32');
+    setElementText('iot-device-id', hasData ? (latestRow.deviceId || 'N/A') : 'N/A');
+    setElementText('iot-firmware', hasData ? (latestRow.firmwareVersion || 'N/A') : 'N/A');
+    setElementText('iot-last-update', hasData ? formatTimestamp(latestRow.createdAtIso || latestRow.createdAt) : '--');
+    updateIotConnectionBadge(latestRow);
+}
+
+function updateQuickStats(totals) {
+    const iotReadings = Number(totals?.iotReadings);
+    const detections = Number(totals?.detections);
+    const healthAlerts = Number(totals?.healthAlerts);
+
+    if (Number.isFinite(iotReadings)) {
+        setElementText('stat-iot-readings', String(iotReadings));
+    }
+    if (Number.isFinite(detections)) {
+        setElementText('stat-detections', String(detections));
+    }
+    if (Number.isFinite(healthAlerts)) {
+        setElementText('stat-health-alerts', String(healthAlerts));
+    }
+}
+
+function renderHealthAlerts(alerts) {
+    const listEl = document.getElementById('health-alerts-list');
+    const emptyEl = document.getElementById('health-alerts-empty');
+    if (!listEl || !emptyEl) return;
+
+    if (!Array.isArray(alerts) || alerts.length === 0) {
+        listEl.innerHTML = '';
+        listEl.classList.add('hidden');
+        emptyEl.classList.remove('hidden');
+        return;
+    }
+
+    const rows = alerts.slice(0, 5).map((alert) => {
+        const status = (alert?.status || 'unread').toLowerCase() === 'read' ? 'Read' : 'Unread';
+        const statusClasses = status === 'Read' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700';
+        const message = alert?.message ? escapeHtml(alert.message) : 'Health alert';
+        const dateText = formatAlertTimestamp(alert?.dateIso || alert?.date);
+
+        return `
+            <div class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 hover:bg-gray-50">
+                <div class="flex-shrink-0 h-10 w-10 rounded-full bg-red-100 flex items-center justify-center">
+                    <svg class="h-5 w-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                    </svg>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-gray-900">${message}</p>
+                    <p class="text-xs text-gray-500">${escapeHtml(dateText)}</p>
+                </div>
+                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${statusClasses}">
+                    ${status}
+                </span>
+            </div>
+        `;
+    });
+
+    listEl.innerHTML = rows.join('');
+    listEl.classList.remove('hidden');
+    emptyEl.classList.add('hidden');
+}
+
+function refreshStationIotData() {
+    // Build URL with time range parameter
+    let url = stationDataUrl;
+    const separator = url.includes('?') ? '&' : '?';
+    
+    // Add time range parameter
+    let hoursBack = 1; // default 1 hour
+    if (iotTimeRange === 'day') hoursBack = 24;
+    if (iotTimeRange === 'week') hoursBack = 168;
+    
+    url = `${url}${separator}hours=${hoursBack}&limit=500`;
+    
+    fetch(url, { cache: 'no-store' })
+        .then(response => response.json())
+        .then(payload => {
+            const rows = Array.isArray(payload?.data) ? payload.data : [];
+            const latestRow = rows.length > 0 ? rows[0] : null;
+            updateQuickStats(payload?.totals || null);
+            if (Array.isArray(payload?.healthAlerts)) {
+                renderHealthAlerts(payload.healthAlerts);
+            }
+            updateIotCards(latestRow);
+            updateIotChart(rows);
+        })
+        .catch(() => {
+            updateIotCards(null);
+        });
+}
+
+// Servo Control Functions
+function setServoCommand(command) {
+    const deviceId = document.getElementById('iot-device-id')?.textContent || 'IOT_699a3e49033c8';
+    const url = `/admin/stations/iot/servo/${deviceId}/set`;
+    
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ command: command })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update status display
+            const statusEl = document.getElementById('servo-status');
+            if (statusEl) {
+                statusEl.textContent = command.charAt(0).toUpperCase() + command.slice(1);
+            }
+            
+            // Show enhanced notification
+            showServoNotification(command);
+        } else {
+            showServoNotification(command, true);
+        }
+    })
+    .catch(error => {
+        console.error('Error sending servo command:', error);
+        showServoNotification(command, true);
+    });
+}
+
+function showServoNotification(command, isError = false) {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg transition-all duration-300 transform translate-y-0 ${isError ? 'bg-red-50 border-l-4 border-red-500' : 'bg-green-50 border-l-4 border-green-500'}`;
+    
+    // Icon based on command
+    let icon = '';
+    let title = '';
+    let message = '';
+    
+    switch(command) {
+        case 'open':
+            icon = '🔓';
+            title = 'Servo Opened';
+            message = 'Food dispenser is now OPEN. Food will be dispensed.';
+            break;
+        case 'close':
+            icon = '🔒';
+            title = 'Servo Closed';
+            message = 'Food dispenser is now CLOSED and locked.';
+            break;
+        case 'auto':
+            icon = '🤖';
+            title = 'Auto Mode Enabled';
+            message = 'Servo will automatically dispense food when a dog is detected.';
+            break;
+        default:
+            icon = '⚙️';
+            title = 'Command Sent';
+            message = `Servo command '${command}' has been sent.`;
+    }
+    
+    notification.innerHTML = `
+        <div class="flex items-start gap-3">
+            <div class="text-2xl">${icon}</div>
+            <div>
+                <h4 class="font-semibold text-sm ${isError ? 'text-red-700' : 'text-green-800'}">${title}</h4>
+                <p class="text-xs ${isError ? 'text-red-600' : 'text-green-700'} mt-1">${message}</p>
+                <p class="text-xs text-gray-500 mt-2">Status: ${command.toUpperCase()} | ${new Date().toLocaleTimeString()}</p>
+            </div>
+            <button onclick="this.parentElement.parentElement.remove()" class="ml-2 text-gray-400 hover:text-gray-600">
+                ✕
+            </button>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        notification.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => notification.remove(), 300);
+    }, 5000);
+}
+
+function showNotification(message, type) {
+    // Legacy function - redirects to showServoNotification
+    showServoNotification(message, type === 'error');
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Map
+    const mapEl = document.getElementById('stationMap');
+    if (mapEl && mapEl.dataset.lat && mapEl.dataset.lng) {
+        const lat = parseFloat(mapEl.dataset.lat);
+        const lng = parseFloat(mapEl.dataset.lng);
+        if (Number.isFinite(lat) && Number.isFinite(lng)) {
+            const map = L.map('stationMap').setView([lat, lng], 15);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+            L.marker([lat, lng]).addTo(map)
+                .bindPopup(mapEl.dataset.code)
+                .openPopup();
+        }
+    }
+
+    refreshStationIotData();
+    stationIotInterval = setInterval(refreshStationIotData, IOT_REFRESH_INTERVAL);
+
+    initStationPtzControls();
+
+    if (stationCameraIds.length > 0) {
+        stationCameraIds.forEach((cameraId) => initCameraPreview(cameraId));
+        pollStationLiveStatus();
+        stationLiveStatusInterval = setInterval(pollStationLiveStatus, 2000);
+    }
+});
+
+window.addEventListener('beforeunload', function() {
+    if (stationLiveStatusInterval) clearInterval(stationLiveStatusInterval);
+    if (stationIotInterval) clearInterval(stationIotInterval);
+    stationCameraIds.forEach((cameraId) => {
+        const state = stationCameraState[cameraId];
+        if (state && state.frameTimer) {
+            clearTimeout(state.frameTimer);
+        }
+        stopPtzHold(cameraId);
+    });
+});
+</script>
+{% endblock %}

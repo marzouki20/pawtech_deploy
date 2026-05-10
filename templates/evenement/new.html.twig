@@ -1,0 +1,106 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}New Event | PawTech Admin{% endblock %}
+
+{% block main %}
+<div class="max-w-2xl mx-auto space-y-4">
+    <div class="flex items-center gap-4">
+        <a href="{{ path('app_evenement_index') }}" class="p-2 hover:bg-gray-100 rounded-lg">
+            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+        </a>
+        <h1 class="text-2xl font-bold text-gray-800">New Event</h1>
+    </div>
+
+    <div class="bg-white rounded-xl border border-gray-200 p-6">
+        {{ form_start(form, {'attr': {'class': 'space-y-4', 'novalidate': 'novalidate', 'enctype': 'multipart/form-data'}}) }}
+            
+            <div>
+                {{ form_label(form.titre, 'Title *', {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+                {{ form_widget(form.titre, {'attr': {'class': 'w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-paw-orange focus:border-paw-orange outline-none ' ~ (form.titre.vars.errors|length > 0 ? 'border-red-500' : 'border-gray-200')}}) }}
+                {% if form.titre.vars.errors|length > 0 %}
+                    <p class="text-red-500 text-sm mt-1">{{ form.titre.vars.errors[0].message }}</p>
+                {% endif %}
+            </div>
+
+            <div>
+                {{ form_label(form.type, 'Type *', {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+                {{ form_widget(form.type, {'attr': {'class': 'w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-paw-orange focus:border-paw-orange outline-none ' ~ (form.type.vars.errors|length > 0 ? 'border-red-500' : 'border-gray-200')}}) }}
+                {% if form.type.vars.errors|length > 0 %}
+                    <p class="text-red-500 text-sm mt-1">{{ form.type.vars.errors[0].message }}</p>
+                {% endif %}
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    {{ form_label(form.dateDebut, 'Start Date *', {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+                    {{ form_widget(form.dateDebut, {'attr': {'class': 'w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-paw-orange focus:border-paw-orange outline-none ' ~ (form.dateDebut.vars.errors|length > 0 ? 'border-red-500' : 'border-gray-200')}}) }}
+                    {% if form.dateDebut.vars.errors|length > 0 %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.dateDebut.vars.errors[0].message }}</p>
+                    {% endif %}
+                </div>
+                <div>
+                    {{ form_label(form.dateFin, 'End Date', {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+                    {{ form_widget(form.dateFin, {'attr': {'class': 'w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-paw-orange focus:border-paw-orange outline-none ' ~ (form.dateFin.vars.errors|length > 0 ? 'border-red-500' : 'border-gray-200')}}) }}
+                    {% if form.dateFin.vars.errors|length > 0 %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.dateFin.vars.errors[0].message }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    {{ form_label(form.lieu, 'Location *', {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+                    {{ form_widget(form.lieu, {'attr': {'class': 'w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-paw-orange focus:border-paw-orange outline-none ' ~ (form.lieu.vars.errors|length > 0 ? 'border-red-500' : 'border-gray-200')}}) }}
+                    {% if form.lieu.vars.errors|length > 0 %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.lieu.vars.errors[0].message }}</p>
+                    {% endif %}
+                </div>
+                <div>
+                    {{ form_label(form.ville, 'City *', {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+                    {{ form_widget(form.ville, {'attr': {'class': 'w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-paw-orange focus:border-paw-orange outline-none ' ~ (form.ville.vars.errors|length > 0 ? 'border-red-500' : 'border-gray-200')}}) }}
+                    {% if form.ville.vars.errors|length > 0 %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.ville.vars.errors[0].message }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div>
+                {{ form_label(form.description, 'Description', {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+                {{ form_widget(form.description, {'attr': {'class': 'w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-paw-orange focus:border-paw-orange outline-none', 'rows': 3}}) }}
+            </div>
+
+            <div>
+                {{ form_label(form.imageFile, 'Image', {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+                {{ form_widget(form.imageFile, {'attr': {'class': 'w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-paw-orange focus:border-paw-orange outline-none', 'accept': 'image/jpeg,image/png,image/webp'}}) }}
+                <p class="text-xs text-gray-500 mt-1">Accepted formats: JPG, PNG, WebP. Max 2MB.</p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    {{ form_label(form.capaciteMax, 'Max Capacity', {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+                    {{ form_widget(form.capaciteMax, {'attr': {'class': 'w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-paw-orange focus:border-paw-orange outline-none ' ~ (form.capaciteMax.vars.errors|length > 0 ? 'border-red-500' : 'border-gray-200'), 'placeholder': 'Leave empty for unlimited'}}) }}
+                    {% if form.capaciteMax.vars.errors|length > 0 %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.capaciteMax.vars.errors[0].message }}</p>
+                    {% endif %}
+                </div>
+                <div>
+                    {{ form_label(form.statut, 'Status', {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+                    {{ form_widget(form.statut, {'attr': {'class': 'w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-paw-orange focus:border-paw-orange outline-none'}}) }}
+                </div>
+            </div>
+
+            <div class="flex gap-3 pt-4">
+                <a href="{{ path('app_evenement_index') }}" class="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 text-center">
+                    Cancel
+                </a>
+                <button type="submit" class="flex-1 px-4 py-2.5 bg-paw-orange text-white rounded-lg hover:bg-paw-orange-hover font-medium">
+                    Create Event
+                </button>
+            </div>
+
+        {{ form_end(form) }}
+    </div>
+</div>
+{% endblock %}

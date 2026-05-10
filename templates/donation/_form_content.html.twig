@@ -1,0 +1,101 @@
+<div class="max-w-xl">
+  <h1 class="text-xl font-bold text-gray-800 mb-4">{{ page_title }}</h1>
+  
+  {{ form_start(form, {'attr': {'id': 'entity-modal-form', 'class': 'space-y-4', 'novalidate': 'novalidate'}, 'action': form_action|default(null)}) }}
+  
+  {# Champ Montant #}
+  <div>
+    {{ form_label(form.montant, "Amount (TND)", {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+    {{ form_widget(form.montant, {'attr': {
+      'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-paw-orange focus:border-paw-orange'
+    }}) }}
+    {% if form.montant.vars.errors|length > 0 %}
+      <div class="mt-1 text-sm text-red-600">
+        {% for error in form.montant.vars.errors %}
+          <div>{{ error.message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+  
+  {# Champ Date #}
+  <div>
+    {{ form_label(form.date, "Date", {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+    {{ form_widget(form.date, {'attr': {
+      'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-paw-orange focus:border-paw-orange'
+    }}) }}
+    {% if form.date.vars.errors|length > 0 %}
+      <div class="mt-1 text-sm text-red-600">
+        {% for error in form.date.vars.errors %}
+          <div>{{ error.message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+  
+  {# Champ Donateur (Optionnel) #}
+  <div>
+    {{ form_label(form.donateur, "Donor", {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+    {{ form_widget(form.donateur, {'attr': {
+      'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-paw-orange focus:border-paw-orange'
+    }}) }}
+    {% if form.donateur.vars.errors|length > 0 %}
+      <div class="mt-1 text-sm text-red-600">
+        {% for error in form.donateur.vars.errors %}
+          <div>{{ error.message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+  
+  {# Champ Email (Optionnel) - Correction spéciale #}
+  <div>
+    {{ form_label(form.email, "Email", {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+    {{ form_widget(form.email, {'attr': {
+      'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-paw-orange focus:border-paw-orange'
+    }}) }}
+    {% if form.email.vars.errors|length > 0 %}
+      <div class="mt-1 text-sm text-red-600">
+        {% for error in form.email.vars.errors %}
+          <div>{{ error.message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+  
+  {# Champ Référence (Optionnel) #}
+  <div>
+    {{ form_label(form.reference, "Reference", {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+    {{ form_widget(form.reference, {'attr': {
+      'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-paw-orange focus:border-paw-orange'
+    }}) }}
+    {% if form.reference.vars.errors|length > 0 %}
+      <div class="mt-1 text-sm text-red-600">
+        {% for error in form.reference.vars.errors %}
+          <div>{{ error.message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+  
+  {# Champ Statut #}
+  <div class="flex items-center">
+    {{ form_widget(form.statut, {'attr': {'class': 'h-4 w-4 text-paw-orange border-gray-300 rounded focus:ring-paw-orange mr-2'}}) }}
+    {{ form_label(form.statut, "Validated", {'label_attr': {'class': 'text-sm text-gray-700'}}) }}
+    {% if form.statut.vars.errors|length > 0 %}
+      <div class="mt-1 text-sm text-red-600 ml-6">
+        {% for error in form.statut.vars.errors %}
+          <div>{{ error.message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+  
+  {# Boutons #}
+  <div class="flex gap-3 mt-4">
+    <button type="submit" class="px-4 py-2.5 bg-paw-orange text-white rounded-lg hover:bg-paw-orange-hover font-medium">{{ submit_label|default('Add') }}</button>
+    <a href="{{ path('app_donation_index') }}" class="px-4 py-2.5 border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50">Cancel</a>
+  </div>
+  
+  {{ form_end(form) }}
+</div>

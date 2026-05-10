@@ -1,0 +1,70 @@
+# This file is the entry point to configure your own services.
+# Files in the packages/ subdirectory configure your dependencies.
+
+# Put parameters here that don't need to change on each machine where the app is deployed
+# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
+parameters:
+
+
+   gemini_api_key: '%env(GEMINI_API_KEY)%'  # Better to use environment variable
+   mailer_from: '%env(MAILER_FROM)%'
+
+   streams.directory: '%kernel.project_dir%/public/streams'
+
+
+services:
+    # default configuration for services in *this* file
+    _defaults:
+        autowire: true      # Automatically injects dependencies in your services.
+        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+
+    # makes classes in src/ available to be used as services
+    # this creates a service per class whose id is the fully-qualified class name
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Entity/'
+            - '../src/Kernel.php'
+
+
+
+            
+    App\Service\GeminiService:
+        arguments:
+            $apiKey: '%gemini_api_key%'
+            $logger: '@logger'  # Inject logger if available
+
+    App\Service\TwilioNotificationService:
+        arguments:
+            $accountSid: '%env(default::TWILIO_ACCOUNT_SID)%'
+            $authToken: '%env(default::TWILIO_AUTH_TOKEN)%'
+            $twilioPhoneNumber: '%env(default::TWILIO_PHONE_NUMBER)%'
+            $defaultCountryCode: '%env(default::TWILIO_DEFAULT_COUNTRY_CODE)%'
+            $logger: '@logger'
+
+    # add more service definitions when explicit configuration is needed
+    # please note that last definitions always *replace* previous ones
+    App\Service\EmailService:
+        arguments:
+            $mailerFrom: '%mailer_from%'
+
+    App\Service\DonorNotificationService:
+        arguments:
+            $mailerFrom: '%mailer_from%'
+
+    App\Service\StreamTranscoderService:
+        arguments:
+            $streamsDirectory: '%streams.directory%'
+
+    App\Service\DirectRtspService:
+        arguments:
+            $streamsDirectory: '%streams.directory%'
+
+    # Override HLS stream URLs to add no-cache headers
+    Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator: null
+    
+    # Add more service definitions when explicit configuration is needed
+    # please note that last definitions always *replace* previous ones
+
+

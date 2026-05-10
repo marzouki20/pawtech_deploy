@@ -1,0 +1,23 @@
+<div>
+  <!-- Table View (copy from users/index.html.twig) -->
+  <div id="user-table" class="mb-8">
+    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+      {% include 'components/_entity_table.html.twig' with {
+        columns: columns,
+        rows: rows,
+        total_records: total_records,
+        per_page: per_page,
+        page: page,
+        total_pages: total_pages,
+        actions_enabled: true,
+        actions_id_index: 0,
+        actions_show_route: 'app_user_show',
+        actions_edit_route: 'app_user_edit',
+        actions_delete_route: 'app_user_delete',
+        status_badge_index: 6
+      } %}
+    </div>
+  </div>
+
+  <!-- Cards View removed: Table only -->
+</div>

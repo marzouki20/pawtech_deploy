@@ -1,0 +1,126 @@
+<div id="recommendationModal" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/50"></div>
+    <div class="relative z-10 min-h-screen flex items-center justify-center p-4">
+        <div class="w-full max-w-3xl rounded-2xl bg-white shadow-2xl border border-gray-100">
+            <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                <div>
+                    <h3 class="text-xl font-bold text-gray-900">Find Your Best Dog Match</h3>
+                    <p class="text-sm text-gray-500">Complete this quick profile to get recommendations.</p>
+                </div>
+                <button type="button" id="closeRecommendationModal" class="h-9 w-9 rounded-full border border-gray-200 text-gray-500 hover:text-gray-700 hover:border-gray-300">x</button>
+            </div>
+
+            <form id="recommended_dog" name="recommended_dog" class="px-6 py-5 space-y-6">
+                <div>
+                    <h4 class="text-sm font-semibold text-gray-700 mb-3">User Profile</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="user_living_type" class="block text-xs font-semibold text-gray-600 mb-1">Living Type</label>
+                            <select id="user_living_type" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                                <option value="apartment">Apartment</option>
+                                <option value="house_with_garden">House with garden</option>
+                                <option value="house_no_garden">House no garden</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="user_experience" class="block text-xs font-semibold text-gray-600 mb-1">Experience</label>
+                            <select id="user_experience" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                                <option value="none">None</option>
+                                <option value="some">Some</option>
+                                <option value="experienced">Experienced</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="user_has_cats" class="block text-xs font-semibold text-gray-600 mb-1">Has Cats</label>
+                            <select id="user_has_cats" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                                <option value="0">No</option>
+                                <option value="1">Yes</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="user_has_dogs" class="block text-xs font-semibold text-gray-600 mb-1">Has Dogs</label>
+                            <select id="user_has_dogs" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                                <option value="0">No</option>
+                                <option value="1">Yes</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="user_activity_level" class="block text-xs font-semibold text-gray-600 mb-1">Activity Level (1-5)</label>
+                            <input id="user_activity_level" type="number" min="1" max="5" value="1" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                        </div>
+                        <div>
+                            <label for="user_hours_alone" class="block text-xs font-semibold text-gray-600 mb-1">Hours Alone (0-12)</label>
+                            <input id="user_hours_alone" type="number" min="0" max="12" value="0" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="user_preferred_size" class="block text-xs font-semibold text-gray-600 mb-1">Preferred Size</label>
+                            <select id="user_preferred_size" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                                <option value="XS">XS</option>
+                                <option value="S">S</option>
+                                <option value="M">M</option>
+                                <option value="L">L</option>
+                                <option value="XL">XL</option>
+                                <option value="any">Any</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="text-sm font-semibold text-gray-700 mb-3">Filters</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="desired_min_age" class="block text-xs font-semibold text-gray-600 mb-1">Min Age</label>
+                            <input id="desired_min_age" type="number" min="0" value="1" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                        </div>
+                        <div>
+                            <label for="desired_max_age" class="block text-xs font-semibold text-gray-600 mb-1">Max Age</label>
+                            <input id="desired_max_age" type="number" min="0" value="4" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                        </div>
+                        <div>
+                            <label for="desired_gender" class="block text-xs font-semibold text-gray-600 mb-1">Desired Gender</label>
+                            <select id="desired_gender" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                                <option value="MALE">Male</option>
+                                <option value="FEMALE">Female</option>
+                                <option value="ANY">Any</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="require_vaccinated" class="block text-xs font-semibold text-gray-600 mb-1">Require Vaccinated</label>
+                            <select id="require_vaccinated" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                                <option value="1">Yes</option>
+                                <option value="0">No</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="require_friendly_kids" class="block text-xs font-semibold text-gray-600 mb-1">Require Friendly Kids</label>
+                            <select id="require_friendly_kids" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                                <option value="1">Yes</option>
+                                <option value="0">No</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="require_friendly_dogs" class="block text-xs font-semibold text-gray-600 mb-1">Require Friendly Dogs</label>
+                            <select id="require_friendly_dogs" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                                <option value="1">Yes</option>
+                                <option value="0">No</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="require_friendly_cats" class="block text-xs font-semibold text-gray-600 mb-1">Require Friendly Cats</label>
+                            <select id="require_friendly_cats" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                                <option value="1">Yes</option>
+                                <option value="0">No</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-3 pt-3 border-t border-gray-200">
+                    <button type="button" id="skipRecommendationModal" class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 text-sm font-semibold hover:bg-gray-50">Skip</button>
+                    <button type="submit" class="px-5 py-2 rounded-lg bg-orange-600 text-white text-sm font-semibold hover:bg-orange-700">Save & Continue</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

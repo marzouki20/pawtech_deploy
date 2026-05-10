@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - PawTech</title>
+    
+    {# Tailwind CSS #}
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    {# Font Awesome for icons #}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* Background */
+        .page-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            z-index: -2;
+        }
+        
+        /* Form input styling */
+        .form-input {
+            transition: all 0.2s;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #f97316;
+            box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+        }
+        
+        /* Validation styling */
+        .is-invalid {
+            border-color: #f56565 !important;
+        }
+        
+        .invalid-feedback {
+            color: #f56565;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+        
+        /* Error container */
+        .error-container {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+        }
+        
+        /* No scrollbars */
+        * {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        *::-webkit-scrollbar {
+            display: none;
+        }
+        
+        /* Close button */
+        .close-btn {
+            transition: all 0.2s;
+        }
+        
+        .close-btn:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        /* Image side overlay */
+        .image-overlay {
+            background: linear-gradient(135deg, rgba(249,115,22,0.9) 0%, rgba(234,88,12,0.95) 100%);
+        }
+        
+        /* Password strength indicator */
+        .password-strength {
+            height: 4px;
+            border-radius: 2px;
+            transition: all 0.3s;
+        }
+        
+        .strength-weak { background: #f56565; width: 25%; }
+        .strength-fair { background: #ed8936; width: 50%; }
+        .strength-good { background: #48bb78; width: 75%; }
+        .strength-strong { background: #38a169; width: 100%; }
+    </style>
+</head>
+<body class="fixed inset-0">
+    
+    {# Background #}
+    <div class="page-bg"></div>
+    
+    {# Main container - Split layout #}
+    <div class="flex h-screen w-screen overflow-hidden">
+        
+        {# Left side - Image & Description #}
+        <div class="w-1/2 image-overlay relative flex-shrink-0 hidden md:block">
+            {# Back to Home button #}
+            <a href="{{ path('app_home') }}" class="absolute top-6 left-6 z-20 inline-flex items-center gap-2 text-white/80 hover:text-white transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                <span class="font-medium">Back to Home Screen</span>
+            </a>
+            
+            {# Decorative elements #}
+            <div class="absolute top-0 left-0 w-full h-full">
+                <div class="absolute top-20 left-20 w-72 h-72 bg-white opacity-10 rounded-full"></div>
+                <div class="absolute bottom-20 right-20 w-96 h-96 bg-white opacity-10 rounded-full"></div>
+                <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 border-4 border-white opacity-20 rounded-full"></div>
+            </div>
+            
+            {# Content #}
+            <div class="relative z-10 flex flex-col justify-center items-center w-full p-12 text-white">
+                {# Logo #}
+                <div class="mb-8">
+                    <img src="{{ asset('logo.png') }}" alt="PawTech" class="h-20" >
+                </div>
+                
+                {# Main heading #}
+                <h1 class="text-4xl font-bold text-center mb-6">Join PawTech Today</h1>
+                
+                {# Description #}
+                <p class="text-lg text-center text-white/90 max-w-md mb-8">
+                    Create your account and discover a world of pet care services, products, and community events.
+                </p>
+                
+                {# Benefits #}
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                            <i class="fas fa-paw"></i>
+                        </div>
+                        <span class="text-white/90">Access to Pet Services</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                            <i class="fas fa-gift"></i>
+                        </div>
+                        <span class="text-white/90">Exclusive Member Benefits</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <span class="text-white/90">Join Pet Lover Community</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        {# Right side - Form #}
+        <div class="w-full md:w-1/2 flex items-start justify-center p-4 md:p-8 bg-white overflow-y-auto" style="height: 100vh;">
+            <div class="w-full max-w-md mt-8">
+                
+                {# Close button for mobile #}
+                <button onclick="window.location.href='{{ path('app_home') }}'" 
+                        class="close-btn md:hidden absolute top-6 right-6 z-50 w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center transition-all duration-200">
+                    <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+                
+                
+                {# Logo for mobile #}
+                <div class="lg:hidden text-center mb-8">
+                    <img src="{{ asset('logo.png') }}" alt="PawTech" class="h-16 mx-auto" >
+                </div>
+                
+                {# Title #}
+                <div class="text-center mb-8">
+                    <h1 class="text-2xl font-bold text-gray-900">Create Account</h1>
+                    <p class="text-gray-500 mt-1 text-sm">Join PawTech community</p>
+                </div>
+
+                {# Social & Face Login #}
+                <div class="space-y-3 mb-6">
+                    <div class="flex items-center justify-center gap-8 my-6">
+                        {# Google Signup #}
+                        <button type="button" onclick="window.location.href='{{ path('app_google_auth_start') }}'" class="w-20 h-20 rounded-full bg-white flex items-center justify-center shadow-lg border border-gray-200 hover:shadow-xl transition">
+                            <svg class="h-14 w-14" viewBox="0 0 48 48" aria-hidden="true">
+                                <path fill="#FFC107" d="M43.6 20.4H42V20H24v8h11.3C33.9 32.7 29.4 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.1 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.6z"/>
+                                <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.1 18.9 12 24 12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.1 6.1 29.3 4 24 4c-7.7 0-14.4 3.9-18 10.7z"/>
+                                <path fill="#4CAF50" d="M24 44c5.2 0 10-2 13.6-5.2l-6.3-5.3c-1.9 1.3-4.3 2.1-7.3 2.1-5.4 0-10-3.3-11.6-7.9l-6.5 5C9.5 39.9 16.3 44 24 44z"/>
+                                <path fill="#1976D2" d="M43.6 20.4H42V20H24v8h11.3c-1.1 2.9-3.4 5.2-6.3 6.6l6.3 5.3C39 36.4 44 30.8 44 24c0-1.3-.1-2.7-.4-3.6z"/>
+                            </svg>
+                        </button>
+                        {# Face Scan #}
+                        <button type="button" href="" onclick="openFaceScanModal()" class="w-20 h-20 rounded-full bg-white flex items-center justify-center shadow-lg border border-gray-200 hover:shadow-xl transition">
+                            <svg class="h-14 w-14 text-blue-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10" stroke="#4F46E5" stroke-width="2" fill="#EEF2FF"/>
+                                <path d="M9.5 10.5c0-1.38 1.12-2.5 2.5-2.5s2.5 1.12 2.5 2.5-.62 2.5-2.5 2.5-2.5-1.12-2.5-2.5z" fill="#6366F1"/>
+                                <rect x="10.5" y="14" width="3" height="1.5" rx="0.75" fill="#6366F1"/>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    {# Face capture status #}
+                    <div id="face-capture-status" class="text-sm text-gray-500 text-center"></div>
+                    
+                    {# Preview container #}
+                    <div id="face-preview-container" class="hidden flex justify-center mb-2">
+                        <img id="face-preview" src="" alt="Face preview" class="w-24 h-24 rounded-full border-2 border-orange-500 object-cover">
+                    </div>
+
+                    {# Face Scan Modal #}
+                    <div id="faceScanModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 hidden">
+                        <div class="bg-white rounded-2xl p-6 w-full max-w-sm relative flex flex-col items-center shadow-xl">
+                            <button onclick="closeFaceScanModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl font-bold">&times;</button>
+                            <h2 class="text-lg font-semibold mb-3 text-gray-800">Face Scan</h2>
+                            <p class="text-gray-500 text-sm mb-4">Look straight at the camera</p>
+                            <video id="face-modal-video" width="280" height="210" autoplay playsinline class="rounded-xl border border-gray-200 mb-4"></video>
+                            <canvas id="face-modal-canvas" width="280" height="210" class="hidden"></canvas>
+                            <button id="face-modal-capture-btn" class="w-full bg-orange-500 text-white px-4 py-2.5 rounded-xl font-medium hover:bg-orange-600 transition">Capture</button>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-3 text-xs text-gray-400">
+                        <span class="h-px flex-1 bg-gray-200"></span>
+                        <span>or</span>
+                        <span class="h-px flex-1 bg-gray-200"></span>
+                    </div>
+                </div>
+                
+                {# Signup form #}
+                {{ form_start(form, {'attr': {'class': 'space-y-5', 'id': 'signup-form'}}) }}
+                {{ form_widget(form.user_face, {'attr': {
+                    'id': 'face-image-input',
+                    'class': 'face-image-field'
+                }}) }}
+                <input type="hidden" id="user-face-raw" name="user_face_raw" value="">
+                
+                {# Show form errors #}
+                {% if form is defined %}
+                    {% if form_errors(form) %}
+                        <div class="rounded-lg bg-red-50 border border-red-200 p-4 text-sm text-red-700 mb-4">
+                            <span class="text-red-600">{{ form_errors(form) }}</span>
+                        </div>
+                    {% endif %}
+                {% endif %}
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">First Name</label>
+                        {{ form_widget(form.prenom, {'attr': {
+                            'class': 'form-input w-full rounded-xl border border-gray-200 px-4 py-3 text-gray-900 placeholder-gray-400',
+                            'placeholder': 'First Name'
+                        }}) }}
+                        <span class="text-red-500 text-xs">{{ form_errors(form.prenom) }}</span>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Last Name</label>
+                        {{ form_widget(form.nom, {'attr': {
+                            'class': 'form-input w-full rounded-xl border border-gray-200 px-4 py-3 text-gray-900 placeholder-gray-400',
+                            'placeholder': 'Last Name'
+                        }}) }}
+                        <span class="text-red-500 text-xs">{{ form_errors(form.nom) }}</span>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">Email Address</label>
+                    {{ form_widget(form.email, {'attr': {
+                        'class': 'form-input w-full rounded-xl border border-gray-200 px-4 py-3 text-gray-900 placeholder-gray-400',
+                        'placeholder': 'you@example.com'
+                    }}) }}
+                    <span class="text-red-500 text-xs">{{ form_errors(form.email) }}</span>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">Phone Number</label>
+                    {{ form_widget(form.telephone, {'attr': {
+                        'class': 'form-input w-full rounded-xl border border-gray-200 px-4 py-3 text-gray-900 placeholder-gray-400',
+                        'placeholder': '12345678'
+                    }}) }}
+                    <span class="text-red-500 text-xs">{{ form_errors(form.telephone) }}</span>
+                </div>
+                
+                
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
+                    {{ form_widget(form.password.first, {'attr': {
+                        'class': 'form-input w-full rounded-xl border border-gray-200 px-4 py-3 text-gray-900 placeholder-gray-400',
+                        'placeholder': '••••••••',
+                        'id': 'password'
+                    }}) }}
+                    <span class="text-red-500 text-xs">{{ form_errors(form.password.first) }}</span>
+                    <div class="mt-2">
+                        <div class="password-strength strength-weak" id="password-strength"></div>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">Confirm Password</label>
+                    {{ form_widget(form.password.second, {'attr': {
+                        'class': 'form-input w-full rounded-xl border border-gray-200 px-4 py-3 text-gray-900 placeholder-gray-400',
+                        'placeholder': '••••••••',
+                        'id': 'confirm-password'
+                    }}) }}
+                    <span class="text-red-500 text-xs">{{ form_errors(form.password.second) }}</span>
+                </div>
+                
+                <div class="flex items-start gap-3 pt-2">
+                    {{ form_widget(form.agreeTerms, {'attr': {
+                        'class': 'mt-1 rounded border-gray-300 text-orange-500 focus:ring-orange-500',
+                        'id': 'agree-terms'
+                    }}) }}
+                    <span class="text-red-500 text-xs">{{ form_errors(form.agreeTerms) }}</span>
+                    <label class="text-sm text-gray-600 leading-tight">
+                        I agree to the <a href="#" class="text-orange-500 hover:text-orange-600 font-medium">Terms</a> and <a href="#" class="text-orange-500 hover:text-orange-600 font-medium">Privacy Policy</a>
+                    </label>
+                </div>
+                
+                <button type="submit" class="w-full rounded-xl bg-orange-500 py-3 px-4 font-semibold text-white shadow-sm hover:bg-orange-600 hover:shadow-md transition-all duration-200 mt-2">
+                    <i class="fas fa-user-plus mr-2"></i>Create Account
+                </button>
+                
+                {{ form_widget(form._token) }}
+                {{ form_end(form, {'render_rest': false}) }}
+
+<script>
+    // Face Scan Modal Logic
+    document.addEventListener('DOMContentLoaded', function() {
+        let faceImage = null;
+        
+        function openFaceScanModal() {
+            const modal = document.getElementById('faceScanModal');
+            if (modal) modal.classList.remove('hidden');
+            faceImage = null;
+            startFaceModalCamera();
+        }
+        
+        function closeFaceScanModal() {
+            const modal = document.getElementById('faceScanModal');
+            if (modal) modal.classList.add('hidden');
+            stopFaceModalCamera();
+        }
+
+        let faceModalStream = null;
+        
+        function startFaceModalCamera() {
+            const video = document.getElementById('face-modal-video');
+            if (!video) return;
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ video: true })
+                    .then(function(stream) {
+                        faceModalStream = stream;
+                        video.srcObject = stream;
+                        video.play();
+                    })
+                    .catch(function(err) {
+                        console.error('Camera access error:', err);
+                    });
+            }
+        }
+        
+        function stopFaceModalCamera() {
+            if (faceModalStream) {
+                faceModalStream.getTracks().forEach(track => track.stop());
+                faceModalStream = null;
+            }
+        }
+        
+        const captureBtn = document.getElementById('face-modal-capture-btn');
+        if (captureBtn) {
+            captureBtn.onclick = function() {
+                const video = document.getElementById('face-modal-video');
+                const canvas = document.getElementById('face-modal-canvas');
+                const faceInput = document.getElementById('face-image-input');
+                if (!video || !canvas) return;
+                canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+                faceImage = canvas.toDataURL('image/png');
+                
+                if (faceInput) {
+                    faceInput.value = faceImage;
+                    console.log('Face image set, length:', faceImage.length);
+                }
+                const rawInput = document.getElementById('user-face-raw');
+                if (rawInput) {
+                    rawInput.value = faceImage;
+                }
+                
+                const preview = document.getElementById('face-preview');
+                const previewContainer = document.getElementById('face-preview-container');
+                const status = document.getElementById('face-capture-status');
+                if (preview) preview.src = faceImage;
+                if (previewContainer) previewContainer.classList.remove('hidden');
+                if (status) status.innerHTML = '<span class="text-green-600"><i class="fas fa-check-circle"></i> Face captured!</span>';
+                
+                closeFaceScanModal();
+            };
+        }
+        
+        window.openFaceScanModal = openFaceScanModal;
+        window.closeFaceScanModal = closeFaceScanModal;
+    });
+</script>
+
+                {# Sign in link #}
+                <div class="text-center mt-6 pt-5 border-t border-gray-100">
+                    <p class="text-gray-600 text-sm">
+                        Already have an account?
+                        <a href="{{ path('app_signin') }}" class="font-semibold text-orange-500 hover:text-orange-600">Sign in</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.body.style.overflow = 'hidden';
+            document.documentElement.style.overflow = 'hidden';
+            
+            document.addEventListener('wheel', function(e) {
+                e.preventDefault();
+            }, { passive: false });
+            
+            document.addEventListener('touchmove', function(e) {
+                e.preventDefault();
+            }, { passive: false });
+        });
+    </script>
+</body>
+</html>

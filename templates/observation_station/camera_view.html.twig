@@ -1,0 +1,570 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}{{ page_title }} | PawTech{% endblock %}
+
+{% set active = 'cameras' %}
+
+{% block javascripts %}
+{{ parent() }}
+{% endblock %}
+
+{% block main %}
+<div class="min-h-screen bg-gray-900 text-white">
+    <!-- Header -->
+    <div class="bg-gray-800 border-b border-gray-700">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <a href="{{ path('app_admin_stations_cameras') }}" class="text-gray-400 hover:text-white transition">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </a>
+                    <div>
+                        <h1 class="text-xl font-bold">{{ camera.name }}</h1>
+                        <p class="text-gray-400 text-sm">{{ camera.ipAddress }}:{{ camera.port }}</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <span class="px-3 py-1 rounded-full text-sm 
+                        {% if camera.status == 'active' %}bg-green-500{% else %}bg-gray-500{% endif %}">
+                        {{ camera.status|title }}
+                    </span>
+                    {% if isTranscoding %}
+                        <span class="px-3 py-1 rounded-full text-sm bg-blue-500">
+                            Streaming
+                        </span>
+                    {% endif %}
+                    <!-- Stream Control Buttons -->
+                    <button id="start-stream-btn"
+                            onclick="startStream({{ camera.id }})" 
+                            class="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-sm font-medium transition"
+                            {% if isTranscoding %}style="display:none"{% endif %}>
+                        Start Stream
+                    </button>
+                    <button id="stop-stream-btn"
+                            onclick="stopStream({{ camera.id }})" 
+                            class="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg text-sm font-medium transition"
+                            {% if not isTranscoding %}style="display:none"{% endif %}>
+                        Stop Stream
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <!-- Main Video Feed -->
+            <div class="lg:col-span-3">
+                <div class="bg-black rounded-xl overflow-hidden relative" style="aspect-ratio: 16/9; width: 100%;">
+                    <img id="camera-frame"
+                         src="/admin/cameras/{{ camera.id }}/frame.jpg?t={{ 'now'|date('U') }}"
+                         class="w-full h-full object-contain absolute inset-0"
+                         alt="Camera Live Frame">
+                    <canvas id="detection-overlay"
+                            class="absolute inset-0 w-full h-full pointer-events-none"
+                            aria-hidden="true"></canvas>
+                    <div id="camera-message" class="w-full h-full flex items-center justify-center text-gray-500" style="display:none;">
+                        <div class="text-center">
+                            <svg class="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                            </svg>
+                            <p class="text-lg font-medium">No Live Frame</p>
+                            <p class="text-sm mt-2">Click "Start Stream" to begin transcoding</p>
+                            <p class="text-xs mt-4 text-gray-400">RTSP: {{ camera.rtspUrl ?: camera.fullStreamUrl }}</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Overlay Controls -->
+                    <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+                        <div class="flex items-center justify-between">
+                            <div class="text-sm space-y-1">
+                                <div>
+                                    <span class="text-gray-300">Resolution:</span>
+                                    <span class="ml-2">{{ camera.resolution ?: '1080p' }}</span>
+                                </div>
+                                <div id="camera-live-status"
+                                     class="inline-flex items-center px-2 py-1 rounded bg-gray-700/80 text-gray-200 text-xs">
+                                    AI: waiting...
+                                </div>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="takeSnapshot()" class="px-3 py-1 bg-white/20 hover:bg-white/30 rounded text-sm transition">
+                                    <svg class="inline w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                                    </svg> Snapshot
+                                </button>
+                                <button onclick="toggleFullscreen()" class="px-3 py-1 bg-white/20 hover:bg-white/30 rounded text-sm transition">
+                                    <svg class="inline w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                                    </svg> Fullscreen
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PTZ Controls -->
+                <div class="bg-gray-800 rounded-xl p-4 mt-4">
+                    <h3 class="text-lg font-bold mb-4">
+                        <svg class="inline w-5 h-5 mr-2 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        PTZ Controls
+                    </h3>
+                    
+                    <div class="flex items-center justify-center gap-8">
+                        <!-- Direction Controls -->
+                        <div class="grid grid-cols-3 gap-2">
+                            <div></div>
+                            <button data-ptz-action="ptz_up" class="w-12 h-12 bg-gray-700 hover:bg-gray-600 active:bg-purple-600 rounded-lg flex items-center justify-center transition select-none">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                                </svg>
+                            </button>
+                            <div></div>
+                            
+                            <button data-ptz-action="ptz_left" class="w-12 h-12 bg-gray-700 hover:bg-gray-600 active:bg-purple-600 rounded-lg flex items-center justify-center transition select-none">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                                </svg>
+                            </button>
+                            <div class="w-12 h-12 bg-gray-900 rounded-lg flex items-center justify-center text-gray-500">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                            </div>
+                            <button data-ptz-action="ptz_right" class="w-12 h-12 bg-gray-700 hover:bg-gray-600 active:bg-purple-600 rounded-lg flex items-center justify-center transition select-none">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                </svg>
+                            </button>
+                            
+                            <div></div>
+                            <button data-ptz-action="ptz_down" class="w-12 h-12 bg-gray-700 hover:bg-gray-600 active:bg-purple-600 rounded-lg flex items-center justify-center transition select-none">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+                            <div></div>
+                        </div>
+                        
+                        <!-- Zoom Controls -->
+                        <div class="flex flex-col gap-2">
+                            <button data-ptz-action="zoom_in" class="w-12 h-12 bg-gray-700 hover:bg-gray-600 active:bg-purple-600 rounded-lg flex items-center justify-center transition select-none">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                                </svg>
+                            </button>
+                            <button data-ptz-action="zoom_out" class="w-12 h-12 bg-gray-700 hover:bg-gray-600 active:bg-purple-600 rounded-lg flex items-center justify-center transition select-none">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7" />
+                                </svg>
+                            </button>
+                        </div>
+                        
+                        <!-- Presets -->
+                        <div class="border-l border-gray-700 pl-6">
+                            <p class="text-sm text-gray-400 mb-2">Presets</p>
+                            <div class="grid grid-cols-3 gap-2">
+                                {% for i in 1..6 %}
+                                <button onclick="ptzControl('preset', {{ i }})" 
+                                        class="w-10 h-10 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm transition">
+                                    {{ i }}
+                                </button>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="space-y-4">
+                <!-- Camera Info -->
+                <div class="bg-gray-800 rounded-xl p-4">
+                    <h3 class="text-lg font-bold mb-4">Camera Info</h3>
+                    <div class="space-y-3 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">IP Address</span>
+                            <span>{{ camera.ipAddress }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Port</span>
+                            <span>{{ camera.port }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Model</span>
+                            <span>{{ camera.model ?: 'Unknown' }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Resolution</span>
+                            <span>{{ camera.resolution ?: '1080p' }}</span>
+                        </div>
+                        {% if camera.station %}
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Station</span>
+                            <span>{{ camera.station.code }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="bg-gray-800 rounded-xl p-4">
+                    <h3 class="text-lg font-bold mb-4">Quick Actions</h3>
+                    <div class="space-y-2">
+                        <button onclick="refreshStream()" class="w-full bg-gray-700 hover:bg-gray-600 py-2 rounded-lg transition text-left px-4 text-sm">
+                            <svg class="inline w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg> Refresh Stream
+                        </button>
+                        <button onclick="takeSnapshot()" class="w-full bg-gray-700 hover:bg-gray-600 py-2 rounded-lg transition text-left px-4 text-sm">
+                            <svg class="inline w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                            </svg> Take Snapshot
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const cameraId = {{ camera.id }};
+const frameUrl = `/admin/cameras/${cameraId}/frame.jpg`;
+const liveDetectionsUrl = `/admin/stations/cameras/${cameraId}/live-detections`;
+const streamInitiallyRunning = {{ isTranscoding ? 'true' : 'false' }};
+const FRAME_MIN_INTERVAL = 320;
+const FRAME_RETRY_INTERVAL = 900;
+const LIVE_REFRESH_INTERVAL = 1000;
+
+let ptzInterval = null;
+let ptzCurrentAction = null;
+let frameLoopActive = false;
+let frameInFlight = false;
+let liveInterval = null;
+let frameFailures = 0;
+let lastLivePayload = null;
+
+const PTZ_REFRESH_INTERVAL = 2500;
+const PTZ_TIMEOUT_SECONDS = 3;
+
+function initPTZButtons() {
+    const ptzButtons = document.querySelectorAll('[data-ptz-action]');
+    ptzButtons.forEach((button) => {
+        const action = button.getAttribute('data-ptz-action');
+
+        button.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            startPTZMovement(action);
+        });
+        button.addEventListener('mouseup', stopPTZMovement);
+        button.addEventListener('mouseleave', stopPTZMovement);
+
+        button.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            startPTZMovement(action);
+        }, { passive: false });
+        button.addEventListener('touchend', stopPTZMovement);
+        button.addEventListener('touchcancel', stopPTZMovement);
+    });
+}
+
+function startPTZMovement(action) {
+    if (ptzInterval) {
+        clearInterval(ptzInterval);
+        ptzInterval = null;
+    }
+    ptzCurrentAction = action;
+    ptzControl(action, null, PTZ_TIMEOUT_SECONDS);
+    ptzInterval = setInterval(() => {
+        if (ptzCurrentAction) {
+            ptzControl(ptzCurrentAction, null, PTZ_TIMEOUT_SECONDS);
+        }
+    }, PTZ_REFRESH_INTERVAL);
+}
+
+function stopPTZMovement() {
+    if (ptzInterval) {
+        clearInterval(ptzInterval);
+        ptzInterval = null;
+    }
+    if (ptzCurrentAction) {
+        ptzControl('ptz_stop');
+        ptzCurrentAction = null;
+    }
+}
+
+function ptzControl(action, preset = null, timeout = null) {
+    const data = { action };
+    if (preset) data.preset = preset;
+    if (timeout) data.timeout = timeout;
+
+    fetch(`/admin/stations/cameras/${cameraId}/control`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+    })
+    .then((response) => response.json())
+    .then((data) => {
+        if (data.error) {
+            console.error('PTZ error:', data.error);
+        }
+    })
+    .catch((error) => console.error('PTZ request failed:', error));
+}
+
+function takeSnapshot() {
+    fetch(`/admin/stations/cameras/${cameraId}/control`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'snapshot' }),
+    })
+    .then((response) => response.json())
+    .then((data) => {
+        if (data.success && data.snapshotUrl) {
+            window.open(data.snapshotUrl, '_blank');
+        }
+    })
+    .catch((error) => console.error('Snapshot error:', error));
+}
+
+function setStreamButtons(isRunning) {
+    const startBtn = document.getElementById('start-stream-btn');
+    const stopBtn = document.getElementById('stop-stream-btn');
+    if (startBtn) startBtn.style.display = isRunning ? 'none' : '';
+    if (stopBtn) stopBtn.style.display = isRunning ? '' : 'none';
+}
+
+function showFrameMessage(show) {
+    const message = document.getElementById('camera-message');
+    if (!message) return;
+    message.style.display = show ? 'flex' : 'none';
+}
+
+function requestNextFrame(force = false) {
+    const img = document.getElementById('camera-frame');
+    if (!img) return;
+    if (!frameLoopActive && !force) return;
+    if (frameInFlight && !force) return;
+
+    frameInFlight = true;
+    img.src = `${frameUrl}?t=${Date.now()}`;
+}
+
+function startFramePolling() {
+    if (frameLoopActive) return;
+    frameLoopActive = true;
+    requestNextFrame();
+}
+
+function stopFramePolling() {
+    frameLoopActive = false;
+}
+
+function resizeOverlay() {
+    const img = document.getElementById('camera-frame');
+    const overlay = document.getElementById('detection-overlay');
+    if (!img || !overlay) return null;
+
+    const rect = img.getBoundingClientRect();
+    const width = Math.max(1, Math.round(rect.width));
+    const height = Math.max(1, Math.round(rect.height));
+
+    if (overlay.width !== width) overlay.width = width;
+    if (overlay.height !== height) overlay.height = height;
+    return { width, height };
+}
+
+function drawDetections(payload) {
+    const overlay = document.getElementById('detection-overlay');
+    const img = document.getElementById('camera-frame');
+    if (!overlay || !img) return;
+
+    const size = resizeOverlay();
+    if (!size) return;
+
+    const ctx = overlay.getContext('2d');
+    ctx.clearRect(0, 0, overlay.width, overlay.height);
+
+    const detections = Array.isArray(payload?.detections) ? payload.detections : [];
+    if (detections.length === 0) return;
+
+    const sourceW = Number(payload?.frameWidth) || img.naturalWidth || overlay.width;
+    const sourceH = Number(payload?.frameHeight) || img.naturalHeight || overlay.height;
+    if (!sourceW || !sourceH) return;
+
+    const scale = Math.min(overlay.width / sourceW, overlay.height / sourceH);
+    const drawW = sourceW * scale;
+    const drawH = sourceH * scale;
+    const offsetX = (overlay.width - drawW) / 2;
+    const offsetY = (overlay.height - drawH) / 2;
+
+    detections.forEach((detection) => {
+        const bbox = detection?.bbox || {};
+        const x1 = Number(bbox.x1);
+        const y1 = Number(bbox.y1);
+        const x2 = Number(bbox.x2);
+        const y2 = Number(bbox.y2);
+        if (![x1, y1, x2, y2].every(Number.isFinite)) return;
+
+        const healthLabel = String(detection.health_label || 'unknown').toLowerCase();
+        const conf = Number(detection.confidence || 0);
+        const color = healthLabel === 'ill' ? '#ef4444' : '#22c55e';
+
+        const drawX = offsetX + (x1 * scale);
+        const drawY = offsetY + (y1 * scale);
+        const drawWidth = Math.max(1, (x2 - x1) * scale);
+        const drawHeight = Math.max(1, (y2 - y1) * scale);
+
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.strokeRect(drawX, drawY, drawWidth, drawHeight);
+
+        const label = `dog ${(conf * 100).toFixed(0)}% | ${healthLabel}`;
+        ctx.font = '12px sans-serif';
+        const textWidth = ctx.measureText(label).width;
+        ctx.fillStyle = color;
+        ctx.fillRect(drawX, Math.max(0, drawY - 16), textWidth + 8, 16);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(label, drawX + 4, Math.max(12, drawY - 4));
+    });
+}
+
+function updateLiveBadge(payload) {
+    const badge = document.getElementById('camera-live-status');
+    if (!badge) return;
+
+    const stale = Boolean(payload?.stale);
+    const dogCount = Number(payload?.dogCount || 0);
+    const detections = Array.isArray(payload?.detections) ? payload.detections : [];
+    const illCount = detections.filter((d) => String(d.health_label || '').toLowerCase() === 'ill').length;
+
+    badge.className = 'inline-flex items-center px-2 py-1 rounded text-xs';
+    if (stale) {
+        badge.classList.add('bg-yellow-700/80', 'text-yellow-100');
+        badge.textContent = 'AI: stale';
+        return;
+    }
+    if (illCount > 0) {
+        badge.classList.add('bg-red-700/80', 'text-red-100');
+    } else if (dogCount > 0) {
+        badge.classList.add('bg-green-700/80', 'text-green-100');
+    } else {
+        badge.classList.add('bg-gray-700/80', 'text-gray-200');
+    }
+    badge.textContent = `AI: dogs ${dogCount} | ill ${illCount}`;
+}
+
+function pollLiveDetections() {
+    fetch(liveDetectionsUrl, { cache: 'no-store' })
+        .then((response) => response.json())
+        .then((payload) => {
+            lastLivePayload = payload;
+            updateLiveBadge(payload);
+            drawDetections(payload);
+        })
+        .catch(() => {
+            updateLiveBadge({ stale: true, dogCount: 0, detections: [] });
+        });
+}
+
+function refreshStream() {
+    requestNextFrame(true);
+    pollLiveDetections();
+}
+
+function startStream(targetCameraId) {
+    fetch(`/admin/stations/cameras/${targetCameraId}/stream/start`, { method: 'POST' })
+        .then((response) => response.json())
+        .then((data) => {
+            if (!data.success) {
+                alert(`Error: ${data.error || data.message || 'Failed to start stream'}`);
+                return;
+            }
+            setStreamButtons(true);
+            refreshStream();
+            startFramePolling();
+        })
+        .catch((error) => alert(`Failed to start stream: ${error}`));
+}
+
+function stopStream(targetCameraId) {
+    fetch(`/admin/stations/cameras/${targetCameraId}/stream/stop`, { method: 'POST' })
+        .then((response) => response.json())
+        .then((data) => {
+            if (!data.success) {
+                alert(`Error: ${data.error || data.message || 'Failed to stop stream'}`);
+                return;
+            }
+            setStreamButtons(false);
+            stopFramePolling();
+            frameInFlight = false;
+            showFrameMessage(true);
+            drawDetections({ detections: [] });
+        })
+        .catch((error) => alert(`Failed to stop stream: ${error}`));
+}
+
+function toggleFullscreen() {
+    const container = document.querySelector('.bg-black.rounded-xl');
+    if (!container) return;
+    if (document.fullscreenElement) {
+        document.exitFullscreen();
+    } else {
+        container.requestFullscreen();
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    initPTZButtons();
+    setStreamButtons(streamInitiallyRunning);
+    showFrameMessage(false);
+
+    const image = document.getElementById('camera-frame');
+    if (image) {
+        image.addEventListener('load', () => {
+            frameInFlight = false;
+            frameFailures = 0;
+            showFrameMessage(false);
+            if (lastLivePayload) {
+                drawDetections(lastLivePayload);
+            }
+            if (frameLoopActive) {
+                setTimeout(() => requestNextFrame(), FRAME_MIN_INTERVAL);
+            }
+        });
+        image.addEventListener('error', () => {
+            frameInFlight = false;
+            frameFailures += 1;
+            if (frameFailures >= 3) {
+                showFrameMessage(true);
+            }
+            if (frameLoopActive) {
+                setTimeout(() => requestNextFrame(), FRAME_RETRY_INTERVAL);
+            }
+        });
+    }
+
+    if (streamInitiallyRunning) {
+        startFramePolling();
+    } else {
+        requestNextFrame(true);
+    }
+    pollLiveDetections();
+    liveInterval = setInterval(pollLiveDetections, LIVE_REFRESH_INTERVAL);
+
+    window.addEventListener('resize', () => {
+        if (lastLivePayload) {
+            drawDetections(lastLivePayload);
+        } else {
+            resizeOverlay();
+        }
+    });
+});
+</script>
+{% endblock %}

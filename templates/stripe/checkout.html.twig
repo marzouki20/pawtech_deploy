@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Stripe Payment - PawTech</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .payment-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            max-width: 500px;
+            width: 100%;
+            margin: 20px;
+        }
+        .payment-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px 15px 0 0;
+        }
+        .order-summary {
+            padding: 25px;
+            border-bottom: 1px solid #eee;
+        }
+        .payment-form {
+            padding: 25px;
+        }
+        #card-element {
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: white;
+        }
+        #card-element.StripeElement--focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        .btn-pay {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            padding: 15px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: transform 0.2s;
+        }
+        .btn-pay:hover {
+            transform: translateY(-2px);
+        }
+        .btn-pay:disabled {
+            opacity: 0.6;
+            transform: none;
+        }
+        .amount-display {
+            font-size: 32px;
+            font-weight: bold;
+            color: #333;
+        }
+        .loading-spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #ffffff;
+            border-top: 3px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="payment-card">
+        <div class="payment-header">
+            <h4 class="mb-0">
+                <i class="fas fa-credit-card me-2"></i>Secure Payment
+            </h4>
+            <p class="mb-0 mt-2 opacity-75">PawTech Store</p>
+        </div>
+        
+        <div class="order-summary">
+            <h6 class="text-muted mb-3">Order Summary</h6>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span>Items:</span>
+                <span class="fw-bold" id="item-count">{{ items|length }}</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span>Subtotal:</span>
+                <span>{{ (total / 100)|number_format(2) }} USD</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span>Shipping:</span>
+                <span>Free</span>
+            </div>
+            <hr>
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="fw-bold">Total:</span>
+                <span class="amount-display">{{ (total / 100)|number_format(2) }} USD</span>
+            </div>
+        </div>
+        
+        <div class="payment-form">
+            <form id="payment-form">
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email Address</label>
+                    <input type="email" class="form-control" id="email" name="email" 
+                           placeholder="your@email.com" required 
+                           value="{{ app.session.get('user').email|default('') }}">
+                </div>
+                
+                <div class="mb-4">
+                    <label for="card-element" class="form-label">Card Information</label>
+                    <div id="card-element"></div>
+                    <div id="card-errors" class="text-danger mt-2" role="alert"></div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-pay w-100 text-white" id="pay-button">
+                    <span id="btn-text">Pay {{ (total / 100)|number_format(2) }} USD</span>
+                    <span class="loading-spinner" id="spinner"></span>
+                </button>
+            </form>
+            
+            <div class="text-center mt-3">
+                <small class="text-muted">
+                    <i class="fas fa-lock me-1"></i> Secured by Stripe
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://js.stripe.com/v3/"></script>
+    <script>
+        // Initialize Stripe
+        var stripe = Stripe('{{ publishable_key }}');
+        var elements = stripe.elements();
+        
+        // Create card element
+        var cardStyle = {
+            base: {
+                color: '#32325d',
+                fontFamily: '\"Helvetica Neue\", Helvetica, sans-serif',
+                fontSmoothing: 'antialiased',
+                fontSize: '16px',
+                '::placeholder': {
+                    color: '#aab7c4'
+                }
+            },
+            invalid: {
+                color: '#fa755a',
+                iconColor: '#fa755a'
+            }
+        };
+        
+        var card = elements.create('card', {style: cardStyle});
+        card.mount('#card-element');
+        
+        // Handle form submission
+        var form = document.getElementById('payment-form');
+        var payButton = document.getElementById('pay-button');
+        var btnText = document.getElementById('btn-text');
+        var spinner = document.getElementById('spinner');
+        
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+            
+            // Disable button
+            payButton.disabled = true;
+            btnText.textContent = 'Processing...';
+            spinner.style.display = 'inline-block';
+            
+            var email = document.getElementById('email').value;
+            
+            // Create payment intent
+            fetch('{{ path("app_stripe_payment_intent") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'amount={{ total }}&currency=usd&order_id={{ orderId }}'
+            })
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(data) {
+                if (data.success) {
+                    // Confirm payment
+                    return stripe.confirmCardPayment(data.clientSecret, {
+                        payment_method: {
+                            card: card,
+                            billing_details: {
+                                email: email
+                            }
+                        }
+                    });
+                } else {
+                    throw new Error(data.error);
+                }
+            })
+            .then(function(result) {
+                if (result.error) {
+                    throw new Error(result.error.message);
+                }
+                // Payment successful - redirect to success
+                window.location.href = '{{ path("app_stripe_success", {orderId: orderId}) }}?session_id=' + result.paymentIntent.id;
+            })
+            .catch(function(error) {
+                // Show error
+                var errorElement = document.getElementById('card-errors');
+                errorElement.textContent = error.message;
+                
+                // Re-enable button
+                payButton.disabled = false;
+                btnText.textContent = 'Pay {{ (total / 100)|number_format(2) }} USD';
+                spinner.style.display = 'none';
+            });
+        });
+        
+        // Handle card errors
+        card.addEventListener('change', function(event) {
+            var displayError = document.getElementById('card-errors');
+            if (event.error) {
+                displayError.textContent = event.error.message;
+            } else {
+                displayError.textContent = '';
+            }
+        });
+    </script>
+</body>
+</html>

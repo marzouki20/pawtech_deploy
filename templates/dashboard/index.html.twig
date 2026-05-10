@@ -1,0 +1,134 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Dashboard | PawTech{% endblock %}
+
+{% block main %}
+<div class="px-4 sm:px-6 lg:px-8 py-8 max-w-7xl mx-auto">
+    <!-- Header Section -->
+    <div class="sm:flex sm:items-center justify-between mb-8">
+        <div>
+            <h1 class="text-4xl font-bold text-gray-900">Dashboard</h1>
+            <p class="mt-2 text-sm text-gray-600">
+                Welcome to PawTech - Manage your pet shelter operations
+            </p>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Total Dogs Card -->
+        <div class="bg-white rounded-xl border border-gray-200 shadow-lg p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Total Dogs</p>
+                    <p class="text-2xl font-bold text-gray-900">0</p>
+                </div>
+                <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Available for Adoption -->
+        <div class="bg-white rounded-xl border border-gray-200 shadow-lg p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Available</p>
+                    <p class="text-2xl font-bold text-green-600">0</p>
+                </div>
+                <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reserved -->
+        <div class="bg-white rounded-xl border border-gray-200 shadow-lg p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Reserved</p>
+                    <p class="text-2xl font-bold text-yellow-600">0</p>
+                </div>
+                <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Adopted -->
+        <div class="bg-white rounded-xl border border-gray-200 shadow-lg p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Adopted</p>
+                    <p class="text-2xl font-bold text-gray-600">0</p>
+                </div>
+                <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="bg-white rounded-xl border border-gray-200 shadow-lg p-6 mb-8">
+        <h2 class="text-lg font-bold text-gray-900 mb-4">Quick Actions</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <a href="{{ path('app_dogs_index') }}" class="flex items-center gap-4 p-4 bg-orange-50 hover:bg-orange-100 rounded-lg transition">
+                <div class="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4"/>
+                    </svg>
+                </div>
+                <div>
+                    <p class="font-semibold text-gray-900">Manage Dogs</p>
+                    <p class="text-sm text-gray-600">View, add, and edit dogs</p>
+                </div>
+            </a>
+
+            <a href="#" class="flex items-center gap-4 p-4 bg-gray-50 hover:bg-gray-100 rounded-lg transition opacity-50 cursor-not-allowed">
+                <div class="w-10 h-10 bg-gray-400 rounded-lg flex items-center justify-center">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                    </svg>
+                </div>
+                <div>
+                    <p class="font-semibold text-gray-900">Clients</p>
+                    <p class="text-sm text-gray-600">Coming soon...</p>
+                </div>
+            </a>
+
+            <a href="#" class="flex items-center gap-4 p-4 bg-gray-50 hover:bg-gray-100 rounded-lg transition opacity-50 cursor-not-allowed">
+                <div class="w-10 h-10 bg-gray-400 rounded-lg flex items-center justify-center">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                    </svg>
+                </div>
+                <div>
+                    <p class="font-semibold text-gray-900">Users</p>
+                    <p class="text-sm text-gray-600">Coming soon...</p>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="bg-white rounded-xl border border-gray-200 shadow-lg p-6">
+        <h2 class="text-lg font-bold text-gray-900 mb-4">Recent Activity</h2>
+        <div class="text-center py-8">
+            <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+            </svg>
+            <p class="text-gray-500 text-lg font-medium">No recent activity</p>
+            <p class="text-gray-400 text-sm">Activity will appear here once you start using the system</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

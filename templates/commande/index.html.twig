@@ -1,0 +1,256 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Orders | PawTech{% endblock %}
+
+{% set active = 'eshop_commandes' %}
+{% set page_title = 'Orders' %}
+
+{# Calculate records here so they're available in both main and javascripts blocks #}
+{% set total_records = commandes|length %}
+{% set completed_records = commandes|filter(c => c.statut == true)|length %}
+{% set in_progress_records = commandes|filter(c => c.statut != true)|length %}
+
+{% block main %}
+<div>
+    <div class="px-4 sm:px-6 lg:px-8 py-8 max-w-7xl mx-auto">
+        <!-- Page Header -->
+        <div class="bg-white rounded-2xl border border-gray-200 p-6 mb-8 shadow-sm">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+                <div class="flex items-start gap-4 flex-1">
+                    <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100">
+                        <svg class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <nav class="flex items-center gap-2 text-sm text-gray-500 mb-1">
+                            <a href="#" class="hover:text-gray-700 transition">Dashboard</a>
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                            <span class="text-gray-900 font-medium">Orders</span>
+                        </nav>
+                        <h1 class="text-2xl font-bold text-gray-900">Order Management</h1>
+                        <p class="mt-1 text-sm text-gray-600 max-w-xl">Track and manage customer orders, update statuses, and monitor delivery progress.</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 flex-shrink-0 mt-4 lg:mt-0">
+                    <a href="{{ path('app_eshop_commande_new') }}"
+                       class="inline-flex items-center gap-2 rounded-lg bg-paw-orange px-5 py-2.5 text-sm font-semibold text-white shadow hover:bg-paw-orange-hover transition-colors">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Add Order
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- FILTERS INLINE WITH SEARCH BAR -->
+        <div class="flex flex-col gap-2 mb-8">
+            <div class="flex flex-1 items-center gap-4 max-w-5xl">
+                <!-- Filters -->
+                <span class="text-sm font-semibold text-gray-700">Filters:</span>
+                <div class="relative">
+                    <select id="statusFilter" 
+                            class="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm text-gray-900 focus:border-paw-orange focus:ring-2 focus:ring-paw-orange/30">
+                        <option value="">All Status</option>
+                        <option value="completed">Completed</option>
+                        <option value="in_progress">In progress</option>
+                    </select>
+                </div>
+                <div class="flex gap-2">
+                    <button type="button" 
+                            id="applyFilters"
+                            class="inline-flex items-center gap-2 rounded-lg bg-paw-orange px-5 py-2.5 text-sm font-semibold text-white shadow hover:bg-paw-orange-hover transition-colors min-w-[120px]">
+                        Apply Filters
+                    </button>
+                    <button type="button" 
+                            id="clearFilters"
+                            class="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors min-w-[120px]">
+                        Clear Filters
+                    </button>
+                </div>
+                <!-- Search -->
+                <form method="get" action="{{ path('app_eshop_commande_index') }}" class="relative flex-1 min-w-[200px]">
+                  <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                  </span>
+                  <input 
+                    name="search" 
+                    type="search" 
+                    value="{{ app.request.query.get('search', '') }}" 
+                    placeholder="Search by ID, total, or date (dd/mm/yyyy)..." 
+                    class="w-full pl-10 pr-10 py-2 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-paw-orange focus:border-paw-orange outline-none"
+                    onkeydown="if(event.key === 'Enter') this.form.submit()">
+                  
+                  {% if app.request.query.get('search') %}
+                    <a href="{{ path('app_eshop_commande_index', app.request.query.all|filter((v, k) => k != 'search')) }}" 
+                       class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                       title="Clear search">
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                      </svg>
+                    </a>
+                  {% endif %}
+                  
+                  {% if app.request.query.get('status') %}
+                    <input type="hidden" name="status" value="{{ app.request.query.get('status') }}">
+                  {% endif %}
+                </form>
+            </div>
+            {% set has_active_filter = app.request.query.get('status') or app.request.query.get('search') %}
+            {% if has_active_filter %}
+            <div class="flex items-center gap-2 flex-wrap">
+                <span class="text-sm text-gray-600">Active filters:</span>
+                {% if app.request.query.get('status') %}
+                    <span class="inline-flex items-center gap-1 rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
+                        Status: {{ app.request.query.get('status') == 'completed' ? 'Completed' : 'In progress' }}
+                        <a href="{{ path('app_eshop_commande_index', {search: app.request.query.get('search')}) }}" class="text-blue-500 hover:text-blue-700">&times;</a>
+                    </span>
+                {% endif %}
+                {% if app.request.query.get('search') %}
+                    <span class="inline-flex items-center gap-1 rounded-full bg-yellow-100 px-3 py-1 text-xs font-semibold text-yellow-700">
+                        Search: "{{ app.request.query.get('search') }}"
+                        <a href="{{ path('app_eshop_commande_index', {status: app.request.query.get('status')}) }}" class="text-yellow-500 hover:text-yellow-700">&times;</a>
+                    </span>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Overview Stats -->
+        <div class="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Total Orders</p>
+                <p class="mt-2 text-2xl font-bold text-gray-900">{{ total_records }}</p>
+            </div>
+            <div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">In Progress</p>
+                <p class="mt-2 text-2xl font-bold text-yellow-600">{{ in_progress_records }}</p>
+            </div>
+            <div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Completed</p>
+                <p class="mt-2 text-2xl font-bold text-green-600">{{ completed_records }}</p>
+            </div>
+        </div>
+
+        <!-- Orders Table -->
+        <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-100">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 w-[15%]">Order</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 w-[20%]">Date</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 w-[20%]">Total</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 w-[20%]">Status</th>
+                            <th class="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wide text-gray-500 w-[25%]">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="all">
+                        {% if commandes is empty %}
+                            <tr>
+                                <td colspan="5" class="px-6 py-12 text-center">
+                                    <p class="text-sm font-semibold text-gray-600">No orders registered yet.</p>
+                                    <p class="text-xs text-gray-400">Click "Add Order" to create the first record.</p>
+                                </td>
+                            </tr>
+                        {% else %}
+                            {% for commande in commandes %}
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 text-sm font-semibold text-gray-900">#{{ commande.id }}</td>
+                                    <td class="px-6 py-4 text-sm text-gray-600">{{ commande.date ? commande.date|date('d/m/Y') : '-' }}</td>
+                                    <td class="px-6 py-4 text-sm text-gray-600">{{ commande.total|number_format(2, ',', ' ') }} TND</td>
+                                    <td class="px-6 py-4">
+                                        {% set status_class = commande.statut ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700' %}
+                                        {% set status_label = commande.statut ? 'Completed' : 'In progress' %}
+                                        <span class="inline-flex rounded-full px-3 py-1 text-xs font-semibold {{ status_class }}">
+                                            {{ status_label }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 text-right text-sm">
+                                        <a href="{{ path('app_eshop_commande_show', {'id': commande.id}) }}"
+                                           class="text-gray-600 hover:text-gray-900 font-semibold">View</a>
+                                        <a href="{{ path('app_eshop_commande_edit', {'id': commande.id}) }}"
+                                           class="ml-4 text-paw-orange hover:text-paw-orange-hover font-semibold">Edit</a>
+                                        {% if not commande.statut %}
+                                        <button type="button"
+                                                class="ml-4 text-red-600 hover:text-red-700 font-semibold"
+                                                onclick="openDeleteModal('{{ path('app_eshop_commande_delete', {'id': commande.id}) }}', '{{ csrf_token('delete' ~ commande.id) }}', '#{{ commande.id }}')">
+                                            Delete
+                                        </button>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        {% endif %}
+                    </tbody>
+                    <tbody id="filtertab" style="display: none;"></tbody>
+                    <tbody id="searchtab" style="display: none;"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Modal -->
+    <div id="delete-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm" style="display: none;">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4">
+            <div class="sticky top-0 bg-white border-b border-gray-200 px-8 py-6 rounded-t-2xl">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900">Delete Order</h2>
+                        <p class="mt-1 text-sm text-gray-600">Are you sure you want to delete order <span id="delete-label" class="font-semibold"></span>?</p>
+                    </div>
+                    <button onclick="closeDeleteModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                        <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="px-8 py-6">
+                <form id="delete-form" method="post">
+                    <input type="hidden" name="_token" id="delete-token">
+                    <div class="flex justify-end gap-3">
+                        <button type="button" onclick="closeDeleteModal()"
+                                class="px-6 py-2.5 rounded-lg border border-gray-200 bg-white text-sm font-semibold text-gray-700 hover:bg-gray-50">
+                            Cancel
+                        </button>
+                        <button type="submit"
+                                class="px-6 py-2.5 rounded-lg bg-red-600 text-sm font-semibold text-white shadow hover:bg-red-700">
+                            Delete
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    function openDeleteModal(action, token, label) {
+        document.getElementById('delete-form').action = action;
+        document.getElementById('delete-token').value = token;
+        document.getElementById('delete-label').textContent = label;
+        document.getElementById('delete-modal').style.display = 'flex';
+    }
+    
+    function closeDeleteModal() {
+        document.getElementById('delete-modal').style.display = 'none';
+    }
+    
+    document.getElementById('delete-modal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeDeleteModal();
+        }
+    });
+    
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeDeleteModal();
+        }
+    });
+    </script>
+</div>
+
+{% endblock %}

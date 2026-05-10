@@ -1,0 +1,40 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Profile Settings{% endblock %}
+
+{% block body %}
+<div class="max-w-3xl mx-auto px-4 py-8">
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">Profile Settings</h1>
+    <a href="{{ path('app_account') }}" class="text-sm text-blue-600 hover:text-blue-700">Account Information</a>
+  </div>
+
+  {% for label, messages in app.flashes %}
+    {% for message in messages %}
+      <div class="mb-4 rounded-lg bg-green-50 text-green-700 px-4 py-3 text-sm">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endfor %}
+
+  <form method="post" class="bg-white shadow rounded-xl p-6 space-y-6">
+    <div>
+      <label class="block text-sm font-medium text-gray-700">Account status</label>
+      <select name="status" class="mt-1 w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+        <option value="actif" {% if user.status == 'actif' %}selected{% endif %}>Active</option>
+        <option value="inactif" {% if user.status == 'inactif' %}selected{% endif %}>Inactive</option>
+      </select>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700">New password</label>
+      <input type="password" name="new_password" class="mt-1 w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500" />
+      <p class="text-xs text-gray-500 mt-1">Leave blank to keep your current password.</p>
+    </div>
+
+    <div class="flex justify-end">
+      <button type="submit" class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">Save settings</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

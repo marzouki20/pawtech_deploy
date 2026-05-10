@@ -1,0 +1,109 @@
+{% extends 'base_front.html.twig' %}
+
+{% block title %}Dogs - PawTech{% endblock %}
+
+{% block body %}
+    <section class="relative overflow-hidden">
+        <div class="absolute inset-0">
+            <div class="absolute -top-24 -right-24 h-96 w-96 rounded-full bg-orange-200/70"></div>
+            <div class="absolute top-24 right-24 h-80 w-80 rounded-full bg-orange-400/80"></div>
+        </div>
+
+        <div class="relative container mx-auto px-4 lg:px-8 py-12 lg:py-16 grid lg:grid-cols-2 gap-10 items-center">
+            <div>
+                <p class="text-orange-600 font-semibold tracking-wide uppercase text-xs mb-3">Adopt</p>
+                <h1 class="text-4xl lg:text-5xl font-extrabold leading-tight text-gray-900">Where Dogs Come First</h1>
+                <p class="mt-4 text-gray-600 max-w-xl">
+                    Browse available dogs by category and find your perfect companion.
+                </p>
+                <div class="mt-7 flex flex-wrap gap-3">
+                    <a href="{{ path('app_contact') }}" class="inline-flex items-center rounded-full bg-gray-900 px-6 py-3 text-white font-semibold hover:bg-gray-800 transition">
+                        Learn More
+                    </a>
+                </div>
+            </div>
+
+            <div class="relative">
+                <div class="relative rounded-3xl bg-white shadow-xl p-6 border border-gray-100">
+                    <div class="aspect-[4/3] rounded-2xl bg-gradient-to-br from-orange-100 via-gray-50 to-orange-200 flex items-center justify-center">
+                        <span class="text-gray-500 font-semibold">Header image</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="container mx-auto px-4 lg:px-8 py-12">
+        <div>
+            <p class="text-orange-600 font-semibold text-xs uppercase tracking-wide">Browse</p>
+            <h2 class="text-2xl lg:text-3xl font-extrabold text-gray-900 mt-2">Browse by category</h2>
+        </div>
+
+        <div class="mt-8 grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {% for c in ['Husky','Labrador','Poodle','Pug'] %}
+                <a href="#dogs" class="group rounded-2xl bg-white border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition">
+                    <div class="aspect-[16/10] bg-gray-100"></div>
+                    <div class="p-4 flex items-center justify-between">
+                        <span class="font-bold text-gray-900 group-hover:text-orange-600 transition">{{ c }}</span>
+                        <span class="text-xs text-gray-500">View</span>
+                    </div>
+                </a>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="container mx-auto px-4 lg:px-8 pb-14" id="dogs">
+        <div class="flex items-end justify-between gap-6">
+            <div>
+                <p class="text-orange-600 font-semibold text-xs uppercase tracking-wide">Adoption</p>
+                <h2 class="text-2xl lg:text-3xl font-extrabold text-gray-900 mt-2">Available Dogs</h2>
+            </div>
+            <div class="flex items-center gap-2">
+                <button class="h-10 w-10 rounded-full border border-gray-200 bg-white hover:border-orange-400 hover:text-orange-600 transition">‹</button>
+                <button class="h-10 w-10 rounded-full border border-gray-200 bg-white hover:border-orange-400 hover:text-orange-600 transition">›</button>
+            </div>
+        </div>
+
+        <div class="mt-8 grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {% set dogs = [
+                {name:'Nina', breed:'Husky', age:'2 years', sex:'Female'},
+                {name:'Prince', breed:'Labrador', age:'1 year', sex:'Male'},
+                {name:'Coco', breed:'Poodle', age:'3 years', sex:'Female'},
+                {name:'Max', breed:'Pug', age:'2 years', sex:'Male'},
+                {name:'Rocky', breed:'Husky', age:'4 years', sex:'Male'},
+                {name:'Bella', breed:'Labrador', age:'2 years', sex:'Female'},
+                {name:'Zoe', breed:'Poodle', age:'1 year', sex:'Female'},
+                {name:'Milo', breed:'Pug', age:'3 years', sex:'Male'}
+            ] %}
+
+            {% for dog in dogs %}
+                <div class="rounded-2xl bg-white border border-gray-100 shadow-sm hover:shadow-md transition overflow-hidden">
+                    <div class="aspect-[4/3] bg-gray-100 relative">
+                        <div class="absolute top-3 right-3 flex items-center gap-2">
+                            <button class="h-9 w-9 rounded-full bg-white/90 border border-gray-200 hover:border-orange-400 transition" title="Favorite">♡</button>
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <div class="flex items-center justify-between">
+                            <h3 class="font-extrabold text-gray-900">{{ dog.name }}</h3>
+                            <span class="text-xs rounded-full bg-orange-50 text-orange-700 px-2 py-1 font-semibold">{{ dog.breed }}</span>
+                        </div>
+                        <div class="mt-2 text-sm text-gray-500 flex items-center justify-between">
+                            <span>{{ dog.sex }}</span>
+                            <span>{{ dog.age }}</span>
+                        </div>
+                        <div class="mt-4 grid grid-cols-2 gap-3">
+                            <a href="{{ path('app_contact') }}" class="inline-flex items-center justify-center rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-800 hover:border-orange-400 hover:text-orange-600 transition">
+                                Details
+                            </a>
+                            <a href="{{ path('app_contact') }}" class="inline-flex items-center justify-center rounded-xl bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-800 transition">
+                                Adopt
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+{% endblock %}
+

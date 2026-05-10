@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>{% block title %}PawTech - Pet Shop{% endblock %}</title>
+        <link rel="icon" href="{{ asset('favicon.ico') }}">
+
+        {# Tailwind via CDN for rapid development.
+           Later you can replace this with a compiled Tailwind build if you prefer. #}
+        <script src="https://cdn.tailwindcss.com"></script>
+        
+        {# Font Awesome for icons #}
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        
+        {# Custom styles for dropdown and animations #}
+        <style>
+            .dropdown {
+                position: relative;
+            }
+            
+            .dropdown-menu {
+                display: none;
+                position: absolute;
+                right: 0;
+                top: 100%;
+                margin-top: 0.5rem;
+                min-width: 200px;
+                background-color: white;
+                border-radius: 0.5rem;
+                box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+                z-index: 50;
+            }
+            
+            .dropdown:hover .dropdown-menu,
+            .dropdown:focus-within .dropdown-menu {
+                display: block;
+            }
+            
+            .user-avatar {
+                background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);
+            }
+            
+            .animate-fade-in {
+                animation: fadeIn 0.3s ease-in-out;
+            }
+            
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(-10px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            .form-error-list,
+            .form-error-message,
+            .form-errors,
+            .form-error {
+                color: #ef4444;
+                font-size: 0.875rem;
+                margin-top: 0.25rem;
+            }
+
+            .form-error-list {
+                list-style: none;
+                padding-left: 0;
+            }
+
+            .form-error-list li + li {
+                margin-top: 0.25rem;
+            }
+
+            input[aria-invalid="true"]:not([type="checkbox"]):not([type="radio"]),
+            select[aria-invalid="true"],
+            textarea[aria-invalid="true"] {
+                border-color: #ef4444 !important;
+                background-color: #fef2f2 !important;
+                box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.15);
+            }
+        </style>
+
+        {% block stylesheets %}
+        {% endblock %}
+
+        {% block javascripts %}
+            {% block importmap %}{{ importmap('app') }}{% endblock %}
+        {% endblock %}
+    </head>
+    <body class="min-h-screen flex flex-col bg-[#fdfdfd] text-gray-900">
+        {# Main navigation shared by all pages (matches PawTech design) #}
+        <header class="bg-[#fff9f4] sticky top-0 z-50 shadow-sm">
+
+
+
+        
+
+            {% set sessionUser = app.session.get('user') %}
+            {% set activeUser = app.user ? app.user : sessionUser %}
+            {% set sessionRole = sessionUser is not null and sessionUser.role is defined ? sessionUser.role : null %}
+            {% set isAdmin = is_granted('ROLE_ADMIN') or sessionRole == 'ROLE_ADMIN' %}
+            {% set isVet = is_granted('ROLE_VETERINAIRE') or sessionRole == 'ROLE_VETERINAIRE' %}
+            {% set isAgent = is_granted('ROLE_AGENT') or is_granted('ROLE_AGENT_MUNICIPALE') or sessionRole == 'ROLE_AGENT' or sessionRole == 'ROLE_AGENT_MUNICIPALE' %}
+            {% set isClient = is_granted('ROLE_CLIENT') or sessionRole == 'ROLE_CLIENT' %}
+            {# Top info bar #}
+
+
+
+
+            <div class="border-b border-orange-100">
+                <div class="container mx-auto px-4 lg:px-8 flex items-center justify-between gap-4 py-2 text-[13px] text-gray-600">
+                    <div class="flex flex-wrap items-center gap-4">
+                        <span class="flex items-center gap-1">
+                            <span class="text-orange-500">☎</span>
+                            <span>+216 58 458 152</span>
+                        </span>
+                        <span class="hidden sm:inline-flex items-center gap-1">
+                            <span class="text-orange-500">@</span>
+                            <span>Pawtech@paws.tn</span>
+                        </span>
+                    </div>
+                    <div class="hidden md:block text-gray-500">
+                        8529 Ariana tn. ghazela, TN 20303
+                    </div>
+                </div>
+            </div>
+
+
+
+
+
+
+            
+
+            {# Main nav bar #} 
+            <div class="container mx-auto px-4 lg:px-8 py-4">
+                <div class="hidden md:flex items-center justify-center">
+                    <div class="inline-flex items-center rounded-full bg-white shadow-[0_12px_30px_rgba(0,0,0,0.07)] px-8 py-3 gap-8">
+                        <div class="flex items-center gap-2">
+                            <span><img src="{{ asset('logo.png') }}" alt="PawTech Logo" class="h-8"></span>
+                        </div>
+
+                        <nav class="flex items-center gap-6 text-[15px] font-medium text-gray-800">
+                            {% set current = app.request.attributes.get('_route') %}
+                            {% macro link(label, route, current) %}
+                                <a href="{{ path(route) }}"
+                                   class="relative pb-1 transition-colors {{ current == route ? 'text-orange-500' : 'text-gray-800 hover:text-orange-500' }}">
+                                    {{ label }}
+                                    {% if current == route %}
+                                        <span class="absolute left-0 right-0 -bottom-1 h-0.5 rounded-full bg-orange-500"></span>
+                                    {% endif %}
+                                </a>
+                            {% endmacro %}
+
+                            {{ _self.link('Home', 'app_home', current) }}
+                            {{ _self.link('Dogs', 'app_front_dogs', current) }}
+                            {{ _self.link('Shop', 'app_shop', current) }}
+                            {{ _self.link('Veterinarian', 'app_veterinarian_page', current) }}
+                            {{ _self.link('Events', 'app_events', current) }}
+                            {{ _self.link('Donation', 'app_donation', current) }}
+                            {{ _self.link('Notifications', 'app_notifications', current) }}
+                            {{ _self.link('Contact Us', 'app_contact', current) }}
+                            {{ _self.link('About Us', 'app_about', current) }}
+                            
+                            {# Translate Button #}
+                            <span class="relative dropdown">
+                                <button class="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-orange-500 hover:bg-orange-50 rounded-lg transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"></path>
+                                    </svg>
+                                    <span class="hidden sm:inline">Translate</span>
+                                    <i class="fas fa-chevron-down text-xs"></i>
+                                </button>
+                                <div class="dropdown-menu animate-fade-in w-40">
+                                    <a href="#" onclick="translatePage('en'); return false;" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                        <span class="mr-2">🇺🇸</span> English
+                                    </a>
+                                    <a href="#" onclick="translatePage('fr'); return false;" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                        <span class="mr-2">🇫🇷</span> Français
+                                    </a>
+                                    <a href="#" onclick="translatePage('es'); return false;" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                        <span class="mr-2">🇪🇸</span> Español
+                                    </a>
+                                    <a href="#" onclick="translatePage('de'); return false;" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                        <span class="mr-2">🇩🇪</span> Deutsch
+                                    </a>
+                                    <a href="#" onclick="translatePage('ar'); return false;" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                        <span class="mr-2">🇸🇦</span> العربية
+                                    </a>
+                                    <a href="#" onclick="translatePage('zh'); return false;" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                        <span class="mr-2">🇨🇳</span> 中文
+                                    </a>
+                                </div>
+                            </span>
+                            
+                            {# User Profile Section - MATCHES DASHBOARD STYLE #}
+                            <span class="flex items-center gap-2 pl-2 border-l border-gray-200">
+                                {% if activeUser %}
+                                    {# User is logged in #}
+                                    {% set user = activeUser %}
+                                    <div class="relative dropdown">
+                                        <button class="flex items-center space-x-2 focus:outline-none">
+                                                <div class="w-10 h-10 rounded-full user-avatar flex items-center justify-center text-white font-bold text-sm overflow-hidden">
+                                                    {% set avatarImage = null %}
+                                                    {% if user.userImage is defined and user.userImage and user.userImage != 'uploads/users/default.png' and user.userImage != 'uploads/users/default-user.png' %}
+                                                        {% set avatarImage = user.userImage starts with 'data:image' ? user.userImage : asset(user.userImage) %}
+                                                    {% elseif user.user_image is defined and user.user_image and user.user_image != 'uploads/users/default.png' and user.user_image != 'uploads/users/default-user.png' %}
+                                                        {% set avatarImage = user.user_image starts with 'data:image' ? user.user_image : asset(user.user_image) %}
+                                                    {% endif %}
+                                                    {% if avatarImage %}
+                                                        <img src="{{ avatarImage }}" alt="Avatar" class="w-full h-full object-cover" />
+                                                    {% elseif user.prenom is defined and user.nom is defined %}
+                                                        {{ user.prenom|first|upper }}{{ user.nom|first|upper }}
+                                                    {% elseif user.email is defined %}
+                                                        {{ user.email|first|upper }}
+                                                    {% else %}
+                                                        U
+                                                    {% endif %}
+                                                </div>
+                                            <div class="hidden sm:block">
+                                                <p class="text-gray-700 font-medium text-sm">
+                                                    {% if user.prenom is defined %}
+                                                        {{ user.prenom }}
+                                                    {% else %}
+                                                        My Account
+                                                    {% endif %}
+                                                </p>
+                                                <p class="text-gray-500 text-xs">
+                                                    {% if isAdmin %}
+                                                        Admin
+                                                    {% elseif isVet %}
+                                                        Veterinarian
+                                                    {% elseif isAgent %}
+                                                        Agent
+                                                    {% else %}
+                                                        Client
+                                                    {% endif %}
+                                                </p>
+                                            </div>
+                                            <i class="fas fa-chevron-down text-gray-500 text-xs"></i>
+                                        </button>
+                                        
+                                        {# Dropdown Menu - Matches Dashboard Style #}
+                                        <div class="dropdown-menu animate-fade-in w-64">
+                                            <div class="px-4 py-3 border-b">
+                                                <p class="text-sm font-medium text-gray-900">
+                                                    {% if user.prenom is defined and user.nom is defined %}
+                                                        {{ user.prenom }} {{ user.nom }}
+                                                    {% else %}
+                                                        {{ user.email|default('User') }}
+                                                    {% endif %}
+                                                </p>
+                                                <p class="text-xs text-gray-500">{{ user.email|default('No email') }}</p>
+                                                {# Role Badge #}
+                                                <div class="mt-1">
+                                                    {% if isAdmin %}
+                                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                                                            <i class="fas fa-shield-alt mr-1"></i> Administrator
+                                                        </span>
+                                                    {% elseif isVet %}
+                                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                                                            <i class="fas fa-stethoscope mr-1"></i> Veterinarian
+                                                        </span>
+                                                    {% elseif isAgent %}
+                                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                                                            <i class="fas fa-user-tie mr-1"></i> Agent
+                                                        </span>
+                                                    {% elseif isClient %}
+                                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                                            <i class="fas fa-user mr-1"></i> Client
+                                                        </span>
+                                                    {% else %}
+                                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                                                            <i class="fas fa-user mr-1"></i> User
+                                                        </span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            
+                                            {# Menu Items #}
+                                            <div class="py-1">
+                                                <a href="{{ path('app_account') }}" class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50">
+                                                    <i class="fas fa-user-circle mr-3 text-blue-500 w-5"></i>
+                                                    <div class="flex-1">
+                                                        <p class="font-medium">Account Information</p>
+                                                        <p class="text-xs text-gray-500">View and edit your profile</p>
+                                                    </div>
+                                                </a>
+                                                
+                                                <a href="{{ path('app_settings') }}" class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50">
+                                                    <i class="fas fa-cog mr-3 text-purple-500 w-5"></i>
+                                                    <div class="flex-1">
+                                                        <p class="font-medium">Settings</p>
+                                                        <p class="text-xs text-gray-500">Preferences & privacy</p>
+                                                    </div>
+                                                </a>
+                                                
+                                                {% if isAdmin %}
+                                                    <a href="{{ path('app_dashboard') }}" class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-t border-gray-100 mt-1">
+                                                        <i class="fas fa-tachometer-alt mr-3 text-green-500 w-5"></i>
+                                                        <div class="flex-1">
+                                                            <p class="font-medium">Dashboard</p>
+                                                            <p class="text-xs text-gray-500">Admin dashboard</p>
+                                                        </div>
+                                                    </a>
+                                                {% endif %}
+                                            </div>
+                                            
+                                            {# Sign Out #}
+                                            <div class="border-t border-gray-100 py-1">
+                                                <a href="{{ path('app_logout') }}" class="flex items-center px-4 py-3 text-sm text-red-600 hover:bg-red-50">
+                                                    <i class="fas fa-sign-out-alt mr-3 w-5"></i>
+                                                    <div class="flex-1">
+                                                        <p class="font-medium">Sign out</p>
+                                                        <p class="text-xs text-red-500">Log out of your account</p>
+                                                    </div>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    {# User is not logged in #}
+                                    <a href="{{ path('app_signin') }}" class="px-4 py-2 text-sm font-semibold text-orange-600 hover:text-orange-700 transition">Sign In</a>
+                                    <a href="{{ path('app_signup') }}" class="px-4 py-2 rounded-full bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 transition shadow-sm">Sign Up</a>
+                                {% endif %}
+                            </span>
+                        </nav>
+                    </div>
+                </div>
+
+                {# Simple mobile layout with profile #}
+                <div class="md:hidden flex items-center justify-between gap-4">
+                    <div class="flex items-center gap-2">
+                        <span><img src="{{ asset('logo.png') }}" alt="PawTech Logo" class="h-6"></span>
+                        <span class="font-semibold text-base text-orange-500">PawTech</span>
+                    </div>
+                    
+                    {# Mobile user menu #}
+                    <div class="flex items-center gap-4">
+                        {% if activeUser %}
+                            {# User is logged in - mobile #}
+                            {% set user = activeUser %}
+                            <div class="relative dropdown">
+                                <button class="flex items-center space-x-1 focus:outline-none">
+                                            <div class="w-8 h-8 rounded-full user-avatar flex items-center justify-center text-white font-bold text-sm overflow-hidden">
+                                                {% set avatarImage = null %}
+                                                {% if user.userImage is defined and user.userImage and user.userImage != 'uploads/users/default.png' and user.userImage != 'uploads/users/default-user.png' %}
+                                                    {% set avatarImage = user.userImage starts with 'data:image' ? user.userImage : asset(user.userImage) %}
+                                                {% elseif user.user_image is defined and user.user_image and user.user_image != 'uploads/users/default.png' and user.user_image != 'uploads/users/default-user.png' %}
+                                                    {% set avatarImage = user.user_image starts with 'data:image' ? user.user_image : asset(user.user_image) %}
+                                                {% endif %}
+                                                {% if avatarImage %}
+                                                    <img src="{{ avatarImage }}" alt="Avatar" class="w-full h-full object-cover" />
+                                                {% elseif user.prenom is defined and user.nom is defined %}
+                                                    {{ user.prenom|first|upper }}{{ user.nom|first|upper }}
+                                                {% elseif user.email is defined %}
+                                                    {{ user.email|first|upper }}
+                                                {% else %}
+                                                    U
+                                                {% endif %}
+                                            </div>
+                                    <i class="fas fa-chevron-down text-gray-500 text-xs"></i>
+                                </button>
+                                
+                                {# Mobile Dropdown Menu with Role-Based Options #}
+                                <div class="dropdown-menu animate-fade-in w-56">
+                                    {% if user.prenom is defined and user.nom is defined and user.email is defined %}
+                                        <div class="px-4 py-3 border-b">
+                                            <p class="text-sm font-medium text-gray-900">{{ user.prenom }} {{ user.nom }}</p>
+                                            <p class="text-xs text-gray-500">{{ user.email }}</p>
+                                            {# Role Badge #}
+                                            <div class="mt-1">
+                                                {% if isAdmin %}
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                                                        <i class="fas fa-shield-alt mr-1"></i> Admin
+                                                    </span>
+                                                {% elseif isVet %}
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                                                        <i class="fas fa-stethoscope mr-1"></i> Vet
+                                                    </span>
+                                                {% elseif isClient %}
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                                        <i class="fas fa-user mr-1"></i> Client
+                                                    </span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                    
+                                    {# Mobile menu items with role-based options #}
+                                    <a href="{{ path('app_profile') }}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        <i class="fas fa-user-circle mr-3 text-blue-500 w-4"></i>
+                                        <span>My Profile</span>
+                                    </a>
+                                    
+                                    <a href="{{ path('app_settings') }}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        <i class="fas fa-cog mr-3 text-purple-500 w-4"></i>
+                                        <span>Settings</span>
+                                    </a>
+                                    
+                                    {% if isAdmin %}
+                                        <a href="{{ path('app_dashboard') }}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 border-t border-gray-100 mt-1">
+                                            <i class="fas fa-tachometer-alt mr-3 text-green-500 w-4"></i>
+                                            <span>Dashboard</span>
+                                        </a>
+                                    {% endif %}
+                                    
+                                    {% if isClient %}
+                                        <a href="{{ path('app_my_pets') }}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                            <i class="fas fa-paw mr-3 text-amber-500 w-4"></i>
+                                            <span>My Pets</span>
+                                        </a>
+                                    {% endif %}
+                                    
+                                    <div class="border-t border-gray-100 mt-1 pt-1">
+                                        <a href="{{ path('app_logout') }}" class="flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                                            <i class="fas fa-sign-out-alt mr-3 w-4"></i>
+                                            <span>Logout</span>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% else %}
+                            {# User is not logged in - mobile #}
+                            <div class="flex items-center gap-2">
+                                <a href="{{ path('app_signin') }}" class="text-sm text-gray-700 hover:text-orange-500">Sign In</a>
+                                <a href="{{ path('app_signup') }}" class="text-sm bg-orange-500 text-white px-3 py-1 rounded-full hover:bg-orange-600">Sign Up</a>
+                            </div>
+                        {% endif %}
+                        
+                        <button class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white shadow border border-gray-200 text-gray-700" aria-label="Open menu">
+                            ☰
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        {# Flash Messages #}
+        {% for message in app.flashes('success') %}
+            <div class="fixed top-20 right-4 z-50 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg animate-fade-in">
+                <div class="flex items-center">
+                    <i class="fas fa-check-circle mr-2"></i>
+                    {{ message }}
+                </div>
+            </div>
+        {% endfor %}
+        
+        {% for message in app.flashes('error') %}
+            <div class="fixed top-20 right-4 z-50 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg animate-fade-in">
+                <div class="flex items-center">
+                    <i class="fas fa-exclamation-circle mr-2"></i>
+                    {{ message }}
+                </div>
+            </div>
+        {% endfor %}
+
+        <main class="flex-1">
+            {% block body %}{% endblock %}
+        </main>
+
+        <footer class="bg-white border-t mt-10">
+            <div class="container mx-auto px-4 lg:px-8 py-10 grid gap-8 md:grid-cols-4 text-sm">
+                <div>
+                    <div class="flex items-center gap-2">
+                            <span><img src="{{ asset('logo.png') }}" alt="PawTech Logo" class="h-12"></span>
+                    </div>
+                    <p class="text-gray-500">
+                        Caring pet shop offering quality products and services to keep your pets happy, healthy, and comfortable.
+                    </p>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-gray-900 mb-3">Company</h3>
+                    <ul class="space-y-1 text-gray-500">
+                        <li><a href="{{ path('app_about') }}" class="hover:text-orange-500">About Us</a></li>
+                        <li><a href="#" class="hover:text-orange-500">Blog</a></li>
+                        <li><a href="#" class="hover:text-orange-500">Gift Cards</a></li>
+                        <li><a href="#" class="hover:text-orange-500">Careers</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-gray-900 mb-3">Customer Service</h3>
+                    <ul class="space-y-1 text-gray-500">
+                        <li><a href="{{ path('app_contact') }}" class="hover:text-orange-500">Contact us</a></li>
+                        <li><a href="#" class="hover:text-orange-500">Shipping</a></li>
+                        <li><a href="#" class="hover:text-orange-500">Returns</a></li>
+                        <li><a href="#" class="hover:text-orange-500">Order Tracking</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-gray-900 mb-3">Store</h3>
+                    <p class="text-gray-500">
+                        8529 Ariana tn<br>
+                        . ghazela, TN 20303
+                    </p>
+                    <p class="mt-3 text-gray-500">
+                        <span class="block">+216 58 458 152</span>
+                        <span class="block">pawtech@paws.tn</span>
+                    </p>
+                </div>
+            </div>
+            <div class="border-t">
+                <div class="container mx-auto px-4 lg:px-8 py-4 flex flex-col md:flex-row justify-between items-center gap-2 text-xs text-gray-500">
+                    <span>© {{ "now"|date("Y") }} PawTech Pet Shop. All rights reserved.</span>
+                    <span class="flex items-center gap-3">
+                        <span>Visa</span>
+                        <span>Mastercard</span>
+                        <span>PayPal</span>
+                    </span>
+                </div>
+            </div>
+        </footer>
+        
+        {# Auto-hide flash messages after 5 seconds #}
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Auto-hide flash messages after 5 seconds
+                const flashMessages = document.querySelectorAll('.fixed.top-20.right-4.z-50');
+                flashMessages.forEach(function(message) {
+                    setTimeout(function() {
+                        message.style.transition = 'opacity 0.5s';
+                        message.style.opacity = '0';
+                        setTimeout(function() {
+                            if (message.parentNode) {
+                                message.parentNode.removeChild(message);
+                            }
+                        }, 500);
+                    }, 5000);
+                });
+            });
+            
+            // Toggle notification dropdown
+            function toggleNotifications() {
+                const dropdown = document.getElementById('notification-dropdown');
+                dropdown.classList.toggle('hidden');
+            }
+            
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function(event) {
+                var dropdown = document.getElementById('notification-dropdown');
+                if (!dropdown) return;
+                var button = event.target.closest('button[onclick="toggleNotifications()"]');
+                if (!dropdown.contains(event.target) && !button) {
+                    dropdown.classList.add('hidden');
+                }
+            });
+            
+            // Translate page function
+            async function translatePage(targetLanguage) {
+                console.log('Translating to:', targetLanguage);
+                
+                const elementsToTranslate = [];
+                const walker = document.createTreeWalker(
+                    document.body,
+                    NodeFilter.SHOW_TEXT,
+                    null,
+                    false
+                );
+                
+                let node;
+                while (node = walker.nextNode()) {
+                    const text = node.textContent.trim();
+                    const parent = node.parentElement;
+                    
+                    // Skip script and style elements
+                    if (parent && parent.tagName !== 'SCRIPT' && parent.tagName !== 'STYLE') {
+                        // Skip very short or very long texts
+                        if (text && text.length > 1 && text.length < 5000) {
+                            // Skip texts that are just numbers or symbols
+                            if (!/^[\d\s\p{P}]+$/u.test(text)) {
+                                elementsToTranslate.push({ node: node, originalText: text });
+                            }
+                        }
+                    }
+                }
+                
+                console.log('Elements to translate:', elementsToTranslate.length);
+                
+                if (elementsToTranslate.length === 0) {
+                    console.log('No elements to translate');
+                    return;
+                }
+                
+                const texts = elementsToTranslate.map(el => el.originalText);
+                
+                try {
+                    console.log('Sending request to translation API...');
+                    const response = await fetch('http://127.0.0.1:5000/translate', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            texts: texts,
+                            target_language: targetLanguage
+                        })
+                    });
+                    
+                    console.log('Response status:', response.status);
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        console.log('Translation successful, received:', data.translated_texts.length, 'translations');
+                        
+                        elementsToTranslate.forEach((el, index) => {
+                            if (data.translated_texts[index]) {
+                                el.node.textContent = data.translated_texts[index];
+                            }
+                        });
+                    } else {
+                        const errorText = await response.text();
+                        console.error('Translation failed:', response.status, errorText);
+                        alert('Translation failed. Please make sure the translation server is running.');
+                    }
+                } catch (error) {
+                    console.error('Translation error:', error);
+                    alert('Translation error: ' + error.message + '. Please make sure the Flask translation server is running on port 5000.');
+                }
+            }
+        </script>
+    </body>
+</html>

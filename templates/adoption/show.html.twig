@@ -1,0 +1,102 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Adoption{% endblock %}
+
+{% set active = 'adoption' %}
+{% set page_title = 'Adoption' %}
+
+{% block main %}
+<div x-data="{ deleteModalOpen: false }">
+    <div class="bg-white rounded-2xl shadow-2xl w-full">
+        <div class="sticky top-0 bg-white border-b border-gray-200 px-8 py-6 rounded-t-2xl">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-3xl font-bold text-gray-900">Adoption Details</h2>
+                    <p class="mt-1 text-sm text-gray-600">Overview for application <span class="font-semibold">#{{ adoption.id }}</span></p>
+                </div>
+                <a href="{{ path('app_adoption_index') }}" class="text-gray-400 hover:text-gray-600 transition-colors">
+                    <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </a>
+            </div>
+        </div>
+
+        <div class="px-8 py-6">
+            <dl class="grid grid-cols-1 gap-4">
+                <div><dt class="text-xs font-semibold uppercase tracking-wide text-gray-500">ID</dt><dd class="mt-1 text-sm font-semibold text-gray-900">{{ adoption.id }}</dd></div>
+                <div><dt class="text-xs font-semibold uppercase tracking-wide text-gray-500">Applicant</dt><dd class="mt-1 text-sm text-gray-700">{{ adoption.user ? adoption.user.fullName : '-' }}</dd></div>
+                <div><dt class="text-xs font-semibold uppercase tracking-wide text-gray-500">Dog</dt><dd class="mt-1 text-sm text-gray-700">{{ adoption.dog ? adoption.dog.name : '-' }}</dd></div>
+                <div><dt class="text-xs font-semibold uppercase tracking-wide text-gray-500">Created At</dt><dd class="mt-1 text-sm text-gray-700">{{ adoption.createdAt ? adoption.createdAt|date('d/m/Y H:i') : '-' }}</dd></div>
+                <div><dt class="text-xs font-semibold uppercase tracking-wide text-gray-500">Applicant Age</dt><dd class="mt-1 text-sm text-gray-700">{{ adoption.applicantAge }}</dd></div>
+                <div><dt class="text-xs font-semibold uppercase tracking-wide text-gray-500">Income</dt><dd class="mt-1 text-sm text-gray-700">{{ adoption.income|number_format(2, ',', ' ') }} TND</dd></div>
+                <div><dt class="text-xs font-semibold uppercase tracking-wide text-gray-500">Housing Type</dt><dd class="mt-1 text-sm text-gray-700">{{ adoption.housingType|title }}</dd></div>
+                <div><dt class="text-xs font-semibold uppercase tracking-wide text-gray-500">Has Yard</dt><dd class="mt-1 text-sm text-gray-700">{{ adoption.hasYard ? 'Yes' : 'No' }}</dd></div>
+                <div><dt class="text-xs font-semibold uppercase tracking-wide text-gray-500">Family Size</dt><dd class="mt-1 text-sm text-gray-700">{{ adoption.familySize }}</dd></div>
+                <div><dt class="text-xs font-semibold uppercase tracking-wide text-gray-500">Hours Away Per Day</dt><dd class="mt-1 text-sm text-gray-700">{{ adoption.hoursAwayPerDay }}</dd></div>
+            </dl>
+
+            <div class="flex flex-wrap items-center justify-between gap-3 mt-8 pt-6 border-t border-gray-200">
+                <a href="{{ path('app_adoption_index') }}"
+                   class="px-6 py-2.5 rounded-lg border border-gray-200 bg-white text-sm font-semibold text-gray-700 hover:bg-gray-50">
+                    Back to list
+                </a>
+                <div class="flex items-center gap-3">
+                    <button type="button"
+                            @click="deleteModalOpen = true"
+                            class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg border border-red-200 text-sm font-semibold text-red-600 hover:bg-red-50 transition">
+                        Delete
+                    </button>
+                    <a href="{{ path('app_adoption_edit', {'id': adoption.id}) }}"
+                       class="px-6 py-2.5 rounded-lg border border-orange-200 text-sm font-semibold text-orange-600 hover:bg-orange-50">
+                        Edit
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div x-show="deleteModalOpen"
+         class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm"
+         @click.self="deleteModalOpen = false"
+         @keydown.escape.window="deleteModalOpen = false"
+         style="display: none;"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0 scale-95"
+         x-transition:enter-end="opacity-100 scale-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100 scale-100"
+         x-transition:leave-end="opacity-0 scale-95">
+        <div @click.stop class="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4">
+            <div class="sticky top-0 bg-white border-b border-gray-200 px-8 py-6 rounded-t-2xl">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900">Delete Adoption</h2>
+                        <p class="mt-1 text-sm text-gray-600">Are you sure you want to delete application <span class="font-semibold">#{{ adoption.id }}</span>?</p>
+                    </div>
+                    <button @click="deleteModalOpen = false" class="text-gray-400 hover:text-gray-600 transition-colors">
+                        <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="px-8 py-6">
+                <form method="post" action="{{ path('app_adoption_delete', {'id': adoption.id}) }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ adoption.id) }}">
+                    <div class="flex justify-end gap-3">
+                        <button type="button" @click="deleteModalOpen = false"
+                                class="px-6 py-2.5 rounded-lg border border-gray-200 bg-white text-sm font-semibold text-gray-700 hover:bg-gray-50">
+                            Cancel
+                        </button>
+                        <button type="submit"
+                                class="px-6 py-2.5 rounded-lg bg-red-600 text-sm font-semibold text-white shadow hover:bg-red-700">
+                            Delete
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

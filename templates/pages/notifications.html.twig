@@ -1,0 +1,75 @@
+{% extends 'base_front.html.twig' %}
+
+{% block title %}Notifications - PawTech{% endblock %}
+
+{% block body %}
+<section class="container mx-auto px-4 lg:px-8 py-12">
+    <div class="max-w-3xl mx-auto">
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <p class="text-orange-600 font-semibold text-xs uppercase tracking-wide">Alerts</p>
+                <h1 class="text-3xl font-extrabold text-gray-900 mt-1">Notifications</h1>
+            </div>
+            <span class="inline-flex items-center rounded-full bg-orange-50 px-3 py-1 text-xs font-semibold text-orange-600">
+                {{ notifications|filter(n => n.statut == 'unread')|length }} new
+            </span>
+        </div>
+
+        <div class="space-y-3">
+            {% for notification in notifications %}
+                <article class="flex gap-4 rounded-2xl border px-5 py-4 shadow-sm transition hover:shadow-md hover:-translate-y-0.5
+                    {{ notification.statut == 'unread' ? 'bg-orange-50/60 border-orange-200' : 'bg-white border-gray-100' }}">
+                        <div class="flex h-12 w-12 items-center justify-center rounded-full
+                            {{ notification.statut == 'unread' ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-500' }}">
+                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                            </svg>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-center justify-between gap-3">
+                                <h3 class="font-semibold text-gray-900">{{ notification.type }}</h3>
+                                <span class="text-xs text-gray-500">{{ notification.date|date('Y-m-d H:i') }}</span>
+                            </div>
+                            <p class="text-sm text-gray-600 mt-1">{{ notification.message }}</p>
+                            <div class="mt-3 flex flex-wrap items-center gap-3">
+                                <span class="inline-flex items-center gap-1 text-xs font-semibold {{ notification.statut == 'unread' ? 'text-orange-600' : 'text-gray-500' }}">
+                                    <span class="h-2 w-2 rounded-full {{ notification.statut == 'unread' ? 'bg-orange-500' : 'bg-gray-400' }}"></span>
+                                    {{ notification.statut == 'unread' ? 'Unread' : 'Read' }}
+                                </span>
+                                {% if can_access_chat|default(false) %}
+                                    <a href="{{ path('app_notifications_chat', { id: notification.id }) }}"
+                                       class="text-xs font-semibold text-blue-600 hover:text-blue-700">
+                                        Open messenger
+                                    </a>
+                                    <a href="https://meet.jit.si/pawtech-notification-{{ notification.id }}"
+                                       target="_blank"
+                                       rel="noopener noreferrer"
+                                       class="text-xs font-semibold text-emerald-600 hover:text-emerald-700">
+                                        Start VOIP
+                                    </a>
+                                {% endif %}
+                                {% if notification.statut == 'unread' %}
+                                    <form method="post" action="{{ path('app_notifications_read', { id: notification.id }) }}">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('mark_read_' ~ notification.id) }}">
+                                        <button type="submit" class="text-xs font-semibold text-blue-600 hover:text-blue-700">
+                                            Mark as read
+                                        </button>
+                                    </form>
+                                {% endif %}
+                                {% if not can_access_chat|default(false) %}
+                                    <span class="text-xs font-medium text-amber-700 bg-amber-50 px-2 py-1 rounded-md">
+                                        Restricted: only veterinarians and municipal agents can enter chat
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                </article>
+            {% else %}
+                <div class="rounded-2xl border border-dashed border-gray-200 bg-white p-8 text-center text-gray-500">
+                    No notifications yet.
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends 'base_front.html.twig' %}
+
+{% block title %}Dog Information | PawTech{% endblock %}
+
+{% block body %}
+<section class="container mx-auto px-4 lg:px-8 py-10">
+    <div class="max-w-4xl mx-auto bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+        <div class="bg-orange-500 px-6 py-5">
+            <h1 class="text-2xl font-bold text-white">Dog Information</h1>
+            <p class="text-orange-100 text-sm mt-1">Complete profile for {{ dog.name ?: 'Dog' }}</p>
+        </div>
+
+        <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="rounded-xl bg-gray-100 overflow-hidden h-72">
+                {% if dog.image %}
+                    {% set rawImage = dog.image|trim %}
+                    {% if rawImage starts with 'data:image' %}
+                        {% set imageSrc = rawImage %}
+                    {% elseif rawImage starts with 'http://' or rawImage starts with 'https://' %}
+                        {% set imageSrc = rawImage %}
+                    {% elseif rawImage starts with 'uploads/' or rawImage starts with 'images/' %}
+                        {% set imageSrc = asset(rawImage) %}
+                    {% else %}
+                        {% set imageSrc = 'data:image/webp;base64,' ~ rawImage %}
+                    {% endif %}
+                    <img src="{{ imageSrc }}" alt="{{ dog.name }}" class="h-full w-full object-cover">
+                {% else %}
+                    <div class="flex h-full w-full items-center justify-center text-6xl font-bold text-gray-300">{{ dog.name ? dog.name|slice(0, 1)|upper : 'D' }}</div>
+                {% endif %}
+            </div>
+
+            <dl class="grid grid-cols-1 gap-2 text-sm">
+                <div><dt class="text-gray-500">ID</dt><dd class="font-semibold text-gray-900">#{{ dog.id }}</dd></div>
+                <div><dt class="text-gray-500">Name</dt><dd class="font-semibold text-gray-900">{{ dog.name ?: '-' }}</dd></div>
+                <div><dt class="text-gray-500">Breed</dt><dd class="font-semibold text-gray-900">{{ dog.breed ?: '-' }}</dd></div>
+                <div><dt class="text-gray-500">Age</dt><dd class="font-semibold text-gray-900">{{ dog.age is not null ? dog.age ~ ' years' : '-' }}</dd></div>
+                <div><dt class="text-gray-500">Gender</dt><dd class="font-semibold text-gray-900">{{ dog.gender ?: '-' }}</dd></div>
+                <div><dt class="text-gray-500">Size</dt><dd class="font-semibold text-gray-900">{{ dog.size ?: '-' }}</dd></div>
+                <div><dt class="text-gray-500">Weight</dt><dd class="font-semibold text-gray-900">{{ dog.weight is not null ? dog.weight ~ ' kg' : '-' }}</dd></div>
+                <div><dt class="text-gray-500">Vaccinated</dt><dd class="font-semibold text-gray-900">{{ dog.vaccinated ? 'Yes' : 'No' }}</dd></div>
+                <div><dt class="text-gray-500">Friendly with Kids</dt><dd class="font-semibold text-gray-900">{{ dog.friendlyWithKids ? 'Yes' : 'No' }}</dd></div>
+                <div><dt class="text-gray-500">Friendly with Dogs</dt><dd class="font-semibold text-gray-900">{{ dog.friendlyWithDogs ? 'Yes' : 'No' }}</dd></div>
+                <div><dt class="text-gray-500">Friendly with Cats</dt><dd class="font-semibold text-gray-900">{{ dog.friendlyWithCats ? 'Yes' : 'No' }}</dd></div>
+                <div><dt class="text-gray-500">Health Status</dt><dd class="font-semibold text-gray-900">{{ dog.healthStatus ?: '-' }}</dd></div>
+                <div><dt class="text-gray-500">Adoption Status</dt><dd class="font-semibold text-gray-900">{{ dog.adoptionStatus ?: '-' }}</dd></div>
+                <div><dt class="text-gray-500">Arrival Date</dt><dd class="font-semibold text-gray-900">{{ dog.arrivalDate ? dog.arrivalDate|date('d/m/Y') : '-' }}</dd></div>
+                <div><dt class="text-gray-500">Microchip Number</dt><dd class="font-semibold text-gray-900">{{ dog.microchipNumber ?: '-' }}</dd></div>
+            </dl>
+        </div>
+
+        <div class="px-6 pb-6">
+            <h2 class="text-base font-semibold text-gray-900 mb-2">Description</h2>
+            <p class="text-sm text-gray-700 whitespace-pre-wrap">{{ dog.description ?: 'No description available.' }}</p>
+        </div>
+    </div>
+</section>
+{% endblock %}

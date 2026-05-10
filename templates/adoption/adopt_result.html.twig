@@ -1,0 +1,163 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Adoption Winner Result | PawTech{% endblock %}
+
+{% block main %}
+<div class="px-4 sm:px-6 lg:px-8 py-8 max-w-5xl mx-auto">
+    <div class="mb-6">
+        <a href="{{ path('app_adoption_dog_adpot_list', {'id': dog.id}) }}" class="inline-flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-gray-800">
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+            Back to Adoption Requests
+        </a>
+    </div>
+
+    <div class="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+        <h1 class="text-2xl font-bold text-gray-900">AUTO ADOPT Winner</h1>
+        <p class="mt-1 text-sm text-gray-600">
+            Dog #{{ dog.id }} - {{ dog.name }}{% if dog.breed %} ({{ dog.breed }}){% endif %}
+        </p>
+        <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <div class="rounded-xl bg-green-50 border border-green-100 p-4">
+                <p class="text-gray-500">Winner Accuracy</p>
+                <p class="font-bold text-green-700">{{ accuracy|number_format(2, '.', ',') }}%</p>
+            </div>
+            <div class="rounded-xl bg-blue-50 border border-blue-100 p-4">
+                <p class="text-gray-500">Records Used</p>
+                <p class="font-bold text-blue-700">{{ records_used }}</p>
+            </div>
+            <div class="rounded-xl bg-orange-50 border border-orange-100 p-4">
+                <p class="text-gray-500">Application Date</p>
+                <p class="font-bold text-orange-700">{{ adoption and adoption.createdAt ? adoption.createdAt|date('d/m/Y H:i') : '-' }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-6 bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+        <h2 class="text-xl font-bold text-gray-900 mb-4">Winner Information</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div><span class="text-gray-500">Full Name:</span> <span class="font-semibold text-gray-900">{{ winner.fullName }}</span></div>
+            <div><span class="text-gray-500">Email:</span> <span class="font-semibold text-gray-900">{{ winner.email ?: '-' }}</span></div>
+            <div><span class="text-gray-500">Phone:</span> <span class="font-semibold text-gray-900">{{ winner.phone ?: '-' }}</span></div>
+            <div><span class="text-gray-500">Status:</span> <span class="font-semibold text-gray-900">{{ winner.status ?: '-' }}</span></div>
+            <div><span class="text-gray-500">Role:</span> <span class="font-semibold text-gray-900">{{ winner.role ?: '-' }}</span></div>
+            <div><span class="text-gray-500">User ID:</span> <span class="font-semibold text-gray-900">#{{ winner.id }}</span></div>
+        </div>
+    </div>
+
+    {% if adoption %}
+    <div class="mt-6 bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+        <h2 class="text-xl font-bold text-gray-900 mb-4">Winner Adoption Form Data</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div><span class="text-gray-500">Applicant Age:</span> <span class="font-semibold text-gray-900">{{ adoption.applicantAge ?? '-' }}</span></div>
+            <div><span class="text-gray-500">Income:</span> <span class="font-semibold text-gray-900">{{ adoption.income is not null ? adoption.income|number_format(2, ',', ' ') ~ ' TND' : '-' }}</span></div>
+            <div><span class="text-gray-500">Housing Type:</span> <span class="font-semibold text-gray-900">{{ adoption.housingType ?: '-' }}</span></div>
+            <div><span class="text-gray-500">Has Yard:</span> <span class="font-semibold text-gray-900">{{ adoption.hasYard ? 'Yes' : 'No' }}</span></div>
+            <div><span class="text-gray-500">Family Size:</span> <span class="font-semibold text-gray-900">{{ adoption.familySize ?? '-' }}</span></div>
+            <div><span class="text-gray-500">Hours Away/Day:</span> <span class="font-semibold text-gray-900">{{ adoption.hoursAwayPerDay ?? '-' }}</span></div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="mt-6 bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+        <div class="flex items-center justify-between gap-4">
+            <div>
+                <h2 class="text-xl font-bold text-gray-900">AI Attestation</h2>
+                <p class="text-sm text-gray-600">Generate a congratulation attestation for the winner.</p>
+            </div>
+            <button id="generate-attestation-btn"
+                    data-endpoint="{{ path('app_adoption_attestation_ai', {'dogId': dog.id, 'userId': winner.id}) }}"
+                    class="px-5 py-2.5 rounded-lg bg-paw-orange text-white text-sm font-semibold hover:bg-paw-orange-hover">
+                Generate AI Attestation
+            </button>
+            <button id="send-attestation-mail-btn"
+                    data-endpoint="{{ path('app_adoption_attestation_email', {'dogId': dog.id, 'userId': winner.id}) }}"
+                    class="px-5 py-2.5 rounded-lg bg-green-600 text-white text-sm font-semibold hover:bg-green-700">
+                Send by Email
+            </button>
+        </div>
+
+        <p id="attestation-mail-status" class="mt-3 hidden text-sm"></p>
+        <pre id="attestation-content" class="mt-4 hidden whitespace-pre-wrap text-sm bg-gray-50 border border-gray-200 rounded-lg p-4"></pre>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const btn = document.getElementById('generate-attestation-btn');
+    const sendBtn = document.getElementById('send-attestation-mail-btn');
+    const content = document.getElementById('attestation-content');
+    const status = document.getElementById('attestation-mail-status');
+    if (!btn || !sendBtn || !content || !status) {
+        return;
+    }
+
+    btn.addEventListener('click', async function () {
+        btn.disabled = true;
+        const initial = btn.textContent;
+        btn.textContent = 'Generating...';
+        content.classList.remove('hidden');
+        content.textContent = 'Please wait...';
+
+        try {
+            const res = await fetch(btn.dataset.endpoint, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({})
+            });
+            const data = await res.json();
+            if (!res.ok || !data.ok) {
+                throw new Error(data.message || 'Failed to generate attestation.');
+            }
+            content.textContent = data.attestation || 'No attestation generated.';
+        } catch (e) {
+            content.textContent = e.message || 'Failed to generate attestation.';
+        } finally {
+            btn.disabled = false;
+            btn.textContent = initial;
+        }
+    });
+
+    sendBtn.addEventListener('click', async function () {
+        sendBtn.disabled = true;
+        const initial = sendBtn.textContent;
+        sendBtn.textContent = 'Sending...';
+        status.classList.remove('hidden');
+        status.className = 'mt-3 text-sm text-gray-600';
+        status.textContent = 'Sending email...';
+
+        try {
+            const res = await fetch(sendBtn.dataset.endpoint, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    attestation: content.textContent && content.textContent !== 'Please wait...' ? content.textContent : ''
+                })
+            });
+            const data = await res.json();
+            if (!res.ok || !data.ok) {
+                throw new Error(data.message || 'Failed to send email.');
+            }
+            status.className = 'mt-3 text-sm text-green-700';
+            status.textContent = `Email sent to ${data.to}`;
+        } catch (e) {
+            status.className = 'mt-3 text-sm text-red-700';
+            status.textContent = e.message || 'Failed to send email.';
+        } finally {
+            sendBtn.disabled = false;
+            sendBtn.textContent = initial;
+        }
+    });
+});
+</script>
+{% endblock %}

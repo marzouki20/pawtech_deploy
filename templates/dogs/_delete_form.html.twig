@@ -1,0 +1,10 @@
+{% set button_class = button_class|default('px-4 py-2 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 transition') %}
+{% set form_class = form_class|default('inline-block') %}
+
+<form method="post"
+      class="{{ form_class }}"
+      action="{{ path('app_dogs_delete', {'id': dog.id}) }}"
+      onsubmit="return confirm('Are you sure you want to delete this item?');">
+    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ dog.id) }}">
+    <button class="{{ button_class }}">Delete</button>
+</form>

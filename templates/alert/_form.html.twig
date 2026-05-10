@@ -1,0 +1,108 @@
+{{ form_start(form, {'attr': {'novalidate': 'novalidate', 'class': 'space-y-6'}}) }}
+
+<style>
+/* Hide duplicate error messages - only show the first one */
+.form-group .text-red-500 + .text-red-500,
+.form-group ul + .text-red-500,
+.form-group .form-error + .text-red-500 {
+    display: none;
+}
+.form-group ul li:nth-child(2) {
+    display: none;
+}
+</style>
+
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="form-group">
+            <label for="{{ form.type.vars.id }}" class="block text-sm font-medium text-gray-700 mb-2">
+                <svg class="w-4 h-4 inline-block mr-1 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                {{ form_label(form.type) }}
+            </label>
+            {% set type_attr = {'class': 'w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-orange-500 transition-colors bg-gray-50 hover:bg-white'} %}
+            {% if not form.type.vars.valid %}{% set type_attr = type_attr|merge({'class': 'w-full px-4 py-2.5 border border-red-500 rounded-lg focus:ring-2 focus:ring-red-500 transition-colors bg-gray-50 hover:bg-white'}) %}{% endif %}
+            {{ form_widget(form.type, {'attr': type_attr}) }}
+            <div class="text-red-500 text-sm mt-1 font-medium" style="color: #ef4444;">{{ form_errors(form.type) }}</div>
+        </div>
+        <div class="form-group">
+            <label for="{{ form.prioritee.vars.id }}" class="block text-sm font-medium text-gray-700 mb-2">
+                <svg class="w-4 h-4 inline-block mr-1 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
+                </svg>
+                {{ form_label(form.prioritee) }}
+            </label>
+            {% set prioritee_attr = {'class': 'w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-orange-500 transition-colors bg-gray-50 hover:bg-white', 'min': '1', 'step': '1', 'placeholder': 'Entrez un numéro'} %}
+            {% if not form.prioritee.vars.valid %}{% set prioritee_attr = prioritee_attr|merge({'class': 'w-full px-4 py-2.5 border border-red-500 rounded-lg focus:ring-2 focus:ring-red-500 transition-colors bg-gray-50 hover:bg-white'}) %}{% endif %}
+            {{ form_widget(form.prioritee, {'attr': prioritee_attr}) }}
+            <div class="text-red-500 text-sm mt-1 font-medium" style="color: #ef4444;">{{ form_errors(form.prioritee) }}</div>
+        </div>
+        <div class="form-group">
+            <label for="{{ form.message.vars.id }}" class="block text-sm font-medium text-gray-700 mb-2">
+                <svg class="w-4 h-4 inline-block mr-1 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
+                </svg>
+                {{ form_label(form.message) }}
+            </label>
+            {% set message_attr = {'class': 'w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-orange-500 transition-colors bg-gray-50 hover:bg-white', 'rows': '3', 'placeholder': 'Entrez le message'} %}
+            {% if not form.message.vars.valid %}{% set message_attr = message_attr|merge({'class': 'w-full px-4 py-2.5 border border-red-500 rounded-lg focus:ring-2 focus:ring-red-500 transition-colors bg-gray-50 hover:bg-white'}) %}{% endif %}
+            {{ form_widget(form.message, {'attr': message_attr}) }}
+            <div class="text-red-500 text-sm mt-1 font-medium" style="color: #ef4444;">{{ form_errors(form.message) }}</div>
+        </div>
+        <div class="form-group">
+            <label for="{{ form.statut.vars.id }}" class="block text-sm font-medium text-gray-700 mb-2">
+                <svg class="w-4 h-4 inline-block mr-1 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                {{ form_label(form.statut) }}
+            </label>
+            {% set statut_attr = {'class': 'w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-orange-500 transition-colors bg-gray-50 hover:bg-white'} %}
+            {% if not form.statut.vars.valid %}{% set statut_attr = statut_attr|merge({'class': 'w-full px-4 py-2.5 border border-red-500 rounded-lg focus:ring-2 focus:ring-red-500 transition-colors bg-gray-50 hover:bg-white'}) %}{% endif %}
+            {{ form_widget(form.statut, {'attr': statut_attr}) }}
+            <div class="text-red-500 text-sm mt-1 font-medium" style="color: #ef4444;">{{ form_errors(form.statut) }}</div>
+        </div>
+        <div class="form-group">
+            <label for="{{ form.station.vars.id }}" class="block text-sm font-medium text-gray-700 mb-2">
+                <svg class="w-4 h-4 inline-block mr-1 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
+                {{ form_label(form.station) }}
+            </label>
+            {% set station_attr = {'class': 'w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-orange-500 transition-colors bg-gray-50 hover:bg-white'} %}
+            {% if not form.station.vars.valid %}{% set station_attr = station_attr|merge({'class': 'w-full px-4 py-2.5 border border-red-500 rounded-lg focus:ring-2 focus:ring-red-500 transition-colors bg-gray-50 hover:bg-white'}) %}{% endif %}
+            {{ form_widget(form.station, {'attr': station_attr}) }}
+            <div class="text-red-500 text-sm mt-1 font-medium" style="color: #ef4444;">{{ form_errors(form.station) }}</div>
+        </div>
+        <div class="form-group">
+            <label for="{{ form.date.vars.id }}" class="block text-sm font-medium text-gray-700 mb-2">
+                <svg class="w-4 h-4 inline-block mr-1 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+                {{ form_label(form.date) }}
+            </label>
+            {% set date_attr = {'class': 'w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-orange-500 transition-colors bg-gray-50 hover:bg-white'} %}
+            {% if not form.date.vars.valid %}{% set date_attr = date_attr|merge({'class': 'w-full px-4 py-2.5 border border-red-500 rounded-lg focus:ring-2 focus:ring-red-500 transition-colors bg-gray-50 hover:bg-white'}) %}{% endif %}
+            {{ form_widget(form.date, {'attr': date_attr}) }}
+            <div class="text-red-500 text-sm mt-1 font-medium" style="color: #ef4444;">{{ form_errors(form.date) }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="flex items-center justify-between pt-4">
+    <a href="{{ path('app_admin_alerts') }}" class="inline-flex items-center px-5 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 hover:text-gray-800 transition-colors">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+        </svg>
+        Back to list
+    </a>
+    <button type="submit" class="inline-flex items-center px-6 py-2.5 text-sm font-medium text-white bg-orange-500 rounded-lg hover:bg-orange-600 focus:ring-4 focus:ring-orange-200 transition-all shadow-md hover:shadow-lg">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+        </svg>
+        {{ button_label|default('Save') }}
+    </button>
+</div>
+
+{{ form_end(form) }}

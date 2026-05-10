@@ -1,0 +1,20 @@
+<div class="space-y-4">
+  <div class="flex justify-between items-center">
+    <h1 class="text-xl font-bold text-gray-800">{{ page_title }}</h1>
+    <div class="flex gap-2">
+      <a href="{{ path('app_donation_edit', { id: donation.id }) }}" class="px-4 py-2 bg-paw-orange text-white rounded-lg hover:bg-paw-orange-hover">Edit</a>
+      <a href="{{ path('app_donation_index') }}" class="px-4 py-2 border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50">Back</a>
+    </div>
+  </div>
+  <div class="bg-white rounded-xl border border-gray-200 p-6">
+    <dl class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div><dt class="text-sm text-gray-500">ID</dt><dd class="font-medium">{{ donation.id }}</dd></div>
+      <div><dt class="text-sm text-gray-500">Amount</dt><dd class="font-medium">{{ donation.montant|number_format(2, ',', ' ') }} TND</dd></div>
+      <div><dt class="text-sm text-gray-500">Date</dt><dd class="font-medium">{{ donation.date|date('d/m/Y') }}</dd></div>
+      <div><dt class="text-sm text-gray-500">Donor</dt><dd class="font-medium">{{ donation.donateur ?? '—' }}</dd></div>
+      <div><dt class="text-sm text-gray-500">Email</dt><dd class="font-medium">{{ donation.email ?? '—' }}</dd></div>
+      <div><dt class="text-sm text-gray-500">Reference</dt><dd class="font-medium">{{ donation.reference ?? '—' }}</dd></div>
+      <div><dt class="text-sm text-gray-500">Status</dt><dd class="font-medium">{{ donation.statut ? 'Validated' : 'Pending' }}</dd></div>
+    </dl>
+  </div>
+</div>

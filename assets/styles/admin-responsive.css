@@ -1,0 +1,691 @@
+/* Admin Dashboard Responsive Styles */
+/* Comprehensive responsive styles for all admin dashboard pages */
+
+/* ============================================
+   BASE RESPONSIVE UTILITIES
+   ============================================ */
+
+/* Extra small devices (phones, less than 576px) */
+@media (max-width: 575.98px) {
+    /* Reduce padding on very small screens */
+    .container.mx-auto.px-4 {
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+    }
+    
+    /* Header adjustments */
+    .bg-gradient-to-r {
+        padding: 1.5rem 0.75rem !important;
+    }
+    
+    h1.text-3xl {
+        font-size: 1.5rem !important;
+    }
+    
+    p[class*="mt-1"] {
+        font-size: 0.875rem;
+    }
+}
+
+/* Small devices (landscape phones, 576px - 767px) */
+@media (min-width: 576px) and (max-width: 767.98px) {
+    h1.text-3xl {
+        font-size: 1.75rem !important;
+    }
+}
+
+/* Medium devices (tablets, 768px - 991px) */
+@media (min-width: 768px) and (max-width: 991.98px) {
+    /* Adjustments for tablets */
+}
+
+/* Large devices (desktops, 992px - 1199px) */
+@media (min-width: 992px) and (max-width: 1199.98px) {
+    /* Desktop adjustments */
+}
+
+/* Extra large devices (large desktops, 1200px and up) */
+@media (min-width: 1200px) {
+    /* Large desktop adjustments */
+}
+
+/* ============================================
+   HEADER & NAVIGATION RESPONSIVE
+   ============================================ */
+
+.admin-header {
+    position: relative;
+}
+
+.admin-header .flex.items-center.justify-between {
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.admin-header .flex.items-center.gap-4 {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+/* Hide non-essential header elements on small screens */
+@media (max-width: 767.98px) {
+    .admin-header .hidden-small {
+        display: none !important;
+    }
+    
+    /* Show mobile menu button */
+    .mobile-menu-btn {
+        display: flex !important;
+    }
+}
+
+/* Responsive header buttons */
+@media (max-width: 575.98px) {
+    .admin-header .bg-white\/20 {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+    }
+    
+    .admin-header .bg-white\/20 span {
+        display: none; /* Hide text, show only icon on very small screens */
+    }
+    
+    .admin-header .bg-white\/20 i {
+        margin-right: 0;
+    }
+}
+
+@media (min-width: 576px) {
+    .admin-header .bg-white\/20 span {
+        display: inline;
+    }
+}
+
+/* ============================================
+   STATS CARDS RESPONSIVE
+   ============================================ */
+
+.stats-grid {
+    display: grid;
+    gap: 1rem;
+}
+
+/* Mobile: 1 column */
+@media (max-width: 575.98px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .stats-card {
+        padding: 1rem !important;
+    }
+    
+    .stats-card .text-3xl {
+        font-size: 1.5rem !important;
+    }
+    
+    .stats-card .w-12.h-12 {
+        width: 2.5rem;
+        height: 2.5rem;
+    }
+    
+    .stats-card .w-12.h-12 i {
+        font-size: 1rem !important;
+    }
+}
+
+/* Small: 2 columns */
+@media (min-width: 576px) and (max-width: 767.98px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Tablet: 2 columns */
+@media (min-width: 768px) and (max-width: 991.98px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Desktop: 4 columns */
+@media (min-width: 992px) {
+    .stats-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+/* ============================================
+   GRID LAYOUTS RESPONSIVE
+   ============================================ */
+
+/* Main content grid - Dashboard */
+.main-content-grid {
+    display: grid;
+    gap: 1.5rem;
+}
+
+/* Mobile: Single column */
+@media (max-width: 991.98px) {
+    .main-content-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Desktop: 3 columns with 2/1 split */
+@media (min-width: 992px) {
+    .main-content-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .main-content-grid > .lg\:col-span-2 {
+        grid-column: span 2;
+    }
+}
+
+/* Camera grid */
+.camera-grid {
+    display: grid;
+    gap: 1rem;
+}
+
+@media (max-width: 575.98px) {
+    .camera-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (min-width: 576px) and (max-width: 767.98px) {
+    .camera-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 768px) and (max-width: 991.98px) {
+    .camera-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 992px) and (max-width: 1199.98px) {
+    .camera-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (min-width: 1200px) {
+    .camera-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* Detections grid */
+.detections-grid {
+    display: grid;
+    gap: 1rem;
+}
+
+@media (max-width: 575.98px) {
+    .detections-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (min-width: 576px) and (max-width: 767.98px) {
+    .detections-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 768px) {
+    .detections-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* Statistics charts grid */
+.charts-grid {
+    display: grid;
+    gap: 1.5rem;
+}
+
+@media (max-width: 991.98px) {
+    .charts-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (min-width: 992px) {
+    .charts-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .charts-grid .lg\:col-span-2 {
+        grid-column: span 2;
+    }
+}
+
+/* Map page grid */
+@media (max-width: 991.98px) {
+    .map-page-grid {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .map-page-grid > div:first-child {
+        order: 2;
+    }
+    
+    .map-page-grid > div:last-child {
+        order: 1;
+    }
+}
+
+/* ============================================
+   TABLE RESPONSIVE
+   ============================================ */
+
+.table-responsive-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 -1rem;
+    padding: 0 1rem;
+}
+
+.table-responsive-container table {
+    min-width: 600px; /* Ensure table doesn't compress too much */
+}
+
+/* Hide less important columns on small screens */
+@media (max-width: 767.98px) {
+    .table-responsive-container .hide-on-mobile {
+        display: none;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .table-responsive-container .hide-on-xs {
+        display: none;
+    }
+    
+    /* Compact table cells */
+    .table-responsive-container td,
+    .table-responsive-container th {
+        padding: 0.5rem 0.25rem !important;
+        font-size: 0.875rem;
+    }
+}
+
+/* ============================================
+   CARD RESPONSIVE
+   ============================================ */
+
+.card {
+    break-inside: avoid;
+    margin-bottom: 1rem;
+}
+
+@media (max-width: 575.98px) {
+    .card {
+        padding: 1rem !important;
+        margin-bottom: 0.75rem;
+    }
+    
+    .card h2,
+    .card h3 {
+        font-size: 1.125rem !important;
+    }
+}
+
+/* Alert cards */
+.alert-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+@media (min-width: 576px) {
+    .alert-card {
+        flex-direction: row;
+        align-items: flex-start;
+    }
+}
+
+/* Health alert severity badges */
+@media (max-width: 575.98px) {
+    .alert-card .px-3.py-1 {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+    }
+}
+
+/* ============================================
+   MAP RESPONSIVE
+   ============================================ */
+
+.map-container {
+    width: 100%;
+    height: 100%;
+    min-height: 300px;
+}
+
+/* Mobile map height */
+@media (max-width: 575.98px) {
+    .map-container {
+        height: 50vh;
+        min-height: 250px;
+    }
+}
+
+@media (min-width: 576px) and (max-width: 991.98px) {
+    .map-container {
+        height: 50vh;
+    }
+}
+
+@media (min-width: 992px) {
+    .map-container {
+        height: 600px;
+    }
+}
+
+/* Map sidebar */
+.map-sidebar {
+    max-height: none;
+}
+
+@media (max-width: 991.98px) {
+    .map-sidebar {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .map-sidebar {
+        grid-template-columns: 1fr;
+    }
+    
+    .map-sidebar > div {
+        max-height: 200px;
+    }
+}
+
+@media (min-width: 992px) {
+    .map-sidebar > div {
+        max-height: 250px;
+    }
+}
+
+/* ============================================
+   FILTERS & FORMS RESPONSIVE
+   ============================================ */
+
+.filters-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+@media (max-width: 767.98px) {
+    .filters-container {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .filters-container > div {
+        width: 100%;
+    }
+    
+    .filters-container select {
+        width: 100%;
+    }
+    
+    .filters-container button {
+        width: 100%;
+        margin-left: 0 !important;
+        margin-top: 0.5rem;
+    }
+}
+
+/* Form controls */
+.form-control {
+    width: 100%;
+}
+
+@media (min-width: 768px) {
+    .form-control {
+        width: auto;
+    }
+}
+
+/* ============================================
+   QUICK ACTIONS GRID
+   ============================================ */
+
+.quick-actions-grid {
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: repeat(2, 1fr);
+}
+
+@media (max-width: 575.98px) {
+    .quick-actions-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ============================================
+   PREVENT VERTICAL SCROLL - KEY FIX
+   ============================================ */
+
+/* Ensure content fits within viewport */
+html, body {
+    overflow-x: hidden;
+    max-width: 100vw;
+}
+
+/* Main content area should not overflow */
+.main-content {
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
+}
+
+/* Prevent horizontal scroll on all containers */
+.container {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+/* Fix for cards that might cause overflow */
+.shadow-lg {
+    max-width: 100%;
+    overflow: hidden;
+}
+
+/* Ensure all grid items fit */
+.grid {
+    overflow: hidden;
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+
+/* Mobile-first text utilities */
+.text-responsive {
+    font-size: 1rem;
+}
+
+@media (max-width: 575.98px) {
+    .text-responsive {
+        font-size: 0.875rem;
+    }
+}
+
+/* Responsive padding */
+.p-responsive {
+    padding: 1rem;
+}
+
+@media (min-width: 768px) {
+    .p-responsive {
+        padding: 1.5rem;
+    }
+}
+
+@media (min-width: 992px) {
+    .p-responsive {
+        padding: 1.5rem;
+    }
+}
+
+/* Margin utilities for spacing */
+.mb-responsive {
+    margin-bottom: 1rem;
+}
+
+@media (min-width: 768px) {
+    .mb-responsive {
+        margin-bottom: 1.5rem;
+    }
+}
+
+.mt-responsive {
+    margin-top: 1rem;
+}
+
+@media (min-width: 768px) {
+    .mt-responsive {
+        margin-top: 1.5rem;
+    }
+}
+
+/* ============================================
+   SPECIFIC PAGE FIXES
+   ============================================ */
+
+/* Dashboard header buttons */
+@media (max-width: 767.98px) {
+    .dashboard-header .flex.items-center.gap-4 {
+        width: 100%;
+        justify-content: flex-start;
+        margin-top: 0.75rem;
+    }
+}
+
+/* Statistics page */
+@media (max-width: 575.98px) {
+    .stats-overview .grid > div {
+        padding: 0.75rem;
+    }
+    
+    .stats-overview .text-3xl {
+        font-size: 1.25rem;
+    }
+}
+
+/* Health alerts list */
+.health-alert-item {
+    padding: 0.75rem;
+}
+
+@media (min-width: 576px) {
+    .health-alert-item {
+        padding: 1.5rem;
+    }
+}
+
+/* Alerts list */
+.alert-list-item {
+    padding: 0.75rem;
+}
+
+@media (min-width: 576px) {
+    .alert-list-item {
+        padding: 1rem;
+    }
+}
+
+/* Camera preview */
+.camera-preview {
+    height: auto !important;
+    min-height: 150px;
+}
+
+@media (min-width: 576px) {
+    .camera-preview {
+        height: 192px; /* 48 * 4 = 192 */
+    }
+}
+
+/* ============================================
+   FLEXBOX HELPERS
+   ============================================ */
+
+.flex-col-mobile {
+    flex-direction: column;
+}
+
+@media (min-width: 768px) {
+    .flex-col-mobile {
+        flex-direction: row;
+    }
+}
+
+.flex-wrap-mobile {
+    flex-wrap: wrap;
+}
+
+@media (min-width: 768px) {
+    .flex-wrap-mobile {
+        flex-wrap: nowrap;
+    }
+}
+
+/* ============================================
+   VISIBILITY UTILITIES
+   ============================================ */
+
+.hide-mobile {
+    display: none;
+}
+
+@media (min-width: 576px) {
+    .hide-mobile {
+        display: inline-flex;
+    }
+}
+
+.hide-tablet {
+    display: inline-flex;
+}
+
+@media (min-width: 768px) and (max-width: 991.98px) {
+    .hide-tablet {
+        display: none;
+    }
+}
+
+.hide-desktop {
+    display: inline-flex;
+}
+
+@media (min-width: 992px) {
+    .hide-desktop {
+        display: none;
+    }
+}
+
+/* Show on mobile only */
+.show-mobile-only {
+    display: flex;
+}
+
+@media (min-width: 576px) {
+    .show-mobile-only {
+        display: none;
+    }
+}

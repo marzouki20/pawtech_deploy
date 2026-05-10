@@ -1,0 +1,183 @@
+{% extends 'base_front.html.twig' %}
+
+{% block title %}{{ page_title }} - PawTech Admin{% endblock %}
+
+{% block body %}
+<div class="min-h-screen bg-gray-50">
+    {# Header #}
+    <div class="bg-gradient-to-r from-green-600 to-green-700 text-white admin-header">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex flex-col-mobile items-start md:items-center justify-between">
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-bold">IoT Station Map</h1>
+                    <p class="text-green-100 mt-1 text-sm md:text-base">View all station locations and camera coverage</p>
+                </div>
+                <div class="flex flex-wrap-mobile items-center gap-2 md:gap-4 mt-3 md:mt-0">
+                    <a href="{{ path('app_admin_dashboard') }}" class="bg-white/20 hover:bg-white/30 px-3 md:px-4 py-2 rounded-lg flex items-center gap-2 transition text-sm">
+                        <i class="fas fa-home"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Map Container #}
+    <div class="container mx-auto px-4 py-6">
+        <div class="map-page-grid grid grid-cols-1 lg:grid-cols-4 gap-4 md:gap-6">
+            {# Map #}
+            <div class="lg:col-span-3">
+                <div class="bg-white rounded-xl shadow-lg p-4">
+                    <div id="full-map" class="map-container h-[300px] md:h-[400px] lg:h-[600px] rounded-lg"></div>
+                </div>
+            </div>
+
+            {# Sidebar - Station List #}
+            <div class="map-sidebar space-y-4">
+                <div class="bg-white rounded-xl shadow-lg p-4">
+                    <h2 class="text-lg font-bold text-gray-800 mb-4">
+                        <i class="fas fa-list mr-2 text-orange-500"></i>
+                        Stations
+                    </h2>
+                    
+                    <div class="space-y-2 max-h-[250px] overflow-y-auto" id="station-list">
+                        {% for station in stations %}
+                        <div class="p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition"
+                             onclick="focusStation({{ station.id }})">
+                            <div class="flex items-center justify-between">
+                                <span class="font-medium">{{ station.code }}</span>
+                                {% if station.statut == 'active' %}
+                                    <span class="w-3 h-3 bg-green-500 rounded-full"></span>
+                                {% elseif station.statut == 'inactive' %}
+                                    <span class="w-3 h-3 bg-red-500 rounded-full"></span>
+                                {% else %}
+                                    <span class="w-3 h-3 bg-yellow-500 rounded-full"></span>
+                                {% endif %}
+                            </div>
+                            <p class="text-sm text-gray-500">{{ station.zone }}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                {# Camera List #}
+                <div class="bg-white rounded-xl shadow-lg p-4">
+                    <h2 class="text-lg font-bold text-gray-800 mb-4">
+                        <i class="fas fa-video mr-2 text-purple-500"></i>
+                        Cameras
+                    </h2>
+                    
+                    <div class="space-y-2 max-h-[200px] overflow-y-auto">
+                        {% for camera in cameras %}
+                        <div class="p-3 bg-gray-50 rounded-lg">
+                            <div class="flex items-center justify-between">
+                                <span class="font-medium">{{ camera.name }}</span>
+                                {% if camera.status == 'active' %}
+                                    <span class="w-3 h-3 bg-green-500 rounded-full"></span>
+                                {% else %}
+                                    <span class="w-3 h-3 bg-gray-400 rounded-full"></span>
+                                {% endif %}
+                            </div>
+                            <p class="text-sm text-gray-500">{{ camera.ipAddress }}</p>
+                        </div>
+                        {% else %}
+                        <p class="text-gray-500 text-sm">No cameras configured</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                {# Legend #}
+                <div class="bg-white rounded-xl shadow-lg p-4">
+                    <h2 class="text-lg font-bold text-gray-800 mb-3">Legend</h2>
+                    <div class="space-y-2">
+                        <div class="flex items-center gap-2">
+                            <span class="w-4 h-4 bg-green-500 rounded-full"></span>
+                            <span class="text-sm">Active Station</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="w-4 h-4 bg-red-500 rounded-full"></span>
+                            <span class="text-sm">Inactive Station</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="w-4 h-4 bg-yellow-500 rounded-full"></span>
+                            <span class="text-sm">Maintenance</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+let map;
+let markers = {};
+
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('{{ path('app_admin_map_data') }}')
+        .then(response => response.json())
+        .then(stations => {
+            if (stations.length > 0) {
+                map = L.map('full-map').setView([stations[0].lat, stations[0].lng], 12);
+                
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors',
+                    maxZoom: 19
+                }).addTo(map);
+                
+                stations.forEach(station => {
+                    const color = station.status === 'active' ? '#22c55e' : 
+                                 station.status === 'inactive' ? '#ef4444' : '#eab308';
+                    
+                    const marker = L.circleMarker([station.lat, station.lng], {
+                        radius: 10,
+                        fillColor: color,
+                        color: '#fff',
+                        weight: 2,
+                        opacity: 1,
+                        fillOpacity: 0.8
+                    })
+                    .bindPopup(`
+                        <div class="text-center">
+                            <h3 class="font-bold text-lg">${station.code}</h3>
+                            <p class="text-gray-600">${station.zone}</p>
+                            <p class="text-sm mt-1">
+                                <span class="px-2 py-0.5 rounded-full text-xs
+                                    ${station.status === 'active' ? 'bg-green-100 text-green-700' : 
+                                      station.status === 'inactive' ? 'bg-red-100 text-red-700' : 
+                                      'bg-yellow-100 text-yellow-700'}">
+                                    ${station.status}
+                                </span>
+                            </p>
+                            <a href="/admin/stations/${station.id}" class="text-orange-500 hover:underline text-sm block mt-2">
+                                View Details
+                            </a>
+                        </div>
+                    `)
+                    .addTo(map);
+                    
+                    markers[station.id] = marker;
+                });
+                
+                // Fit bounds
+                const bounds = L.latLngBounds(stations.map(s => [s.lat, s.lng]));
+                map.fitBounds(bounds, { padding: [20, 20] });
+            } else {
+                document.getElementById('full-map').innerHTML = 
+                    '<div class="flex items-center justify-center h-full text-gray-500">No stations with location data</div>';
+            }
+        })
+        .catch(error => console.error('Error loading map:', error));
+});
+
+function focusStation(id) {
+    if (markers[id]) {
+        map.setView(markers[id].getLatLng(), 15);
+        markers[id].openPopup();
+    }
+}
+</script>
+{% endblock %}

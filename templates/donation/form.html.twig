@@ -1,0 +1,163 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}{{ page_title }} | PawTech{% endblock %}
+
+{% block main %}
+<div class="max-w-3xl mx-auto" data-controller="delete-confirm">
+  <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+    <div class="bg-gradient-to-r from-orange-500 to-orange-600 px-8 py-6">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-3.866 0-7 1.79-7 4v6a2 2 0 002 2h10a2 2 0 002-2v-6c0-2.21-3.134-4-7-4z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8a3 3 0 100-6 3 3 0 000 6z"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold text-white">{{ page_title }}</h1>
+          <p class="text-orange-100 text-sm mt-1">Update donation information</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="p-8">
+      {{ form_start(form, {'attr': {'id': 'donation-form', 'class': 'space-y-6', 'novalidate': 'novalidate'}, 'action': form_action|default(null)}) }}
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          {{ form_label(form.montant, "Amount (TND)", {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+          {{ form_widget(form.montant, {'attr': {
+            'class': 'w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-paw-orange focus:border-paw-orange ' ~ (form.montant.vars.errors|length ? 'border-red-500 focus:ring-red-500 focus:border-red-500 bg-red-50' : 'border-gray-300')
+          }}) }}
+          {% if form.montant.vars.errors|length %}
+            <div class="mt-1 text-sm text-red-600">
+              {% for error in form.montant.vars.errors %}
+                <div>{{ error.message }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+
+        <div>
+          {{ form_label(form.date, "Date", {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+          {{ form_widget(form.date, {'attr': {
+            'class': 'w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-paw-orange focus:border-paw-orange ' ~ (form.date.vars.errors|length ? 'border-red-500 focus:ring-red-500 focus:border-red-500 bg-red-50' : 'border-gray-300')
+          }}) }}
+          {% if form.date.vars.errors|length %}
+            <div class="mt-1 text-sm text-red-600">
+              {% for error in form.date.vars.errors %}
+                <div>{{ error.message }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+
+        <div>
+          {{ form_label(form.donateur, "Donor", {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+          {{ form_widget(form.donateur, {'attr': {
+            'class': 'w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-paw-orange focus:border-paw-orange ' ~ (form.donateur.vars.errors|length ? 'border-red-500 focus:ring-red-500 focus:border-red-500 bg-red-50' : 'border-gray-300')
+          }}) }}
+          {% if form.donateur.vars.errors|length %}
+            <div class="mt-1 text-sm text-red-600">
+              {% for error in form.donateur.vars.errors %}
+                <div>{{ error.message }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+
+        <div>
+          {{ form_label(form.email, "Email", {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+          {{ form_widget(form.email, {'attr': {
+            'class': 'w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-paw-orange focus:border-paw-orange ' ~ (form.email.vars.errors|length ? 'border-red-500 focus:ring-red-500 focus:border-red-500 bg-red-50' : 'border-gray-300')
+          }}) }}
+          {% if form.email.vars.errors|length %}
+            <div class="mt-1 text-sm text-red-600">
+              {% for error in form.email.vars.errors %}
+                <div>{{ error.message }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="md:col-span-2">
+          {{ form_label(form.reference, "Reference", {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+          {{ form_widget(form.reference, {'attr': {
+            'class': 'w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-paw-orange focus:border-paw-orange ' ~ (form.reference.vars.errors|length ? 'border-red-500 focus:ring-red-500 focus:border-red-500 bg-red-50' : 'border-gray-300')
+          }}) }}
+          {% if form.reference.vars.errors|length %}
+            <div class="mt-1 text-sm text-red-600">
+              {% for error in form.reference.vars.errors %}
+                <div>{{ error.message }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="md:col-span-2 flex items-center">
+          {{ form_widget(form.statut, {'attr': {'class': 'h-4 w-4 text-paw-orange border-gray-300 rounded focus:ring-paw-orange mr-2'}}) }}
+          {{ form_label(form.statut, "Validated", {'label_attr': {'class': 'text-sm text-gray-700'}}) }}
+          {% if form.statut.vars.errors|length %}
+            <div class="ml-6 text-sm text-red-600">
+              {% for error in form.statut.vars.errors %}
+                <div>{{ error.message }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      {{ form_end(form) }}
+    </div>
+  </div>
+
+  <div class="mt-6 pt-6 border-t border-gray-100 flex flex-wrap gap-3">
+    <a href="{{ path('app_donation_index') }}" class="inline-flex items-center px-5 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 hover:text-gray-800 transition-colors">
+      <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+      </svg>
+      Back to list
+    </a>
+    <button type="submit" form="donation-form" class="inline-flex items-center px-5 py-2.5 text-sm font-medium text-white bg-orange-500 rounded-lg hover:bg-orange-600 transition-all shadow-md hover:shadow-lg">
+      <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+      </svg>
+      {{ submit_label|default('Save') }}
+    </button>
+    {% if donation.id %}
+      <form method="post"
+            action="{{ path('app_donation_delete', {id: donation.id}) }}"
+            data-action="submit->delete-confirm#confirm"
+            data-delete-message="Delete donation #{{ donation.id }}?"
+            class="inline-flex">
+        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ donation.id) }}">
+        <button type="submit" class="inline-flex items-center px-5 py-2.5 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m2-3h6a1 1 0 011 1v1H8V5a1 1 0 011-1z"></path>
+          </svg>
+          Delete
+        </button>
+      </form>
+    {% endif %}
+  </div>
+
+  <div data-delete-confirm-target="modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+      <h3 class="text-lg font-semibold text-gray-900 mb-2">Delete donation</h3>
+      <p class="text-sm text-gray-600 mb-6" data-delete-confirm-target="message">Are you sure you want to delete this donation?</p>
+      <div class="flex justify-end gap-3">
+        <button type="button"
+                class="px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                data-action="delete-confirm#close">
+          Cancel
+        </button>
+        <button type="button"
+                class="px-4 py-2.5 rounded-lg bg-red-600 text-sm font-semibold text-white shadow hover:bg-red-700"
+                data-action="delete-confirm#submit">
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,22 @@
+<div class="flex items-center gap-2">
+  <a href="{{ path('app_donation_show', { id: donation.id }) }}"
+     class="px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 text-sm font-medium js-modal-link"
+     data-title="Donation #{{ donation.id }}">
+    View
+  </a>
+  <a href="{{ path('app_donation_edit', { id: donation.id }) }}"
+     class="px-3 py-1.5 rounded-lg border border-orange-200 text-paw-orange hover:bg-orange-50 text-sm font-medium js-modal-link"
+     data-title="Modify donation #{{ donation.id }}">
+    Edit
+  </a>
+  <form method="post"
+        action="{{ path('app_donation_delete', { id: donation.id }) }}"
+        data-action="submit->delete-confirm#confirm"
+        data-delete-message="Delete donation #{{ donation.id }}?">
+    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ donation.id) }}">
+    <button type="submit"
+            class="px-3 py-1.5 rounded-lg border border-red-200 text-red-500 hover:bg-red-50 text-sm font-medium">
+      Delete
+    </button>
+  </form>
+</div>

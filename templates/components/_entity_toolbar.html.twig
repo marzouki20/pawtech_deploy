@@ -1,0 +1,42 @@
+{#
+  Usage:
+  {% include 'components/_entity_toolbar.html.twig' with {
+    entity_name: 'Client',
+    add_modal_id: 'modal-add-client',
+    search_placeholder: 'Search',
+  } %}
+  Then include the modal and use data-action="click->modal#open" on the Add button.
+  We use a single modal controller per page; the Add button opens it.
+  So we need the Add button and modal in the same data-controller="modal" wrapper.
+  Alternative: use a wrapper div around toolbar+modal with data-controller="modal",
+  and the Add button has data-action="click->modal#open".
+#}
+<div class="flex flex-wrap items-center gap-4 mb-4">
+  <div class="relative flex-1 min-w-[200px]">
+    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+    </span>
+    <input type="search" placeholder="{{ search_placeholder|default('Search') }}" class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-paw-orange focus:border-paw-orange outline-none">
+  </div>
+  {% if add_href is defined and add_href %}
+    <a href="{{ add_href }}" class="inline-flex items-center gap-2 px-4 py-2 bg-paw-orange text-white rounded-lg hover:bg-paw-orange-hover font-medium">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+      Add New {{ entity_name }}
+    </a>
+  {% else %}
+    <button type="button" data-action="click->modal#open" class="inline-flex items-center gap-2 px-4 py-2 bg-paw-orange text-white rounded-lg hover:bg-paw-orange-hover font-medium">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+      Add New {{ entity_name }}
+    </button>
+  {% endif %}
+  <div class="inline-flex items-center gap-2">
+    <button type="button" data-entity-sort-target="buttonAsc" data-action="click->entity-sort#setAsc" class="inline-flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg bg-white text-gray-700 hover:bg-gray-50">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+      ASC
+    </button>
+    <button type="button" data-entity-sort-target="buttonDesc" data-action="click->entity-sort#setDesc" class="inline-flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg bg-white text-gray-700 hover:bg-gray-50">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+      DESC
+    </button>
+  </div>
+</div>

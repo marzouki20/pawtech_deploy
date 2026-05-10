@@ -1,0 +1,125 @@
+{#
+    ========================================
+    Example: How to Integrate the Error Popup
+    ========================================
+    
+    1. Include the CSS in your base template:
+       <link rel="stylesheet" href="{{ asset('build/error-popup.css') }}">
+    
+    2. Include this component in your template where you want the popup to appear:
+       {% include 'components/error_popup.html.twig' %}
+    
+    3. Use JavaScript to show the popup when a stream error occurs:
+       window.showErrorPopup({
+           title: 'Stream Error',
+           message: 'Failed to start stream: TypeError: Failed to fetch',
+           type: 'TypeError',
+           details: 'Failed to start stream: TypeError: Failed to fetch'
+       });
+    
+    4. Listen for the retry event to handle the "Try Again" action:
+       window.addEventListener('stream:retry', function(e) {
+           // Retry your stream logic here
+           console.log('Retrying stream...', e.detail);
+       });
+#}
+
+{# Example: Integration in camera_view.html.twig #}
+
+{# At the top of your template, extend the base #}
+{# {% extends 'base.html.twig' %} #}
+
+{# Include the CSS in the stylesheets block #}
+{# 
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('build/error-popup.css') }}">
+{% endblock %}
+#}
+
+{# Include the popup component before closing body tag #}
+{# 
+{% block body %}
+    ... your existing content ...
+    
+    {% include 'components/error_popup.html.twig' %}
+{% endblock %}
+#}
+
+{# 
+{% block javascripts %}
+    {{ parent() }}
+    
+    <script>
+    // Example: Show popup when stream fetch fails
+    async function startStream(cameraId) {
+        try {
+            const response = await fetch(`/stream/start/${cameraId}`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            // ... handle successful stream start
+        } catch (error) {
+            // Show the error popup
+            window.showErrorPopup({
+                title: 'Failed to Start Stream',
+                message: error.message,
+                type: error.name || 'Error',
+                details: error.stack || error.message
+            });
+            
+            // Alternative: Use default message
+            // window.showErrorPopup();
+        }
+    }
+    
+    // Listen for retry event
+    window.addEventListener('stream:retry', async function(e) {
+        console.log('Retrying stream after error...');
+        // Retry logic here
+    });
+    </script>
+{% endblock %}
+#}
+
+{# ========================================
+   Minimal Integration Example
+   Just copy and paste this into any page
+   ======================================== #}
+
+{# 1. Add this to include the popup (at the bottom of your page) #}
+{# {% include 'components/error_popup.html.twig' %} #}
+
+{# 2. Add JavaScript to trigger the popup: #}
+{#
+<script>
+    // Trigger on specific error condition
+    if (streamError) {
+        window.showErrorPopup({
+            title: 'Stream Connection Failed',
+            message: 'Failed to start stream: TypeError: Failed to fetch',
+            type: 'TypeError',
+            details: 'The network request to start the stream failed. Please check your connection and try again.'
+        });
+    }
+</script>
+#}
+
+{# ========================================
+   Programmatic Control
+   ======================================== #}
+{#
+    // Show popup
+    window.showErrorPopup();
+    
+    // Show with custom data
+    window.showErrorPopup({
+        title: 'Custom Title',
+        message: 'Your custom error message',
+        type: 'ErrorType',
+        details: 'Full error details...'
+    });
+    
+    // Hide popup programmatically
+    window.hideErrorPopup();
+#}

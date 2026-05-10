@@ -1,0 +1,53 @@
+{#
+  Include inside a div with data-controller="modal" (same as entity toolbar).
+  Usage:
+  {% include 'components/_modal_add.html.twig' with {
+    modal_title: 'Add New Client',
+    add_label: 'Add',
+    fields: [...],
+  } %}
+#}
+<div data-modal-target="backdrop" class="hidden fixed inset-0 z-40 bg-black/30 modal-backdrop" data-action="click->modal#close"></div>
+<div data-modal-target="dialog" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" aria-modal="true">
+  <div class="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
+      <h2 class="text-lg font-bold text-gray-800 mb-4">{{ modal_title }}</h2>
+      <form method="post" action="{{ form_action|default('#') }}" class="space-y-4">
+        {% for field in fields|default([]) %}
+          {% set field_type = field.type|default('text') %}
+          {% if field_type == 'file' %}
+            <div class="space-y-3" data-controller="image-preview">
+              <label class="text-sm font-semibold text-gray-700">{{ field.label|default('Photo') }}</label>
+              <div class="w-full aspect-[4/3] rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 flex items-center justify-center overflow-hidden">
+                <img data-image-preview-target="preview" class="hidden w-full h-full object-cover" alt="Preview" />
+                <div data-image-preview-target="placeholder" class="text-xs text-gray-400 text-center px-4">
+                  {{ field.placeholder|default('Choose an image to preview') }}
+                </div>
+              </div>
+              <input type="file"
+                     name="{{ field.name }}"
+                     {% if field.accept is defined %}accept="{{ field.accept }}"{% endif %}
+                     class="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-paw-orange focus:border-paw-orange outline-none"
+                     data-image-preview-target="input"
+                     data-action="change->image-preview#preview">
+            </div>
+          {% else %}
+            <div>
+              <input type="{{ field_type }}"
+                     name="{{ field.name }}"
+                     placeholder="{{ field.placeholder }}"
+                     class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-paw-orange focus:border-paw-orange outline-none"
+                     {% if field.required|default(true) %}required{% endif %}>
+            </div>
+          {% endif %}
+        {% endfor %}
+        <div class="flex gap-3 pt-2">
+          <button type="button" data-action="click->modal#close" class="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50">
+            Cancel
+          </button>
+          <button type="submit" class="flex-1 px-4 py-2.5 bg-paw-orange text-white rounded-lg hover:bg-paw-orange-hover font-medium">
+            {{ add_label|default('Add') }}
+          </button>
+        </div>
+      </form>
+  </div>
+</div>

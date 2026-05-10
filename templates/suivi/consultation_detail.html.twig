@@ -1,0 +1,577 @@
+{% extends 'layout.html.twig' %}
+
+{% block main %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">Consultation Detail</h1>
+            <p class="text-gray-600">Medical analysis and 3D anatomy view for {{ consultation.dog ? consultation.dog.name : 'Unknown Dog' }}</p>
+        </div>
+        <div class="flex items-center gap-2">
+            <a href="{{ path('app_suivi_export_pdf', { id: suivi.id }) }}" class="inline-flex items-center gap-2 px-4 py-2 bg-paw-orange text-white rounded-lg hover:bg-paw-orange-hover font-medium">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3M4 17a4 4 0 004 4h8a4 4 0 004-4M4 7a4 4 0 014-4h8a4 4 0 014 4"/>
+                </svg>
+                Export PDF
+            </a>
+            <a href="{{ path('app_suivi_index') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 font-medium">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                </svg>
+                Back to Follow-ups
+            </a>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Left Column - Consultation Info -->
+        <div class="space-y-6">
+            <!-- Consultation Details Card -->
+            <div class="bg-white rounded-xl border border-gray-200 p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Consultation Information</h2>
+                <div class="space-y-4">
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">ID:</span>
+                        <span class="font-medium">#{{ consultation.id }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Date:</span>
+                        <span class="font-medium">{{ consultation.date ? consultation.date|date('d/m/Y H:i') : 'N/A' }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Type:</span>
+                        <span class="font-medium">{{ consultation.type }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Dog:</span>
+                        <span class="font-medium">{{ consultation.dog ? consultation.dog.name : 'N/A' }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Veterinarian:</span>
+                        <span class="font-medium">{{ consultation.user ? consultation.user.fullName : 'N/A' }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Diagnostic & Treatment Card -->
+            <div class="bg-white rounded-xl border border-gray-200 p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Diagnostic & Treatment</h2>
+                <div class="space-y-4">
+                    <div>
+                        <h3 class="text-sm font-medium text-gray-500 mb-2">Diagnostic</h3>
+                        <p class="text-gray-900 font-medium" id="diagnostic-text">{{ consultation.diagnostic }}</p>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-medium text-gray-500 mb-2">Treatment</h3>
+                        <p class="text-gray-900">{{ consultation.traitement ?: 'Not specified' }}</p>
+                    </div>
+                </div>
+                
+                <!-- Auto-detected Organ -->
+                <div id="detected-organ-container" class="mt-4 p-3 {% if detected_organ %}bg-green-50 border-green-200{% else %}bg-yellow-50 border-yellow-200{% endif %} border rounded-lg">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-5 h-5 {% if detected_organ %}text-green-600{% else %}text-yellow-600{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <span id="diagnostic-organ-prefix" class="text-sm font-medium {% if detected_organ %}text-green-800{% else %}text-yellow-800{% endif %}">
+                            {% if detected_organ %}
+                                Organ detected from diagnostic:
+                            {% else %}
+                                No specific organ detected in diagnostic:
+                            {% endif %}
+                        </span>
+                        <span id="diagnostic-organ-value" class="font-bold {% if detected_organ %}text-green-800{% else %}text-yellow-800{% endif %}">
+                            {{ detected_organ ? detected_organ.name : (analysis_organ ? analysis_organ.name ~ ' (fallback)' : 'None') }}
+                        </span>
+                        {% if detected_organ %}
+                            <span id="diagnostic-organ-badge" class="{% if detected_organ %}bg-green-200 text-green-800{% else %}bg-yellow-200 text-yellow-800{% endif %} px-2 py-0.5 rounded-full text-xs">
+                                #{{ detected_organ.number }}
+                            </span>
+                        {% elseif analysis_organ %}
+                            <span id="diagnostic-organ-badge" class="bg-yellow-200 text-yellow-800 px-2 py-0.5 rounded-full text-xs">
+                                #{{ analysis_organ.number }}
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Follow-up Info Card -->
+            <div class="bg-white rounded-xl border border-gray-200 p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Follow-up Information</h2>
+                <div class="space-y-4">
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Status:</span>
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium 
+                            {% if suivi.etat == 'Planifié' %}bg-yellow-100 text-yellow-800
+                            {% elseif suivi.etat == 'En cours' %}bg-blue-100 text-blue-800
+                            {% elseif suivi.etat == 'Terminé' %}bg-green-100 text-green-800
+                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {{ suivi.etat }}
+                        </span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Type:</span>
+                        <span class="font-medium">{{ suivi.type }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Next Visit:</span>
+                        <span class="font-medium text-blue-600">{{ suivi.prochaineVisite ? suivi.prochaineVisite|date('d/m/Y H:i') : 'Not scheduled' }}</span>
+                    </div>
+                    {% if suivi.emergencyLevel %}
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Emergency Level:</span>
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border {{ suivi.emergencyLevelClass }}">
+                            {{ suivi.emergencyLevelDisplay }}
+                        </span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column - 3D Anatomy Model -->
+        <div class="space-y-6">
+            <!-- 3D Anatomy Model Card -->
+            <div class="bg-white rounded-xl border border-gray-200 p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">3D Dog Anatomy Model</h2>
+                <p class="text-sm text-gray-600 mb-4">The affected organ from the diagnostic is automatically selected</p>
+                
+                <!-- Embedded 3D Dog Anatomy Model from Sketchfab -->
+                <div class="relative bg-gradient-to-b from-blue-50 to-white rounded-lg p-2" id="anatomy-container">
+                    <div id="anatomy-loading" class="absolute inset-0 flex items-center justify-center bg-white rounded-lg z-10">
+                        <div class="text-center">
+                            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-paw-orange mx-auto mb-4"></div>
+                            <p class="text-gray-600">Loading 3D Anatomy Model...</p>
+                        </div>
+                    </div>
+                    
+                    <div class="sketchfab-embed-wrapper">
+                        <iframe 
+                            id="anatomy-iframe"
+                            title="Bone structure and internal organs of a dog" 
+                            frameborder="0" 
+                            allowfullscreen 
+                            mozallowfullscreen="true" 
+                            webkitallowfullscreen="true" 
+                            allow="autoplay; fullscreen; xr-spatial-tracking" 
+                            xr-spatial-tracking 
+                            execution-while-out-of-viewport 
+                            execution-while-not-rendered 
+                            web-share 
+                            src="https://sketchfab.com/models/7587ebe24ee2464f982154ed610f7e56/embed"
+                            onload="hideLoading()"
+                            style="border-radius: 8px; width: 100%; height: 500px;">
+                        </iframe>
+                    </div>
+                </div>
+                
+                <!-- Organ Buttons (8 organes) -->
+                <div class="mt-4 p-4 bg-gray-50 rounded-lg">
+                    <h3 class="text-sm font-medium text-gray-700 mb-3">Organ Reference:</h3>
+                    
+                    <div class="grid grid-cols-4 gap-3" id="organ-buttons-container">
+                        <!-- 1. Brain -->
+                        <div class="organ-btn relative flex flex-col items-center p-2 {% if detected_organ and detected_organ.number == 1 %}bg-green-50 ring-2 ring-green-500{% else %}bg-white{% endif %} rounded-lg border border-gray-200 transition-all" data-number="1">
+                            <span class="absolute -top-2 -right-2 w-6 h-6 {% if detected_organ and detected_organ.number == 1 %}bg-green-600{% else %}bg-gray-400{% endif %} text-white rounded-full text-xs flex items-center justify-center font-bold">1</span>
+                            <span class="text-xs font-medium mt-1">Brain</span>
+                        </div>
+                        
+                        <!-- 2. Lungs -->
+                        <div class="organ-btn relative flex flex-col items-center p-2 {% if detected_organ and detected_organ.number == 2 %}bg-green-50 ring-2 ring-green-500{% else %}bg-white{% endif %} rounded-lg border border-gray-200 transition-all" data-number="2">
+                            <span class="absolute -top-2 -right-2 w-6 h-6 {% if detected_organ and detected_organ.number == 2 %}bg-green-600{% else %}bg-gray-400{% endif %} text-white rounded-full text-xs flex items-center justify-center font-bold">2</span>
+                            <span class="text-xs font-medium mt-1">Lungs</span>
+                        </div>
+                        
+                        <!-- 3. Heart -->
+                        <div class="organ-btn relative flex flex-col items-center p-2 {% if detected_organ and detected_organ.number == 3 %}bg-green-50 ring-2 ring-green-500{% else %}bg-white{% endif %} rounded-lg border border-gray-200 transition-all" data-number="3">
+                            <span class="absolute -top-2 -right-2 w-6 h-6 {% if detected_organ and detected_organ.number == 3 %}bg-green-600{% else %}bg-gray-400{% endif %} text-white rounded-full text-xs flex items-center justify-center font-bold">3</span>
+                            <span class="text-xs font-medium mt-1">Heart</span>
+                        </div>
+                        
+                        <!-- 4. Liver -->
+                        <div class="organ-btn relative flex flex-col items-center p-2 {% if detected_organ and detected_organ.number == 4 %}bg-green-50 ring-2 ring-green-500{% else %}bg-white{% endif %} rounded-lg border border-gray-200 transition-all" data-number="4">
+                            <span class="absolute -top-2 -right-2 w-6 h-6 {% if detected_organ and detected_organ.number == 4 %}bg-green-600{% else %}bg-gray-400{% endif %} text-white rounded-full text-xs flex items-center justify-center font-bold">4</span>
+                            <span class="text-xs font-medium mt-1">Liver</span>
+                        </div>
+                        
+                        <!-- 5. Stomach -->
+                        <div class="organ-btn relative flex flex-col items-center p-2 {% if detected_organ and detected_organ.number == 5 %}bg-green-50 ring-2 ring-green-500{% else %}bg-white{% endif %} rounded-lg border border-gray-200 transition-all" data-number="5">
+                            <span class="absolute -top-2 -right-2 w-6 h-6 {% if detected_organ and detected_organ.number == 5 %}bg-green-600{% else %}bg-gray-400{% endif %} text-white rounded-full text-xs flex items-center justify-center font-bold">5</span>
+                            <span class="text-xs font-medium mt-1">Stomach</span>
+                        </div>
+                        
+                        <!-- 6. Guts -->
+                        <div class="organ-btn relative flex flex-col items-center p-2 {% if detected_organ and detected_organ.number == 6 %}bg-green-50 ring-2 ring-green-500{% else %}bg-white{% endif %} rounded-lg border border-gray-200 transition-all" data-number="6">
+                            <span class="absolute -top-2 -right-2 w-6 h-6 {% if detected_organ and detected_organ.number == 6 %}bg-green-600{% else %}bg-gray-400{% endif %} text-white rounded-full text-xs flex items-center justify-center font-bold">6</span>
+                            <span class="text-xs font-medium mt-1">Guts</span>
+                        </div>
+                        
+                        <!-- 7. Kidney -->
+                        <div class="organ-btn relative flex flex-col items-center p-2 {% if detected_organ and detected_organ.number == 7 %}bg-green-50 ring-2 ring-green-500{% else %}bg-white{% endif %} rounded-lg border border-gray-200 transition-all" data-number="7">
+                            <span class="absolute -top-2 -right-2 w-6 h-6 {% if detected_organ and detected_organ.number == 7 %}bg-green-600{% else %}bg-gray-400{% endif %} text-white rounded-full text-xs flex items-center justify-center font-bold">7</span>
+                            <span class="text-xs font-medium mt-1">Kidney</span>
+                        </div>
+                        
+                        <!-- 8. Urinary bladder -->
+                        <div class="organ-btn relative flex flex-col items-center p-2 {% if detected_organ and detected_organ.number == 8 %}bg-green-50 ring-2 ring-green-500{% else %}bg-white{% endif %} rounded-lg border border-gray-200 transition-all" data-number="8">
+                            <span class="absolute -top-2 -right-2 w-6 h-6 {% if detected_organ and detected_organ.number == 8 %}bg-green-600{% else %}bg-gray-400{% endif %} text-white rounded-full text-xs flex items-center justify-center font-bold">8</span>
+                            <span class="text-xs font-medium mt-1">Bladder</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Analysis Section -->
+            <div class="bg-white rounded-xl border border-gray-200 p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">AI-Powered Analysis</h2>
+                
+                <!-- Selected Organ Display -->
+                <div id="selected-organ-display" class="mb-3 p-3 {% if detected_organ %}bg-paw-orange bg-opacity-10 border-paw-orange{% else %}bg-gray-100 border-gray-300{% endif %} border rounded-lg">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <span class="text-sm font-medium {% if analysis_organ %}text-paw-orange{% else %}text-gray-600{% endif %}">Organ for analysis:</span>
+                            <span id="analysis-organ-label" class="ml-2 font-bold {% if analysis_organ %}text-paw-orange{% else %}text-gray-600{% endif %}">
+                                {{ analysis_organ ? analysis_organ.name ~ ' #' ~ analysis_organ.number : 'None detected' }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Symptoms Input (vide au chargement) -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Describe Symptoms</label>
+                    <textarea 
+                        id="symptoms-input" 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-paw-orange focus:border-paw-orange"
+                        rows="4"
+                        placeholder="Click 'Run  Analysis' to see common symptoms for this organ..."
+                    >{{ saved_symptoms }}</textarea>
+                </div>
+                
+                <!-- Message d'erreur (caché par défaut) -->
+                <div id="error-message" class="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm hidden"></div>
+                
+                <!-- Analyze Button -->
+                <button 
+                    id="knn-analyze-btn"
+                    onclick="runKnnAnalysis()"
+                    class="w-full inline-flex items-center justify-center gap-2 px-4 py-3 bg-paw-orange text-white rounded-lg hover:bg-paw-orange-hover font-medium"
+                    {% if not analysis_organ %}disabled style="opacity:50%; cursor:not-allowed;"{% endif %}
+                >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1-3m1 3h6m-6 0H6m3-3V5a3 3 0 013-3h0a3 3 0 013 3v12m-6 0h6"/>
+                    </svg>
+                    Run AI Analysis
+                </button>
+
+                <!-- Analysis Result -->
+                <div id="analysis-result" class="mt-4 {% if has_saved_analysis %}{% else %}hidden{% endif %}">
+                    <!-- Emergency Level Badge -->
+                    <div id="emergency-badge" class="mb-4 p-4 rounded-lg border-2 text-center
+                        {% if suivi.emergencyLevel == 'critical' %}bg-red-100 border-red-300
+                        {% elseif suivi.emergencyLevel == 'high' %}bg-orange-100 border-orange-300
+                        {% elseif suivi.emergencyLevel == 'medium' %}bg-yellow-100 border-yellow-300
+                        {% else %}bg-green-100 border-green-300{% endif %}">
+                        <span id="emergency-level" class="text-lg font-bold
+                            {% if suivi.emergencyLevel == 'critical' %}text-red-800
+                            {% elseif suivi.emergencyLevel == 'high' %}text-orange-800
+                            {% elseif suivi.emergencyLevel == 'medium' %}text-yellow-800
+                            {% else %}text-green-800{% endif %}">
+                            {{ suivi.emergencyLevelDisplay }}
+                        </span>
+                    </div>
+                    
+                    <!-- Report -->
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <h3 class="text-sm font-semibold text-gray-700 mb-2">Medical Analysis Report</h3>
+                        <pre id="report-content" class="text-sm text-gray-700 whitespace-pre-wrap font-mono overflow-auto max-h-96">{% if has_saved_analysis %}Analyzing: {{ analysis_organ ? analysis_organ.name : 'Unknown' }}{% if analysis_organ %} (#{{ analysis_organ.number }}){% endif %}
+
+{{ saved_analysis_report }}{% endif %}</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Script de débogage -->
+<script>
+    (function() {
+        console.log("=== DÉBOGAGE DÉTECTION ORGANE ===");
+        console.log("detected_organ (depuis Twig):", {{ detected_organ ? detected_organ|json_encode|raw : 'null' }});
+        console.log("Diagnostic text:", {{ consultation.diagnostic|json_encode|raw }});
+        console.log("==================================");
+    })();
+</script>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+const suiviId = {{ suivi.id }};
+let selectedOrgan = {{ analysis_organ ? analysis_organ|json_encode|raw : 'null' }};
+const hasDetectedOrgan = {{ detected_organ ? 'true' : 'false' }};
+const organByNumber = {
+    1: { id: 'brain', name: 'Brain', number: 1 },
+    2: { id: 'lungs', name: 'Lungs', number: 2 },
+    3: { id: 'heart', name: 'Heart', number: 3 },
+    4: { id: 'liver', name: 'Liver', number: 4 },
+    5: { id: 'stomach', name: 'Stomach', number: 5 },
+    6: { id: 'guts', name: 'Guts', number: 6 },
+    7: { id: 'kidney', name: 'Kidney', number: 7 },
+    8: { id: 'bladder', name: 'Urinary Bladder', number: 8 }
+};
+
+// Hide loading spinner when iframe loads
+function hideLoading() {
+    const loading = document.getElementById('anatomy-loading');
+    if (loading) {
+        loading.classList.add('hidden');
+    }
+}
+
+// Auto-hide loading after 3 seconds
+setTimeout(function() {
+    hideLoading();
+}, 3000);
+
+// Fonction pour afficher les messages d'erreur
+function showError(message) {
+    const errorDiv = document.getElementById('error-message');
+    errorDiv.textContent = message;
+    errorDiv.classList.remove('hidden');
+    
+    // Cacher après 5 secondes
+    setTimeout(() => {
+        errorDiv.classList.add('hidden');
+    }, 5000);
+}
+
+// Fonction pour pré-remplir les symptômes au moment du clic (via API)
+async function presetSymptoms() {
+    if (selectedOrgan && selectedOrgan.number) {
+        const symptomsInput = document.getElementById('symptoms-input');
+        
+        // Ne pré-remplir que si le champ est vide
+        if (!symptomsInput.value.trim()) {
+            try {
+                // Appeler l'API pour récupérer les symptômes
+                const response = await fetch(`/suivi/ai-symptoms/${selectedOrgan.number}?suivi_id=${suiviId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    symptomsInput.value = data.symptoms;
+                    console.log('Symptoms fetched from API for organ #' + selectedOrgan.number + ': ' + data.organ);
+                    return true;
+                } else {
+                    throw new Error(data.error || 'Symptoms API failed');
+                }
+            } catch (error) {
+                console.error('Error fetching symptoms:', error);
+                showError('Unable to fetch symptoms from AI API: ' + error.message);
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    return false;
+}
+
+// Fonction pour l'analyse AI
+async function runAIAnalysis() {
+    return runAnalysis('default', 'analyze-btn');
+}
+
+async function runKnnAnalysis() {
+    return runAnalysis('knn_only', 'knn-analyze-btn');
+}
+
+async function runAnalysis(mode, buttonId) {
+    if (!selectedOrgan) {
+        alert('No organ detected from diagnostic');
+        return;
+    }
+    
+    // Pré-remplir les symptômes si nécessaire (appel API)
+    const symptomsReady = await presetSymptoms();
+    if (!symptomsReady) {
+        return;
+    }
+    
+    const symptoms = document.getElementById('symptoms-input').value;
+    const analyzeBtn = document.getElementById(buttonId);
+    const errorDiv = document.getElementById('error-message');
+    
+    // Cacher les anciennes erreurs
+    errorDiv.classList.add('hidden');
+    
+    console.log('Sending analysis request:', {
+        suivi_id: suiviId,
+        affected_parts: [selectedOrgan.id],
+        symptoms: symptoms
+    });
+    
+    analyzeBtn.disabled = true;
+    analyzeBtn.innerHTML = '<svg class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Analyzing...';
+    
+    // Préparer les données pour l'analyse
+    const requestData = {
+        suivi_id: suiviId,
+        affected_parts: [selectedOrgan.id],
+        symptoms: symptoms,
+        analysis_mode: mode
+    };
+    
+    fetch('{{ path("app_suivi_ai_analyze") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify(requestData)
+    })
+    .then(async response => {
+        const text = await response.text();
+        console.log('Raw response:', text);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}, body: ${text}`);
+        }
+        
+        try {
+            return JSON.parse(text);
+        } catch (e) {
+            throw new Error('Invalid JSON response: ' + text);
+        }
+    })
+    .then(data => {
+        console.log('Parsed response:', data);
+        
+        if (data.success) {
+            const resultDiv = document.getElementById('analysis-result');
+            const emergencyBadge = document.getElementById('emergency-badge');
+            const emergencyLevel = document.getElementById('emergency-level');
+            const reportContent = document.getElementById('report-content');
+            
+            // Ajouter l'organe analysé au rapport
+            let report = data.report || '';
+            report = `Analyzing: ${selectedOrgan.name} (#${selectedOrgan.number})\n\n${report}`;
+            
+            // Set emergency level styling
+            const levelColors = {
+                'critical': { bg: 'bg-red-100', border: 'border-red-300', text: 'text-red-800' },
+                'high': { bg: 'bg-orange-100', border: 'border-orange-300', text: 'text-orange-800' },
+                'medium': { bg: 'bg-yellow-100', border: 'border-yellow-300', text: 'text-yellow-800' },
+                'low': { bg: 'bg-green-100', border: 'border-green-300', text: 'text-green-800' }
+            };
+            
+            const colors = levelColors[data.emergency_level] || levelColors.low;
+            emergencyBadge.className = `mb-4 p-4 rounded-lg border-2 text-center ${colors.bg} ${colors.border}`;
+            emergencyLevel.className = `text-lg font-bold ${colors.text}`;
+            emergencyLevel.textContent = data.emergency_display || 'Unknown';
+            
+            // Set report content
+            reportContent.textContent = report;
+            
+            resultDiv.classList.remove('hidden');
+            
+            // Scroll to result
+            resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        } else {
+            showError('Error: ' + (data.error || 'Unknown error from server'));
+        }
+    })
+    .catch(error => {
+        console.error('Fetch error:', error);
+        showError('Connection error: ' + error.message);
+    })
+    .finally(() => {
+        analyzeBtn.disabled = false;
+        if (mode === 'knn_only') {
+            analyzeBtn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1-3m1 3h6m-6 0H6m3-3V5a3 3 0 013-3h0a3 3 0 013 3v12m-6 0h6"/></svg> Run AI Analysis';
+        } else {
+            analyzeBtn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg> Run Analysis';
+        }
+    });
+}
+
+// Ajouter les animations CSS
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes fadeOut {
+        from { opacity: 1; transform: translateY(0); }
+        to { opacity: 0; transform: translateY(-10px); }
+    }
+    
+    .animate-fade-in {
+        animation: fadeIn 0.3s ease forwards;
+    }
+    
+    .animate-fade-out {
+        animation: fadeOut 0.3s ease forwards;
+    }
+`;
+
+document.head.appendChild(style);
+
+function updateSelectedOrganUI() {
+    const label = document.getElementById('analysis-organ-label');
+    if (label) {
+        label.textContent = selectedOrgan ? `${selectedOrgan.name} #${selectedOrgan.number}` : 'None detected';
+    }
+    if (!hasDetectedOrgan) {
+        const topValue = document.getElementById('diagnostic-organ-value');
+        const topBadge = document.getElementById('diagnostic-organ-badge');
+        if (topValue) {
+            topValue.textContent = selectedOrgan ? `${selectedOrgan.name} (fallback)` : 'None';
+        }
+        if (topBadge) {
+            topBadge.textContent = selectedOrgan ? `#${selectedOrgan.number}` : '';
+        }
+    }
+
+    document.querySelectorAll('.organ-btn').forEach((btn) => {
+        const number = Number(btn.dataset.number || 0);
+        const badge = btn.querySelector('span.absolute');
+        const selected = selectedOrgan && selectedOrgan.number === number;
+        btn.classList.toggle('ring-2', selected);
+        btn.classList.toggle('ring-paw-orange', selected);
+        btn.classList.toggle('bg-orange-50', selected);
+        btn.classList.toggle('bg-white', !selected);
+        if (badge) {
+            badge.classList.toggle('bg-paw-orange', selected);
+            badge.classList.toggle('bg-gray-400', !selected);
+        }
+    });
+}
+
+function initOrganSelection() {
+    document.querySelectorAll('.organ-btn').forEach((btn) => {
+        btn.style.cursor = 'pointer';
+        btn.addEventListener('click', () => {
+            const number = Number(btn.dataset.number || 0);
+            selectedOrgan = organByNumber[number] ?? selectedOrgan;
+            updateSelectedOrganUI();
+        });
+    });
+
+    updateSelectedOrganUI();
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initOrganSelection);
+} else {
+    initOrganSelection();
+}
+</script>
+{% endblock %}

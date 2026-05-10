@@ -1,0 +1,146 @@
+{% extends 'base_front.html.twig' %}
+
+{% block title %}{{ page_title }} - PawTech Admin{% endblock %}
+
+{% block body %}
+<div class="min-h-screen bg-gray-50">
+    {# Header #}
+    <div class="bg-gradient-to-r from-purple-600 to-purple-700 text-white admin-header">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex flex-col-mobile items-start md:items-center justify-between">
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-bold">IP Cameras</h1>
+                    <p class="text-purple-100 mt-1 text-sm md:text-base">Manage and view camera feeds</p>
+                </div>
+                <div class="flex flex-wrap-mobile items-center gap-2 md:gap-4 mt-3 md:mt-0">
+                    <a href="{{ path('app_admin_dashboard') }}" class="bg-white/20 hover:bg-white/30 px-3 md:px-4 py-2 rounded-lg flex items-center gap-2 transition text-sm">
+                        <i class="fas fa-home"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Camera Grid #}
+    <div class="container mx-auto px-4 py-6">
+        {% if cameras|length > 0 %}
+        <div class="camera-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+            {% for camera in cameras %}
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                {# Camera Preview #}
+                <div class="relative h-40 md:h-48 bg-gray-900 camera-preview">
+                    <img src="{{ camera.fullSnapshotUrl }}?t={{ 'now'|date('U') }}" 
+                         alt="{{ camera.name }}"
+                         class="w-full h-full object-cover"
+                         id="camera-preview-{{ camera.id }}"
+                         onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%23333%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2250%22 fill=%22%23666%22 text-anchor=%22middle%22 dy=%22.3em%22>No Signal</text></svg>'">
+                    
+                    {# Status Badge #}
+                    <div class="absolute top-2 right-2">
+                        {% if camera.status == 'active' %}
+                            <span class="px-2 py-1 bg-green-500 text-white text-xs rounded-full flex items-center gap-1">
+                                <span class="w-2 h-2 bg-white rounded-full animate-pulse"></span>
+                                Live
+                            </span>
+                        {% else %}
+                            <span class="px-2 py-1 bg-gray-500 text-white text-xs rounded-full">Offline</span>
+                        {% endif %}
+                    </div>
+                    
+                    {# Camera Model Badge #}
+                    {% if camera.model %}
+                    <div class="absolute top-2 left-2">
+                        <span class="px-2 py-1 bg-black/50 text-white text-xs rounded">{{ camera.model }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                {# Camera Info #}
+                <div class="p-4">
+                    <h3 class="text-lg font-bold text-gray-800">{{ camera.name }}</h3>
+                    <p class="text-sm text-gray-500 mt-1">{{ camera.ipAddress }}:{{ camera.port }}</p>
+                    
+                    {% if camera.resolution %}
+                    <p class="text-xs text-gray-400 mt-1">Resolution: {{ camera.resolution }}</p>
+                    {% endif %}
+                    
+                    {# Station Info #}
+                    {% if camera.station %}
+                    <p class="text-xs text-gray-400 mt-1">
+                        <i class="fas fa-satellite-dish mr-1"></i>
+                        Station: {{ camera.station.code }}
+                    </p>
+                    {% endif %}
+                    
+                    {# PTZ Capabilities #}
+                    {% if camera.ptzCapabilities %}
+                    <div class="mt-3 flex flex-wrap gap-1">
+                        {% for cap in camera.ptzCapabilities %}
+                        <span class="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded">{{ cap }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    {# Actions #}
+                    <div class="mt-4 flex gap-2">
+                        <a href="{{ path('app_admin_camera_view', {id: camera.id}) }}" 
+                           class="flex-1 bg-purple-500 hover:bg-purple-600 text-white text-center py-2 rounded-lg transition text-sm">
+                            <i class="fas fa-expand mr-1"></i> View
+                        </a>
+                        <button onclick="takeSnapshot({{ camera.id }})" 
+                                class="px-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition">
+                            <i class="fas fa-camera"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="bg-white rounded-xl shadow-lg p-12 text-center">
+            <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-video text-gray-400 text-2xl"></i>
+            </div>
+            <h2 class="text-xl font-bold text-gray-800">No Cameras Configured</h2>
+            <p class="text-gray-500 mt-2">Add your first IP camera to start monitoring</p>
+            <button class="mt-4 bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded-lg transition">
+                <i class="fas fa-plus mr-2"></i> Add Camera
+            </button>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function takeSnapshot(cameraId) {
+    fetch(`/admin/cameras/${cameraId}/control`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ action: 'snapshot' })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Refresh the camera preview
+            const img = document.getElementById(`camera-preview-${cameraId}`);
+            if (img && data.snapshotUrl) {
+                img.src = data.snapshotUrl;
+            }
+            alert('Snapshot saved!');
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+// Auto-refresh camera previews every 10 seconds
+setInterval(() => {
+    document.querySelectorAll('[id^="camera-preview-"]').forEach(img => {
+        const src = img.src.split('?')[0];
+        img.src = src + '?t=' + new Date().getTime();
+    });
+}, 10000);
+</script>
+{% endblock %}

@@ -1,0 +1,124 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}{{ page_title }} | PawTech{% endblock %}
+
+{% set active = 'cameras' %}
+
+{% block main %}
+<div class="px-4 sm:px-6 lg:px-8 py-8 max-w-7xl mx-auto">
+    <div class="max-w-2xl mx-auto">
+        <!-- Page Header -->
+        <div class="mb-8">
+            {% if station is defined %}
+                <a href="{{ path('app_admin_station_dashboard', {'id': station.id}) }}" class="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1 mb-4">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                    Back to {{ station.code }} Dashboard
+                </a>
+            {% else %}
+                <a href="{{ path('app_admin_stations_cameras') }}" class="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1 mb-4">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                    Back to Cameras
+                </a>
+            {% endif %}
+            <h1 class="text-2xl font-bold text-gray-900">Add New IP Camera</h1>
+            {% if station is defined %}
+                <p class="mt-1 text-sm text-gray-600">Adding camera to station: <span class="font-semibold">{{ station.code }}</span></p>
+            {% else %}
+                <p class="mt-1 text-sm text-gray-600">Configure your camera settings</p>
+            {% endif %}
+        </div>
+
+        <!-- Form -->
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+            {{ form_start(form) }}
+            
+            <div class="space-y-6">
+                <div>
+                    {{ form_label(form.name, 'Camera Name', {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+                    {{ form_widget(form.name, {'attr': {'class': 'w-full rounded-lg border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500'}}) }}
+                    {{ form_errors(form.name) }}
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        {{ form_label(form.ipAddress, 'IP Address', {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+                        {{ form_widget(form.ipAddress, {'attr': {'class': 'w-full rounded-lg border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500', 'placeholder': '192.168.1.100'}}) }}
+                        {{ form_errors(form.ipAddress) }}
+                    </div>
+                    <div>
+                        {{ form_label(form.port, 'Port', {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+                        {{ form_widget(form.port, {'attr': {'class': 'w-full rounded-lg border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500'}}) }}
+                        {{ form_errors(form.port) }}
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        {{ form_label(form.username, 'Username', {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+                        {{ form_widget(form.username, {'attr': {'class': 'w-full rounded-lg border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500'}}) }}
+                    </div>
+                    <div>
+                        {{ form_label(form.password, 'Password', {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+                        {{ form_widget(form.password, {'attr': {'class': 'w-full rounded-lg border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500'}}) }}
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        {{ form_label(form.model, 'Model', {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+                        {{ form_widget(form.model, {'attr': {'class': 'w-full rounded-lg border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500', 'placeholder': 'QC5-1080P'}}) }}
+                    </div>
+                    <div>
+                        {{ form_label(form.resolution, 'Resolution', {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+                        {{ form_widget(form.resolution, {'attr': {'class': 'w-full rounded-lg border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500'}}) }}
+                    </div>
+                </div>
+
+                <div>
+                    {{ form_label(form.streamUrl, 'Stream URL (HTTP)', {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+                    {{ form_widget(form.streamUrl, {'attr': {'class': 'w-full rounded-lg border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500', 'placeholder': '/stream'}}) }}
+                </div>
+
+                <div>
+                    {{ form_label(form.rtspUrl, 'RTSP URL', {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+                    {{ form_widget(form.rtspUrl, {'attr': {'class': 'w-full rounded-lg border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500', 'placeholder': 'rtsp://192.168.1.162:554/stream'}}) }}
+                </div>
+
+                <div>
+                    {{ form_label(form.snapshotUrl, 'Snapshot URL', {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+                    {{ form_widget(form.snapshotUrl, {'attr': {'class': 'w-full rounded-lg border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500', 'placeholder': '/snapshot.jpg'}}) }}
+                </div>
+
+                <div>
+                    {{ form_label(form.station, 'Associated Station', {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+                    {{ form_widget(form.station, {'attr': {'class': 'w-full rounded-lg border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500'}}) }}
+                </div>
+
+                <div>
+                    {{ form_label(form.status, 'Status', {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+                    {{ form_widget(form.status, {'attr': {'class': 'w-full rounded-lg border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500'}}) }}
+                </div>
+            </div>
+
+            <div class="mt-6 flex justify-end gap-3">
+                {% if station is defined %}
+                    <a href="{{ path('app_admin_station_dashboard', {'id': station.id}) }}" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">
+                {% else %}
+                    <a href="{{ path('app_admin_stations_cameras') }}" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">
+                {% endif %}
+                    Cancel
+                </a>
+                <button type="submit" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition">
+                    Add Camera
+                </button>
+            </div>
+
+            {{ form_end(form) }}
+        </div>
+    </div>
+</div>
+{% endblock %}

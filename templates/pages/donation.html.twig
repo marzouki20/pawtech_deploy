@@ -1,0 +1,468 @@
+{% extends 'base_front.html.twig' %}
+
+{% block title %}Donation - PawTech{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .error-message {
+            color: #dc2626;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+        .input-error {
+            border-color: #dc2626 !important;
+            background-color: #fef2f2 !important;
+        }
+        .input-success {
+            border-color: #16a34a !important;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <section class="container mx-auto px-4 lg:px-8 pb-14">
+        <div class="grid lg:grid-cols-2 gap-8 items-start">
+            <div class="rounded-3xl bg-white border border-gray-100 shadow-sm p-7">
+                <h2 class="text-xl font-extrabold text-gray-900">Make a donation</h2>
+                <p class="mt-3 text-gray-600">Choose an amount and fill in the form. Your donation will be recorded.</p>
+
+                {% for message in app.flashes('donation_success') %}
+                    <div class="mt-4 p-4 rounded-2xl bg-green-50 border border-green-200 text-green-800 text-sm font-medium" role="alert">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+
+                {{ form_start(form, { 
+                    'attr': { 
+                        'class': 'mt-6 space-y-4',
+                        'novalidate': 'novalidate',
+                        'id': 'donation-form'
+                    } 
+                }) }}
+                
+                <!-- Donateur -->
+                <div>
+                    <label class="text-sm font-semibold text-gray-700">{{ form.donateur.vars.label }}</label>
+                    {{ form_widget(form.donateur, { 
+                        'attr': { 
+                            'class': 'mt-2 w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300 focus:border-orange-400',
+                            'required': 'required',
+                            'minlength': '2',
+                            'maxlength': '100'
+                        } 
+                    }) }}
+                    <div class="error-message" id="donateur-error"></div>
+                    {{ form_errors(form.donateur) }}
+                </div>
+                
+                <!-- Email -->
+                <div>
+                    <label class="text-sm font-semibold text-gray-700">{{ form.email.vars.label }}</label>
+                    {{ form_widget(form.email, { 
+                        'attr': { 
+                            'class': 'mt-2 w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300 focus:border-orange-400',
+                            'required': 'required',
+                            'type': 'email'
+                        } 
+                    }) }}
+                    <div class="error-message" id="email-error"></div>
+                    {{ form_errors(form.email) }}
+                </div>
+                
+                <!-- Référence -->
+                <div>
+                    <label class="text-sm font-semibold text-gray-700">{{ form.reference.vars.label }}</label>
+                    {{ form_widget(form.reference, { 
+                        'attr': { 
+                            'class': 'mt-2 w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300 focus:border-orange-400',
+                            'rows': 3,
+                            'maxlength': '500'
+                        } 
+                    }) }}
+                    <div class="error-message" id="reference-error"></div>
+                    {{ form_errors(form.reference) }}
+                </div>
+                
+                <!-- Champ de date -->
+                {% if form.date is defined %}
+                <div>
+                    <label class="text-sm font-semibold text-gray-700">{{ form.date.vars.label|default('Date') }}</label>
+                    {{ form_widget(form.date, { 
+                        'attr': { 
+                            'class': 'mt-2 w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300 focus:border-orange-400',
+                            'required': 'required'
+                        } 
+                    }) }}
+                    <div class="error-message" id="date-error"></div>
+                    {{ form_errors(form.date) }}
+                </div>
+                {% endif %}
+
+                <!-- Montant de donation -->
+                <div class="mt-6">
+                    <label class="text-sm font-semibold text-gray-700">{{ form.montant.vars.label|default('Donation Amount (TND)') }}</label>
+                    
+                    <!-- Boutons pour choisir le montant -->
+                    <div class="mb-4">
+                        <p class="text-sm font-medium text-gray-700 mb-3">Select donation amount (TND)</p>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            {% set amounts = [10, 50, 100, 1000] %}
+                            {% for amount in amounts %}
+                                <button 
+                                    type="button" 
+                                    class="amount-btn py-3 px-4 rounded-xl border-2 {% if amount == 50 %}border-orange-500 bg-orange-50 text-orange-700{% else %}border-gray-300 bg-white text-gray-700{% endif %} font-semibold hover:border-orange-400 hover:bg-orange-50 hover:text-orange-700 transition"
+                                    onclick="document.getElementById('{{ form.montant.vars.id }}').value = {{ amount }}; validateMontant()">
+                                    {{ amount }} TND
+                                </button>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <!-- Champ de montant -->
+                    <div class="relative">
+                        {{ form_widget(form.montant, { 
+                            'attr': { 
+                                'class': 'montant-input w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300 focus:border-orange-400',
+                                'placeholder': 'Enter amount in TND',
+                                'min': '1',
+                                'max': '100000',
+                                'required': 'required',
+                                'step': '0.01'
+                            } 
+                        }) }}
+                        <span class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500">TND</span>
+                    </div>
+                    <div class="error-message" id="montant-error"></div>
+                    {{ form_errors(form.montant) }}
+                </div>
+
+                <!-- Informations de paiement -->
+                <div class="mt-6 p-5 border border-gray-200 rounded-2xl bg-gray-50">
+                    <h3 class="text-lg font-bold text-gray-900 mb-4">Payment Information</h3>
+                    
+                    <!-- Champ pour la méthode de paiement -->
+                    {% if form.methodePaiement is defined %}
+                    <div class="mb-4">
+                        <label class="text-sm font-medium text-gray-700 mb-2 block">{{ form.methodePaiement.vars.label|default('Payment Method') }}</label>
+                        {{ form_widget(form.methodePaiement, { 
+                            'attr': { 
+                                'class': 'w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300 focus:border-orange-400'
+                            } 
+                        }) }}
+                        <div class="error-message" id="methodePaiement-error"></div>
+                        {{ form_errors(form.methodePaiement) }}
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Champ pour le numéro de transaction -->
+                    {% if form.numeroTransaction is defined %}
+                    <div class="mb-4">
+                        <label class="text-sm font-medium text-gray-700 mb-2 block">{{ form.numeroTransaction.vars.label|default('Transaction Number') }}</label>
+                        {{ form_widget(form.numeroTransaction, { 
+                            'attr': { 
+                                'class': 'w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300 focus:border-orange-400',
+                                'placeholder': 'Enter transaction number if applicable',
+                                'maxlength': '50'
+                            } 
+                        }) }}
+                        <div class="error-message" id="numeroTransaction-error"></div>
+                        {{ form_errors(form.numeroTransaction) }}
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Champ pour la date de paiement -->
+                    {% if form.datePaiement is defined %}
+                    <div class="mb-4">
+                        <label class="text-sm font-medium text-gray-700 mb-2 block">{{ form.datePaiement.vars.label|default('Payment Date') }}</label>
+                        {{ form_widget(form.datePaiement, { 
+                            'attr': { 
+                                'class': 'w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300 focus:border-orange-400'
+                            } 
+                        }) }}
+                        <div class="error-message" id="datePaiement-error"></div>
+                        {{ form_errors(form.datePaiement) }}
+                    </div>
+                    {% endif %}
+                    
+                    {% for message in app.flashes('success') %}
+                        <div class="mb-4 p-3 rounded-xl bg-green-100 border border-green-300 text-green-800 text-sm font-medium">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                    
+                    <!-- Informations de paiement manuel -->
+                    <div class="mt-4 p-4 bg-white rounded-xl border border-gray-200">
+                        <h4 class="font-semibold text-gray-900 mb-2">Payment Instructions</h4>
+                        <p class="text-sm text-gray-600 mb-2">
+                            After submitting your donation, you can pay via:
+                        </p>
+                        <ul class="text-sm text-gray-600 list-disc pl-5 space-y-1">
+                            <li>Bank Transfer: CIH Bank - Account: TN59 1234 5678 9012 3456 7890</li>
+                            <li>Cash at our shelter location</li>
+                            <li>Check payable to "PawTech Association"</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Bouton de soumission -->
+                <div class="mt-4 space-y-3">
+                    <button type="submit" class="submit-btn w-full rounded-2xl bg-orange-500 px-6 py-3 text-white font-extrabold hover:bg-orange-600 transition">
+                        <i class="fas fa-paper-plane mr-2"></i>Submit Donation (Manual)
+                    </button>
+                    
+                    <div class="relative">
+                        <div class="absolute inset-0 flex items-center">
+                            <div class="w-full border-t border-gray-300"></div>
+                        </div>
+                        <div class="relative flex justify-center text-sm">
+                            <span class="px-2 bg-white text-gray-500">OR</span>
+                        </div>
+                    </div>
+                    
+                    <button type="button" id="stripe-donate-btn" class="w-full rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-3 text-white font-extrabold hover:from-purple-700 hover:to-indigo-700 transition flex items-center justify-center gap-2">
+                        <i class="fab fa-stripe-s"></i>
+                        Donate with Stripe
+                    </button>
+                </div>
+                
+                {# Hide the statut (validated) field from public view #}
+                {% do form.statut.setRendered() %}
+                
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </section>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('donation-form');
+            const submitBtn = form.querySelector('.submit-btn');
+            
+            // Fonctions de validation
+            function validateDonateur() {
+                const donateur = document.getElementById('{{ form.donateur.vars.id }}');
+                const errorElement = document.getElementById('donateur-error');
+                
+                if (!donateur.value.trim()) {
+                    showError(donateur, errorElement, 'Name is required');
+                    return false;
+                }
+                
+                if (donateur.value.trim().length < 2) {
+                    showError(donateur, errorElement, 'Name must be at least 2 characters');
+                    return false;
+                }
+                
+                if (donateur.value.trim().length > 100) {
+                    showError(donateur, errorElement, 'Name cannot exceed 100 characters');
+                    return false;
+                }
+                
+                showSuccess(donateur, errorElement);
+                return true;
+            }
+            
+            function validateEmail() {
+                const email = document.getElementById('{{ form.email.vars.id }}');
+                const errorElement = document.getElementById('email-error');
+                
+                if (!email.value.trim()) {
+                    showError(email, errorElement, 'Email is required');
+                    return false;
+                }
+                
+                const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailPattern.test(email.value.trim())) {
+                    showError(email, errorElement, 'Please enter a valid email address');
+                    return false;
+                }
+                
+                showSuccess(email, errorElement);
+                return true;
+            }
+            
+            function validateMontant() {
+                const montant = document.getElementById('{{ form.montant.vars.id }}');
+                const errorElement = document.getElementById('montant-error');
+                
+                if (!montant.value.trim()) {
+                    showError(montant, errorElement, 'Amount is required');
+                    return false;
+                }
+                
+                const value = parseFloat(montant.value);
+                if (isNaN(value) || value <= 0) {
+                    showError(montant, errorElement, 'Please enter a valid positive amount');
+                    return false;
+                }
+                
+                if (value < 1) {
+                    showError(montant, errorElement, 'Minimum donation is 1 TND');
+                    return false;
+                }
+                
+                if (value > 100000) {
+                    showError(montant, errorElement, 'Maximum donation is 100,000 TND');
+                    return false;
+                }
+                
+                // Vérifier le format décimal
+                const decimalPattern = /^\d+(\.\d{1,2})?$/;
+                if (!decimalPattern.test(montant.value)) {
+                    showError(montant, errorElement, 'Please enter a valid amount with up to 2 decimal places');
+                    return false;
+                }
+                
+                showSuccess(montant, errorElement);
+                return true;
+            }
+            
+            function validateReference() {
+                const reference = document.getElementById('{{ form.reference.vars.id }}');
+                const errorElement = document.getElementById('reference-error');
+                
+                if (reference.value.trim().length > 500) {
+                    showError(reference, errorElement, 'Reference cannot exceed 500 characters');
+                    return false;
+                }
+                
+                showSuccess(reference, errorElement);
+                return true;
+            }
+            
+            {% if form.methodePaiement is defined %}
+            function validateMethodePaiement() {
+                const methodePaiement = document.getElementById('{{ form.methodePaiement.vars.id }}');
+                const errorElement = document.getElementById('methodePaiement-error');
+                
+                if (!methodePaiement.value.trim()) {
+                    showError(methodePaiement, errorElement, 'Payment method is required');
+                    return false;
+                }
+                
+                showSuccess(methodePaiement, errorElement);
+                return true;
+            }
+            {% else %}
+            function validateMethodePaiement() {
+                return true; // Toujours valide si le champ n'existe pas
+            }
+            {% endif %}
+            
+            // Fonctions utilitaires
+            function showError(input, errorElement, message) {
+                input.classList.add('input-error');
+                input.classList.remove('input-success');
+                errorElement.textContent = message;
+                errorElement.style.display = 'block';
+            }
+            
+            function showSuccess(input, errorElement) {
+                input.classList.remove('input-error');
+                input.classList.add('input-success');
+                errorElement.textContent = '';
+                errorElement.style.display = 'none';
+            }
+            
+            // Événements de validation en temps réel
+            document.getElementById('{{ form.donateur.vars.id }}').addEventListener('input', validateDonateur);
+            document.getElementById('{{ form.donateur.vars.id }}').addEventListener('blur', validateDonateur);
+            
+            document.getElementById('{{ form.email.vars.id }}').addEventListener('input', validateEmail);
+            document.getElementById('{{ form.email.vars.id }}').addEventListener('blur', validateEmail);
+            
+            document.getElementById('{{ form.montant.vars.id }}').addEventListener('input', validateMontant);
+            document.getElementById('{{ form.montant.vars.id }}').addEventListener('blur', validateMontant);
+            
+            document.getElementById('{{ form.reference.vars.id }}').addEventListener('input', validateReference);
+            document.getElementById('{{ form.reference.vars.id }}').addEventListener('blur', validateReference);
+            
+            {% if form.methodePaiement is defined %}
+            document.getElementById('{{ form.methodePaiement.vars.id }}').addEventListener('change', validateMethodePaiement);
+            document.getElementById('{{ form.methodePaiement.vars.id }}').addEventListener('blur', validateMethodePaiement);
+            {% endif %}
+            
+            // Validation complète avant soumission
+            form.addEventListener('submit', function(event) {
+                event.preventDefault();
+                
+                const isDonateurValid = validateDonateur();
+                const isEmailValid = validateEmail();
+                const isMontantValid = validateMontant();
+                const isReferenceValid = validateReference();
+                const isMethodePaiementValid = validateMethodePaiement();
+                
+                if (isDonateurValid && isEmailValid && isMontantValid && isReferenceValid && isMethodePaiementValid) {
+                    // Désactiver le bouton pour éviter les doubles clics
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = 'Processing...';
+                    
+                    // Soumettre le formulaire
+                    form.submit();
+                } else {
+                    // Faire défiler jusqu'à la première erreur
+                    const firstError = form.querySelector('.input-error');
+                    if (firstError) {
+                        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        firstError.focus();
+                    }
+                }
+            });
+            
+            // Réinitialiser le bouton si la validation échoue
+            form.addEventListener('invalid', function(event) {
+                event.preventDefault();
+            }, true);
+            
+            // Stripe Donation Button Handler
+            const stripeDonateBtn = document.getElementById('stripe-donate-btn');
+            if (stripeDonateBtn) {
+                stripeDonateBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Get form values
+                    const donateurField = document.getElementById('{{ form.donateur.vars.id }}');
+                    const emailField = document.getElementById('{{ form.email.vars.id }}');
+                    const montantField = document.getElementById('{{ form.montant.vars.id }}');
+                    
+                    const donateur = donateurField ? donateurField.value.trim() : '';
+                    const email = emailField ? emailField.value.trim() : '';
+                    const montant = montantField ? montantField.value : '';
+                    
+                    // Validate required fields
+                    if (!donateur) {
+                        alert('Please enter your name');
+                        if (donateurField) donateurField.focus();
+                        return;
+                    }
+                    
+                    if (!email) {
+                        alert('Please enter your email');
+                        if (emailField) emailField.focus();
+                        return;
+                    }
+                    
+                    if (!montant || parseFloat(montant) <= 0) {
+                        alert('Please enter a valid donation amount');
+                        if (montantField) montantField.focus();
+                        return;
+                    }
+                    
+                    // Build Stripe checkout URL
+                    const params = new URLSearchParams({
+                        donateur: donateur,
+                        email: email,
+                        amount: montant
+                    });
+                    
+                    // Redirect to Stripe checkout
+                    window.location.href = '{{ path("app_stripe_donation_checkout") }}?' + params.toString();
+                });
+            }
+        });
+    </script>
+{% endblock %}

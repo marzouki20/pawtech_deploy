@@ -1,0 +1,29 @@
+{{ form_start(form) }}
+    {{ form_widget(form) }}
+    
+    <div class="form-group mt-4">
+        <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save"></i> 
+            {{ button_label|default('Save Follow-Up') }}
+        </button>
+        
+        <a href="{{ path('app_suivi_index') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to list
+        </a>
+    </div>
+{{ form_end(form) }}
+
+<style>
+.btn-primary {
+    background: linear-gradient(135deg, #4a6fa5 0%, #6d9dc5 100%);
+    border: none;
+    padding: 10px 25px;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #5a7fb5 0%, #7dadcf 100%);
+    transform: translateY(-2px);
+}
+</style>

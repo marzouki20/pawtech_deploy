@@ -1,0 +1,277 @@
+{% extends 'base_front.html.twig' %}
+
+{% block title %}{{ page_title }} - PawTech Admin{% endblock %}
+
+{% block body %}
+<div class="min-h-screen bg-gray-50">
+    {# Header #}
+    <div class="bg-gradient-to-r from-blue-600 to-blue-700 text-white admin-header">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex flex-col-mobile items-start md:items-center justify-between">
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-bold">Statistics & Analytics</h1>
+                    <p class="text-blue-100 mt-1 text-sm md:text-base">View trends and insights from your IoT and camera data</p>
+                </div>
+                <div class="flex flex-wrap-mobile items-center gap-2 md:gap-4 mt-3 md:mt-0">
+                    <select id="period-select" class="bg-white/20 text-white border-0 rounded-lg px-3 md:px-4 py-2 text-sm" onchange="loadStats()">
+                        <option value="7">Last 7 days</option>
+                        <option value="14">Last 14 days</option>
+                        <option value="30">Last 30 days</option>
+                        <option value="90">Last 90 days</option>
+                    </select>
+                    <a href="{{ path('app_admin_dashboard') }}" class="bg-white/20 hover:bg-white/30 px-3 md:px-4 py-2 rounded-lg flex items-center gap-2 transition text-sm">
+                        <i class="fas fa-home"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Stats Overview #}
+    <div class="container mx-auto px-4 py-6">
+        <div class="stats-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 stats-overview">
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <p class="text-gray-500 text-sm">Avg Temperature</p>
+                <p class="text-3xl font-bold text-gray-800" id="avg-temp">{{ avgTemperature ? avgTemperature|number_format(1) : '--' }}°C</p>
+            </div>
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <p class="text-gray-500 text-sm">Avg Humidity</p>
+                <p class="text-3xl font-bold text-gray-800" id="avg-humidity">{{ avgHumidity ? avgHumidity|number_format(1) : '--' }}%</p>
+            </div>
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <p class="text-gray-500 text-sm">Total Detections</p>
+                <p class="text-3xl font-bold text-gray-800" id="total-detections">{{ detections|length }}</p>
+            </div>
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <p class="text-gray-500 text-sm">Active Stations</p>
+                <p class="text-3xl font-bold text-gray-800">{{ stations|filter(s => s.statut == 'active')|length }}</p>
+            </div>
+        </div>
+
+        <div class="charts-grid grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {# Behavior Distribution #}
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">
+                    <i class="fas fa-chart-pie mr-2 text-blue-500"></i>
+                    Behavior Distribution
+                </h2>
+                <div id="behavior-chart" class="h-64">
+                    {% if behaviorStats|length > 0 %}
+                    <canvas id="behaviorCanvas"></canvas>
+                    {% else %}
+                    <p class="text-gray-500 text-center py-8">No behavior data available</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            {# Health Conditions #}
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">
+                    <i class="fas fa-heartbeat mr-2 text-red-500"></i>
+                    Health Conditions
+                </h2>
+                <div id="health-chart" class="h-64">
+                    {% if healthStats|length > 0 %}
+                    <canvas id="healthCanvas"></canvas>
+                    {% else %}
+                    <p class="text-gray-500 text-center py-8">No health data available</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            {# IoT Data Trends #}
+            <div class="bg-white rounded-xl shadow-lg p-4 md:p-6 lg:col-span-2">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">
+                    <i class="fas fa-chart-line mr-2 text-green-500"></i>
+                    IoT Sensor Trends
+                </h2>
+                <div id="iot-chart" class="h-64">
+                    <canvas id="iotCanvas"></canvas>
+                </div>
+            </div>
+
+            {# Station Status #}
+            <div class="bg-white rounded-xl shadow-lg p-4 md:p-6 lg:col-span-2">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">
+                    <i class="fas fa-satellite-dish mr-2 text-orange-500"></i>
+                    Station Status Overview
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="p-4 bg-green-50 rounded-lg">
+                        <div class="flex items-center justify-between">
+                            <span class="text-green-700 font-medium">Active</span>
+                            <span class="text-2xl font-bold text-green-800">{{ stations|filter(s => s.statut == 'active')|length }}</span>
+                        </div>
+                    </div>
+                    <div class="p-4 bg-red-50 rounded-lg">
+                        <div class="flex items-center justify-between">
+                            <span class="text-red-700 font-medium">Inactive</span>
+                            <span class="text-2xl font-bold text-red-800">{{ stations|filter(s => s.statut == 'inactive')|length }}</span>
+                        </div>
+                    </div>
+                    <div class="p-4 bg-yellow-50 rounded-lg">
+                        <div class="flex items-center justify-between">
+                            <span class="text-yellow-700 font-medium">Maintenance</span>
+                            <span class="text-2xl font-bold text-yellow-800">{{ stations|filter(s => s.statut == 'maintenance')|length }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+let behaviorChart, healthChart, iotChart;
+
+document.addEventListener('DOMContentLoaded', function() {
+    initCharts();
+    loadStats();
+});
+
+function initCharts() {
+    // Behavior Chart
+    const behaviorCtx = document.getElementById('behaviorCanvas');
+    if (behaviorCtx) {
+        const behaviorData = {{ behaviorStats|json_encode|raw }};
+        const labels = behaviorData.map(b => b.behaviorType);
+        const data = behaviorData.map(b => b.count);
+        
+        behaviorChart = new Chart(behaviorCtx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: [
+                        '#22c55e', '#3b82f6', '#f59e0b', '#ef4444', 
+                        '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'right' }
+                }
+            }
+        });
+    }
+
+    // Health Chart
+    const healthCtx = document.getElementById('healthCanvas');
+    if (healthCtx) {
+        const healthData = {{ healthStats|json_encode|raw }};
+        const labels = healthData.map(h => h.healthCondition || 'Unknown');
+        const data = healthData.map(h => h.count);
+        
+        healthChart = new Chart(healthCtx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Count',
+                    data: data,
+                    backgroundColor: '#ef4444'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    }
+
+    // IoT Chart
+    const iotCtx = document.getElementById('iotCanvas');
+    if (iotCtx) {
+        iotChart = new Chart(iotCtx, {
+            type: 'line',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [
+                    {
+                        label: 'Temperature (°C)',
+                        data: [22, 23, 21, 24, 22, 23, 22],
+                        borderColor: '#f97316',
+                        backgroundColor: 'rgba(249, 115, 22, 0.1)',
+                        fill: true
+                    },
+                    {
+                        label: 'Humidity (%)',
+                        data: [65, 68, 62, 70, 66, 68, 65],
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        fill: true
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top' }
+                },
+                scales: {
+                    y: { beginAtZero: false }
+                }
+            }
+        });
+    }
+}
+
+function loadStats() {
+    const period = document.getElementById('period-select').value;
+    
+    fetch(`/admin/statistics/data?period=${period}`)
+        .then(response => response.json())
+        .then(data => {
+            // Update overview cards
+            if (data.iotData) {
+                let totalTemp = 0, tempCount = 0;
+                let totalHumidity = 0, humidityCount = 0;
+                
+                Object.values(data.iotData).forEach(stationData => {
+                    if (stationData.avgTemp) {
+                        totalTemp += stationData.avgTemp;
+                        tempCount++;
+                    }
+                    if (stationData.avgHumidity) {
+                        totalHumidity += stationData.avgHumidity;
+                        humidityCount++;
+                    }
+                });
+                
+                document.getElementById('avg-temp').textContent = 
+                    tempCount > 0 ? (totalTemp / tempCount).toFixed(1) + '°C' : '--';
+                document.getElementById('avg-humidity').textContent = 
+                    humidityCount > 0 ? (totalHumidity / humidityCount).toFixed(1) + '%' : '--';
+            }
+            
+            document.getElementById('total-detections').textContent = data.detections?.total || 0;
+            
+            // Update charts
+            if (behaviorChart && data.detections?.byBehavior) {
+                const entries = Object.entries(data.detections.byBehavior);
+                behaviorChart.data.labels = entries.map(e => e[0]);
+                behaviorChart.data.datasets[0].data = entries.map(e => e[1]);
+                behaviorChart.update();
+            }
+            
+            if (healthChart && data.detections?.byHealth) {
+                const entries = Object.entries(data.detections.byHealth);
+                healthChart.data.labels = entries.map(e => e[0]);
+                healthChart.data.datasets[0].data = entries.map(e => e[1]);
+                healthChart.update();
+            }
+        })
+        .catch(error => console.error('Error:', error));
+}
+</script>
+{% endblock %}

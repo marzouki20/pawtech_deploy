@@ -1,0 +1,1259 @@
+{% extends 'base_front.html.twig' %}
+
+{% block title %}Shop - PawTech{% endblock %}
+
+{% block body %}
+    <section class="relative overflow-hidden">
+        <div class="absolute inset-0">
+            <div class="absolute -top-24 -right-24 h-96 w-96 rounded-full bg-orange-200/70"></div>
+            <div class="absolute top-24 right-24 h-80 w-80 rounded-full bg-orange-400/80"></div>
+        </div>
+
+        <div class="relative container mx-auto px-4 lg:px-8 py-12 lg:py-16 grid lg:grid-cols-2 gap-10 items-center">
+            <div>
+                <p class="text-orange-600 font-semibold tracking-wide uppercase text-xs mb-3">Pet Shop</p>
+                <h1 class="text-4xl lg:text-5xl font-extrabold leading-tight text-gray-900">
+                    The friendly and caring small dog store
+                </h1>
+                <p class="mt-4 text-gray-600 max-w-xl">
+                    Everything you need for your dog: food, toys, carriers, bowls and more.
+                </p>
+            </div>
+            <div class="relative">
+                <div class="relative rounded-3xl bg-white shadow-xl p-6 border border-gray-100">
+                    <div class="aspect-[4/3] rounded-2xl bg-gradient-to-br from-orange-100 via-gray-50 to-orange-200 flex items-center justify-center">
+                        <span class="text-gray-500 font-semibold">Shop header image</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="container mx-auto px-4 lg:px-8 pb-14">
+        <div class="grid lg:grid-cols-12 gap-8">
+            <aside class="lg:col-span-3">
+                <div class="rounded-2xl bg-white border border-gray-100 shadow-sm p-5 sticky top-6">
+                    <h2 class="font-extrabold text-gray-900">Filter</h2>
+
+                    <div class="mt-5">
+                        <h3 class="text-sm font-bold text-gray-900">By categories</h3>
+                        <ul class="mt-3 space-y-2 text-sm text-gray-600">
+                            {% set seen_cats = [] %}
+                            {% for p in produits %}
+                                {% set catName = p.categorie ? p.categorie.nom : '' %}
+                                {% if catName not in seen_cats and catName != '' %}
+                                    {% set seen_cats = seen_cats|merge([catName]) %}
+                                    <li class="flex items-center justify-between">
+                                        <a href="{{ path('app_shop', {'categorie': p.categorie.id}) }}" 
+                                           class="hover:text-orange-600 {% if selectedCategorie == p.categorie.id %}font-semibold text-orange-600{% endif %}">
+                                            {{ catName }}
+                                        </a>
+                                        <span class="text-xs text-gray-400">
+                                            {% set catCount = 0 %}
+                                            {% for prod in produits %}
+                                                {% if prod.categorie and prod.categorie.id == p.categorie.id %}
+                                                    {% set catCount = catCount + 1 %}
+                                                {% endif %}
+                                            {% endfor %}
+                                            {{ catCount }}
+                                        </span>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            {% if seen_cats is empty %}
+                                <li class="text-gray-400">No category</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+
+                    <div class="mt-6">
+                        <h3 class="text-sm font-bold text-gray-900">Filter by Price</h3>
+                        <div class="mt-3">
+                            <div class="flex items-center justify-between mb-2 text-xs text-gray-600">
+                                <span>Min: <span id="min-price-display">{{ minPrice|default(0) }}</span> TND</span>
+                                <span>Max: <span id="max-price-display">{{ maxPrice|default(300) }}</span> TND</span>
+                            </div>
+                            <div class="flex items-center gap-2 text-sm">
+                                <span class="text-gray-500">0</span>
+                                <input type="range" 
+                                       name="min_price" 
+                                       min="0" 
+                                       max="300" 
+                                       value="{{ minPrice|default(0) }}" 
+                                       class="w-full accent-orange-500 price-slider" 
+                                       data-target="min-price"
+                                       onchange="updatePriceFilter()">
+                                <span class="text-gray-500">300</span>
+                            </div>
+                            <div class="mt-2 flex items-center gap-2 text-sm">
+                                <span class="text-gray-500">0</span>
+                                <input type="range" 
+                                       name="max_price" 
+                                       min="0" 
+                                       max="300" 
+                                       value="{{ maxPrice|default(300) }}" 
+                                       class="w-full accent-orange-500 price-slider" 
+                                       data-target="max-price"
+                                       onchange="updatePriceFilter()">
+                                <span class="text-gray-500">300</span>
+                            </div>
+                            <form method="get" action="{{ path('app_shop') }}" id="price-filter-form" class="hidden">
+                                <input type="hidden" name="categorie" value="{{ selectedCategorie }}">
+                                <input type="hidden" name="search" value="{{ search }}">
+                                <input type="hidden" name="sort" value="{{ sort }}">
+                                <input type="hidden" name="min_price" id="min-price-input" value="{{ minPrice|default('') }}">
+                                <input type="hidden" name="max_price" id="max-price-input" value="{{ maxPrice|default('') }}">
+                            </form>
+                            <button onclick="applyPriceFilter()" 
+                                    class="mt-4 w-full rounded-xl bg-gray-900 px-4 py-2 text-white text-sm font-semibold hover:bg-gray-800 transition">
+                                Apply
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mt-6">
+                        <h3 class="text-sm font-bold text-gray-900">Popular products</h3>
+                        <div class="mt-3 space-y-3">
+                            {% for p in produits|slice(0, 3) %}
+                                <div class="flex items-center gap-3 hover:bg-gray-50 p-2 rounded-lg transition">
+                                    {% if p.image %}
+                                        <div class="h-12 w-12 rounded-xl bg-orange-100 overflow-hidden flex items-center justify-center">
+                                            {% if p.image matches '#^https?://#' %}
+                                                <img src="{{ p.image }}" 
+                                                     alt="{{ p.nom }}" 
+                                                     class="h-full w-full object-cover">
+                                            {% else %}
+                                                <img src="{{ asset('uploads/images/' ~ p.image) }}" 
+                                                     alt="{{ p.nom }}" 
+                                                     class="h-full w-full object-cover">
+                                            {% endif %}
+                                        </div>
+                                    {% else %}
+                                        <div class="h-12 w-12 rounded-xl bg-orange-100 flex items-center justify-center text-orange-500 font-bold text-lg">
+                                            {{ p.nom|slice(0, 1) }}
+                                        </div>
+                                    {% endif %}
+                                    <div class="min-w-0 flex-1">
+                                        <p class="text-sm font-semibold text-gray-900 truncate">{{ p.nom }}</p>
+                                        <p class="text-xs text-gray-500">{{ p.prix|number_format(2, ',', ' ') }} TND</p>
+                                        <p class="text-xs text-gray-400 mt-1">Stock: {{ p.quantite|default(0) }}</p>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <p class="text-sm text-gray-400">No popular products</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <div class="lg:col-span-9">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <p class="text-sm text-gray-500">
+                        {% if produits|length > 0 %}
+                            Showing {{ produits|length }} product{% if produits|length != 1 %}s{% endif %}
+                        {% else %}
+                            No products found
+                        {% endif %}
+                    </p>
+                    <div class="flex items-center gap-3">
+                        <form method="get" action="{{ path('app_shop') }}" class="flex items-center gap-3 flex-1">
+                            <input type="hidden" name="categorie" value="{{ selectedCategorie }}">
+                            <input type="hidden" name="min_price" value="{{ minPrice|default('') }}">
+                            <input type="hidden" name="max_price" value="{{ maxPrice|default('') }}">
+                            
+                            <div class="relative flex-1 max-w-md">
+                                <input type="text" 
+                                       name="search" 
+                                       value="{{ search }}" 
+                                       class="w-full rounded-full border border-gray-200 bg-white px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300" 
+                                       placeholder="Search products...">
+                            </div>
+                            
+                            <select name="sort" 
+                                    class="rounded-full border border-gray-200 bg-white px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
+                                    onchange="this.form.submit()">
+                                <option value="latest" {% if sort == 'latest' %}selected{% endif %}>Sort by latest</option>
+                                <option value="price_low" {% if sort == 'price_low' %}selected{% endif %}>Sort by price: low to high</option>
+                                <option value="price_high" {% if sort == 'price_high' %}selected{% endif %}>Sort by price: high to low</option>
+                                <option value="name_asc" {% if sort == 'name_asc' %}selected{% endif %}>Sort by name: A-Z</option>
+                                <option value="name_desc" {% if sort == 'name_desc' %}selected{% endif %}>Sort by name: Z-A</option>
+                            </select>
+                        </form>
+                        
+                        <!-- Cart Button -->
+                        <button onclick="openCartSidebar()" class="relative flex items-center justify-center w-12 h-12 bg-orange-500 text-white rounded-full shadow-lg hover:bg-orange-600 transition">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+                            </svg>
+                            <span id="cartBadge" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">0</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mt-7 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {% for p in produits %}
+                        <div class="rounded-2xl bg-white border border-gray-100 shadow-sm hover:shadow-md transition overflow-hidden">
+                            <div class="aspect-[4/3] bg-gradient-to-br from-orange-100 to-orange-50 relative flex items-center justify-center">
+                                {% if p.image %}
+                                    {% if p.image matches '#^https?://#' %}
+                                        <img src="{{ p.image }}" 
+                                             alt="{{ p.nom }}" 
+                                             class="w-full h-full object-cover">
+                                    {% else %}
+                                        <img src="{{ asset('uploads/images/' ~ p.image) }}" 
+                                             alt="{{ p.nom }}" 
+                                             class="w-full h-full object-cover">
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-5xl font-bold text-orange-200">{{ p.nom|slice(0, 1) }}</span>
+                                {% endif %}
+
+                                {% if p.categorie %}
+                                    <span class="absolute top-3 left-3 inline-flex items-center rounded-full bg-white/90 border border-gray-200 px-2 py-1 text-xs font-medium text-gray-600">
+                                        {{ p.categorie.nom }}
+                                    </span>
+                                {% endif %}
+                            </div>
+                            <div class="p-4">
+                                <p class="font-extrabold text-gray-900">{{ p.nom }}</p>
+                                <div class="flex items-center gap-1 mt-1">
+                                    {% set rating = p.averageRating|default(0) %}
+                                    {% set ratingCount = p.ratingCount|default(0) %}
+                                    {% set fullStars = (rating)|round(0, 'floor') %}
+                                    {% for i in 1..5 %}
+                                        {% if i <= fullStars %}
+                                            <i class="fas fa-star text-yellow-400 text-xs"></i>
+                                        {% elseif i - 0.5 <= rating %}
+                                            <i class="fas fa-star-half-alt text-yellow-400 text-xs"></i>
+                                        {% else %}
+                                            <i class="far fa-star text-gray-300 text-xs"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                    <span class="text-xs text-gray-500">({{ ratingCount }})</span>
+                                </div>
+                                <p class="mt-1 text-lg font-semibold text-orange-600">{{ p.prix|number_format(2, ',', ' ') }} EUR</p>
+                                
+                                {% if p.quantite is not null %}
+                                    {% set alerte = (p.seuilAlert is not null and p.seuilAlert > 0 and p.quantite <= p.seuilAlert) %}
+                                    <p class="mt-1 text-xs {% if alerte %}text-red-500 font-semibold{% else %}text-gray-400{% endif %}">
+                                        Stock: {{ p.quantite }}
+                                        {% if alerte %} ⚠ Low stock{% endif %}
+                                    </p>
+                                {% endif %}
+                                
+                                <form method="post" 
+                                      action="{{ path('app_eshop_produit_buy', {id: p.id}) }}" 
+                                      class="mt-4 buy-form" 
+                                      id="buy-form-{{ p.id }}">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('buy_' ~ p.id) }}">
+                                    
+                                    <div class="flex gap-2">
+                                        <button type="button" 
+                                                class="flex-1 px-3 py-3 text-sm bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition font-semibold buy-button {% if p.quantite <= 0 %}opacity-50 cursor-not-allowed{% endif %}"
+                                                {% if p.quantite <= 0 %}disabled{% endif %}
+                                                data-product-id="{{ p.id }}"
+                                                data-product-name="{{ p.nom }}"
+                                                data-product-price="{{ p.prix }}"
+                                                data-product-stock="{{ p.quantite|default(0) }}">
+                                            {% if p.quantite <= 0 %}OUT OF STOCK{% else %}BUY{% endif %}
+                                        </button>
+                                        <button type="button"
+                                                class="px-3 py-3 text-sm bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition font-semibold add-to-cart-btn"
+                                                data-product-id="{{ p.id }}"
+                                                data-product-name="{{ p.nom }}"
+                                                data-product-price="{{ p.prix }}"
+                                                data-product-stock="{{ p.quantite|default(0) }}"
+                                                title="Add to cart">
+                                            🛒
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="lg:col-span-3 text-center py-12 text-gray-500">
+                            <div class="text-gray-400 text-6xl mb-4">😕</div>
+                            <p class="text-lg font-medium">No products found</p>
+                            <p class="mt-2 text-sm">Try adjusting your search or filter criteria</p>
+                            <a href="{{ path('app_shop') }}" class="mt-4 inline-block px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition">
+                                Clear all filters
+                            </a>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                {% if produits|length > 12 %}
+                <div class="mt-10 flex items-center justify-center gap-2">
+                    <button class="h-10 w-10 rounded-xl border border-gray-200 bg-white hover:border-orange-400 hover:text-orange-600 transition">1</button>
+                    <button class="h-10 w-10 rounded-xl border border-gray-200 bg-white hover:border-orange-400 hover:text-orange-600 transition">2</button>
+                    <button class="h-10 w-10 rounded-xl border border-gray-200 bg-white hover:border-orange-400 hover:text-orange-600 transition">3</button>
+                    <button class="h-10 w-20 rounded-xl border border-gray-200 bg-white hover:border-orange-400 hover:text-orange-600 transition">Next →</button>
+                </div>
+                {% endif %}
+
+                <div class="mt-12 grid md:grid-cols-2 gap-6">
+                    <div class="rounded-3xl overflow-hidden border border-gray-100 bg-gradient-to-br from-orange-50 to-gray-50 aspect-[16/9] flex items-center justify-center">
+                        <div class="text-center p-8">
+                            <h3 class="text-2xl font-bold text-gray-900">Available Products</h3>
+                        </div>
+                    </div>
+                    <div class="rounded-3xl overflow-hidden border border-gray-100 bg-gradient-to-br from-gray-50 to-orange-50 aspect-[16/9] flex items-center justify-center">
+                        <div class="text-center p-8">
+                            <h3 class="text-2xl font-bold text-gray-900">Real-time Stock</h3>
+                            <p class="text-gray-600 mt-2">Stock updates instantly</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div id="customConfirmModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 transform transition-all duration-300 scale-95 opacity-0" id="customConfirmModalContent">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-2">Confirm Purchase</h3>
+                <p id="confirmModalMessage" class="text-gray-600"></p>
+            </div>
+            
+            <div class="flex gap-3">
+                <button id="confirmModalYes" class="flex-1 bg-gray-900 text-white py-2.5 rounded-lg font-semibold hover:bg-gray-800 transition">
+                    Yes, Buy It
+                </button>
+                <button id="confirmModalNo" class="flex-1 border border-gray-300 text-gray-700 py-2.5 rounded-lg font-semibold hover:bg-gray-50 transition">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="cartSidebar" class="fixed inset-x-0 top-0 h-auto max-h-[80vh] bg-white shadow-2xl z-50 transform -translate-y-full transition-transform duration-300 overflow-hidden">
+        <div class="flex flex-col max-h-[80vh]">
+            <div class="flex items-center justify-between p-4 border-b border-gray-200 bg-orange-50">
+                <h3 class="text-xl font-bold text-gray-900">Shopping Cart</h3>
+                <button onclick="closeCartSidebar()" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <div id="cartItems" class="flex-1 overflow-y-auto p-4" style="max-height: 50vh;">
+                <p class="text-gray-500 text-center py-8">Your cart is empty</p>
+            </div>
+            
+            <!-- Shipping Zone Selector -->
+            <div class="border-t border-gray-200 p-4 bg-orange-50">
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    <i class="fas fa-truck text-orange-500 mr-1"></i> Delivery Zone
+                </label>
+                <select id="shippingZone" onchange="calculateShipping()" class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+                    <option value="tunis">Tunis & Suburbs (1-2 days)</option>
+                    <option value="north">North Tunisia (2-3 days)</option>
+                    <option value="south">South Tunisia (3-5 days)</option>
+                    <option value="international">International (7-14 days)</option>
+                </select>
+                
+                <!-- Free Shipping Progress -->
+                <div id="freeShippingProgress" class="mt-3 p-2 bg-white rounded-lg hidden">
+                    <div class="flex justify-between text-xs text-gray-600 mb-1">
+                        <span>Free shipping progress:</span>
+                        <span id="freeShippingAmount">0 TND</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div id="freeShippingBar" class="bg-orange-500 h-2 rounded-full" style="width: 0%"></div>
+                    </div>
+                </div>
+                
+                <!-- Shipping Cost Display -->
+                <div class="flex justify-between items-center mt-3">
+                    <span class="text-sm text-gray-600">Shipping Cost:</span>
+                    <span id="shippingCost" class="text-lg font-bold text-orange-600">8.00 TND</span>
+                </div>
+                <div class="mt-4">
+                    <label for="paymentMethod" class="block text-sm font-semibold text-gray-700 mb-1">
+                        Méthode de paiement
+                    </label>
+                    <select id="paymentMethod"
+                            class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+                        <option value="local">Paiement interne (pas de redirection)</option>
+                        <option value="stripe">Stripe (carte bancaire sécurisée)</option>
+                    </select>
+                    <p class="text-xs text-gray-500 mt-1">
+                        ClicToPay ouvrira la page de paiement sécurisée dans un nouvel onglet.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-200 p-4 bg-gray-50">
+                <div class="flex justify-between items-center mb-4">
+                    <span class="text-lg font-semibold text-gray-900">Total:</span>
+                    <span id="cartTotal" class="text-2xl font-bold text-orange-600">0.00 TND</span>
+                </div>
+                <button onclick="checkoutCart()" id="checkoutBtn" class="w-full bg-gray-900 text-white py-3 rounded-lg font-semibold hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                    Buy Now
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="cartOverlay" onclick="closeCartSidebar()" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden"></div>
+
+    <script>
+    // Inline checkout function that works without the main script
+    function checkoutCart() {
+        var cart = JSON.parse(localStorage.getItem('pawtech_cart')) || [];
+        if (cart.length === 0) {
+            alert('Your cart is empty!');
+            return;
+        }
+        
+        var checkoutBtn = document.getElementById('checkoutBtn');
+        if (checkoutBtn) {
+            checkoutBtn.disabled = true;
+            checkoutBtn.textContent = 'Processing...';
+        }
+        
+        var paymentMethodEl = document.getElementById('paymentMethod');
+        var paymentMethod = paymentMethodEl ? paymentMethodEl.value : 'local';
+        
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', '/dashboard/eshop/produits/cart/checkout', true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4) {
+                if (xhr.status === 200) {
+                    try {
+                        var data = JSON.parse(xhr.responseText);
+                        if (data.success) {
+                            if (data.payment_type === 'stripe') {
+                                var orderId = data.order_id || '';
+                                var amount = data.total || data.amount || 0;
+                                window.location.href = '/stripe/checkout?order_id=' + orderId + '&amount=' + amount;
+                            } else {
+                                localStorage.setItem('pawtech_cart', '[]');
+                                alert(data.flashMessage || 'Order created successfully!');
+                                window.location.href = '/pages/shop';
+                            }
+                        } else {
+                            alert(data.message || 'Error processing order');
+                            if (checkoutBtn) {
+                                checkoutBtn.disabled = false;
+                                checkoutBtn.textContent = 'Buy Now';
+                            }
+                        }
+                    } catch(e) {
+                        alert('Error processing order');
+                        if (checkoutBtn) {
+                            checkoutBtn.disabled = false;
+                            checkoutBtn.textContent = 'Buy Now';
+                        }
+                    }
+                } else {
+                    alert('Error processing order');
+                    if (checkoutBtn) {
+                        checkoutBtn.disabled = false;
+                        checkoutBtn.textContent = 'Buy Now';
+                    }
+                }
+            }
+        };
+        xhr.send(JSON.stringify({
+            items: cart,
+            payment_method: paymentMethod
+        }));
+    }
+    </script>
+
+    {% if app.session.flashbag.peek('success')|length > 0 %}
+        <div id="successMessage" class="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50">
+            <div class="flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <span>{{ app.flashes('success')[0] }}</span>
+            </div>
+        </div>
+        <script>
+            setTimeout(function() {
+                document.getElementById('successMessage').style.opacity = '0';
+                setTimeout(function() {
+                    document.getElementById('successMessage').remove();
+                }, 500);
+            }, 3000);
+        </script>
+    {% endif %}
+
+    {% if app.session.flashbag.peek('error')|length > 0 %}
+        <div id="errorMessage" class="fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50">
+            <div class="flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+                <span>{{ app.flashes('error')[0] }}</span>
+            </div>
+        </div>
+        <script>
+            setTimeout(function() {
+                document.getElementById('errorMessage').style.opacity = '0';
+                setTimeout(function() {
+                    document.getElementById('errorMessage').remove();
+                }, 500);
+            }, 3000);
+        </script>
+    {% endif %}
+
+<script>
+var cart = JSON.parse(localStorage.getItem('pawtech_cart')) || [];
+
+document.addEventListener('DOMContentLoaded', function() {
+    updateCartBadge();
+    renderCartItems();
+    loadRecommendations();
+    calculateShipping();
+    
+    var btns = document.querySelectorAll('.add-to-cart-btn');
+    for (var i = 0; i < btns.length; i++) {
+        btns[i].addEventListener('click', function(e) {
+            e.preventDefault();
+            var product = {
+                id: this.getAttribute('data-product-id'),
+                name: this.getAttribute('data-product-name'),
+                price: parseFloat(this.getAttribute('data-product-price')),
+                stock: parseInt(this.getAttribute('data-product-stock'))
+            };
+            addToCart(product);
+        });
+    }
+
+    var buyBtns = document.querySelectorAll('.buy-button');
+    for (var i = 0; i < buyBtns.length; i++) {
+        buyBtns[i].addEventListener('click', function(e) {
+            e.preventDefault();
+            var productId = this.getAttribute('data-product-id');
+            var productName = this.getAttribute('data-product-name');
+            var productPrice = this.getAttribute('data-product-price');
+            var productStock = this.getAttribute('data-product-stock');
+            
+            if (parseInt(productStock) <= 0) {
+                alert('This product is out of stock!');
+                return;
+            }
+            
+            if (confirm('Buy ' + productName + ' for ' + productPrice + '?')) {
+                document.getElementById('buy-form-' + productId).submit();
+            }
+        });
+    }
+    
+    var sliders = document.querySelectorAll('.price-slider');
+    for (var i = 0; i < sliders.length; i++) {
+        sliders[i].addEventListener('input', function() {
+            updatePriceFilterDisplay();
+        });
+    }
+});
+
+function addToCart(product) {
+    var existingItem = null;
+    for (var i = 0; i < cart.length; i++) {
+        if (cart[i].id === product.id) {
+            existingItem = cart[i];
+            break;
+        }
+    }
+    if (existingItem) {
+        if (existingItem.quantity < product.stock) {
+            existingItem.quantity++;
+        } else {
+            alert('Maximum stock reached!');
+            return;
+        }
+    } else {
+        cart.push({ id: product.id, name: product.name, price: product.price, stock: product.stock, quantity: 1 });
+    }
+    saveCart();
+    updateCartBadge();
+    renderCartItems();
+}
+
+function removeFromCart(productId) {
+    var newCart = [];
+    for (var i = 0; i < cart.length; i++) {
+        if (cart[i].id !== productId) {
+            newCart.push(cart[i]);
+        }
+    }
+    cart = newCart;
+    saveCart();
+    updateCartBadge();
+    renderCartItems();
+}
+
+function updateCartQuantity(productId, change) {
+    for (var i = 0; i < cart.length; i++) {
+        if (cart[i].id === productId) {
+            var newQty = cart[i].quantity + change;
+            if (newQty > 0 && newQty <= cart[i].stock) {
+                cart[i].quantity = newQty;
+            } else if (newQty <= 0) {
+                removeFromCart(productId);
+                return;
+            }
+            break;
+        }
+    }
+    saveCart();
+    updateCartBadge();
+    renderCartItems();
+}
+
+function saveCart() {
+    localStorage.setItem('pawtech_cart', JSON.stringify(cart));
+}
+
+function updateCartBadge() {
+    var totalItems = 0;
+    for (var i = 0; i < cart.length; i++) {
+        totalItems += cart[i].quantity;
+    }
+    var badge = document.getElementById('cartBadge');
+    if (badge) badge.textContent = totalItems;
+}
+
+var SHIPPING_RATES = {
+    'tunis': { cost: 8, days: '1-2', multiplier: 1 },
+    'north': { cost: 12, days: '2-3', multiplier: 1.5 },
+    'south': { cost: 16, days: '3-5', multiplier: 2 },
+    'international': { cost: 28, days: '7-14', multiplier: 3.5 }
+};
+var FREE_SHIPPING_THRESHOLD = 200;
+var PER_PRODUCT_SURCHARGE = 2;
+
+function getShippingCost(subtotal, zone, itemCount) {
+    var zoneData = SHIPPING_RATES[zone] || SHIPPING_RATES['tunis'];
+    if (subtotal >= FREE_SHIPPING_THRESHOLD) return 0;
+    return zoneData.cost + (itemCount * PER_PRODUCT_SURCHARGE);
+}
+
+function calculateShipping() {
+    var zoneEl = document.getElementById('shippingZone');
+    var zone = zoneEl ? zoneEl.value : 'tunis';
+    var subtotal = 0;
+    for (var i = 0; i < cart.length; i++) subtotal += cart[i].price * cart[i].quantity;
+    var itemCount = 0;
+    for (var i = 0; i < cart.length; i++) itemCount += cart[i].quantity;
+    var shippingCostEl = document.getElementById('shippingCost');
+    var freeShippingProgress = document.getElementById('freeShippingProgress');
+    var freeShippingAmount = document.getElementById('freeShippingAmount');
+    var freeShippingBar = document.getElementById('freeShippingBar');
+    var shippingCost = getShippingCost(subtotal, zone, itemCount);
+    if (subtotal >= FREE_SHIPPING_THRESHOLD) {
+        if (freeShippingProgress) freeShippingProgress.classList.add('hidden');
+    } else {
+        if (freeShippingProgress) freeShippingProgress.classList.remove('hidden');
+        var amountNeeded = FREE_SHIPPING_THRESHOLD - subtotal;
+        var progress = (subtotal / FREE_SHIPPING_THRESHOLD) * 100;
+        if (freeShippingAmount) freeShippingAmount.textContent = amountNeeded.toFixed(2) + ' TND more for FREE shipping!';
+        if (freeShippingBar) freeShippingBar.style.width = progress + '%';
+    }
+    if (shippingCostEl) shippingCostEl.textContent = shippingCost.toFixed(2) + ' TND';
+    updateCartTotal(subtotal, shippingCost);
+}
+
+function updateCartTotal(passedSubtotal, passedShippingCost) {
+    var subtotal = 0;
+    for (var i = 0; i < cart.length; i++) subtotal += cart[i].price * cart[i].quantity;
+    var zoneEl = document.getElementById('shippingZone');
+    var zone = zoneEl ? zoneEl.value : 'tunis';
+    var itemCount = 0;
+    for (var i = 0; i < cart.length; i++) itemCount += cart[i].quantity;
+    var shippingCost = passedShippingCost !== null ? passedShippingCost : getShippingCost(subtotal, zone, itemCount);
+    var totalEl = document.getElementById('cartTotal');
+    var checkoutBtn = document.getElementById('checkoutBtn');
+    if (cart.length === 0) {
+        if (totalEl) totalEl.textContent = '0.00 TND';
+    } else {
+        var total = subtotal + shippingCost;
+        if (totalEl) totalEl.textContent = total.toFixed(2) + ' TND';
+    }
+    if (checkoutBtn) checkoutBtn.disabled = cart.length === 0;
+}
+
+function renderCartItems() {
+    var cartItemsEl = document.getElementById('cartItems');
+    var cartTotalEl = document.getElementById('cartTotal');
+    var checkoutBtn = document.getElementById('checkoutBtn');
+    if (!cartItemsEl) return;
+    if (cart.length === 0) {
+        cartItemsEl.innerHTML = '<p class="text-gray-500 text-center py-8">Your cart is empty</p>';
+        if (cartTotalEl) cartTotalEl.textContent = '0.00 TND';
+        if (checkoutBtn) checkoutBtn.disabled = true;
+        calculateShipping();
+        return;
+    }
+    var total = 0;
+    var html = '';
+    for (var i = 0; i < cart.length; i++) {
+        var item = cart[i];
+        var itemTotal = item.price * item.quantity;
+        total += itemTotal;
+        html += '<div class="flex items-center justify-between border-b border-gray-200 py-3">';
+        html += '<div class="flex-1">';
+        html += '<h4 class="font-semibold text-gray-900">' + item.name + '</h4>';
+        html += '<p class="text-sm text-gray-500">' + item.price + ' TND x ' + item.quantity + '</p>';
+        html += '</div>';
+        html += '<div class="flex items-center gap-2">';
+        html += '<button onclick="updateCartQuantity(\'' + item.id + '\', -1)" class="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center">-</button>';
+        html += '<span class="w-8 text-center">' + item.quantity + '</span>';
+        html += '<button onclick="updateCartQuantity(\'' + item.id + '\', 1)" class="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center">+</button>';
+        html += '<button onclick="removeFromCart(\'' + item.id + '\')" class="ml-2 text-red-500 hover:text-red-700">X</button>';
+        html += '</div></div>';
+    }
+    cartItemsEl.innerHTML = html;
+    if (cartTotalEl) cartTotalEl.textContent = total.toFixed(2) + ' TND';
+    if (checkoutBtn) checkoutBtn.disabled = false;
+    calculateShipping();
+}
+
+function openCartSidebar() {
+    var sidebar = document.getElementById('cartSidebar');
+    var overlay = document.getElementById('cartOverlay');
+    if (sidebar) sidebar.classList.remove('-translate-y-full');
+    if (overlay) overlay.classList.remove('hidden');
+}
+
+function closeCartSidebar() {
+    var sidebar = document.getElementById('cartSidebar');
+    var overlay = document.getElementById('cartOverlay');
+    if (sidebar) sidebar.classList.add('-translate-y-full');
+    if (overlay) overlay.classList.add('hidden');
+}
+
+function getSelectedPaymentMethod() {
+    var pmEl = document.getElementById('paymentMethod');
+    return pmEl ? pmEl.value : 'local';
+}
+
+function loadRecommendations() {
+    var grid = document.getElementById('recommendationsGrid');
+    if (!grid) return;
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', '/api/recommendations/knn?limit=6', true);
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            try {
+                var products = JSON.parse(xhr.responseText);
+                if (products.length === 0) {
+                    grid.innerHTML = '<div class="col-span-full text-center py-8 text-gray-500">No recommendations available</div>';
+                    return;
+                }
+                var html = '';
+                for (var i = 0; i < products.length; i++) {
+                    var product = products[i];
+                    var imageSrc = product.image ? (product.image.startsWith('http') ? product.image : '/uploads/images/' + product.image) : '/default.png';
+                    var isOutOfStock = product.quantite <= 0;
+                    var rating = product.rating || 0;
+                    var ratingCount = product.rating_count || 0;
+                    var stars = getStarRating(rating);
+                    html += '<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow">';
+                    html += '<div class="aspect-[4/3] bg-gray-100 relative">';
+                    html += '<img src="' + imageSrc + '" alt="' + product.nom + '" class="w-full h-full object-cover">';
+                    if (isOutOfStock) html += '<div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center"><span class="text-white font-bold">OUT OF STOCK</span></div>';
+                    html += '</div>';
+                    html += '<div class="p-4">';
+                    html += '<h3 class="font-semibold text-gray-900 truncate">' + product.nom + '</h3>';
+                    html += '<div class="flex items-center gap-1 mt-1">';
+                    html += '<span class="text-yellow-500 text-sm">' + stars + '</span>';
+                    html += '<span class="text-xs text-gray-500">(' + ratingCount + ')</span>';
+                    html += '</div>';
+                    html += '<p class="text-orange-600 font-bold mt-1">' + product.prix + ' EUR</p>';
+                    html += '<p class="text-sm text-gray-500 mt-1">Stock: ' + product.quantite + '</p>';
+                    html += '<button type="button" class="mt-3 w-full px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition font-semibold add-to-cart-btn"';
+                    html += ' data-product-id="' + product.id + '"';
+                    html += ' data-product-name="' + product.nom + '"';
+                    html += ' data-product-price="' + product.prix + '"';
+                    html += ' data-product-stock="' + product.quantite + '"';
+                    if (isOutOfStock) html += ' disabled';
+                    html += '>';
+                    html += isOutOfStock ? 'OUT OF STOCK' : 'Add to Cart';
+                    html += '</button></div></div>';
+                }
+                grid.innerHTML = html;
+                var newBtns = grid.querySelectorAll('.add-to-cart-btn');
+                for (var i = 0; i < newBtns.length; i++) {
+                    newBtns[i].addEventListener('click', function(e) {
+                        e.preventDefault();
+                        var product = {
+                            id: this.getAttribute('data-product-id'),
+                            name: this.getAttribute('data-product-name'),
+                            price: parseFloat(this.getAttribute('data-product-price')),
+                            stock: parseInt(this.getAttribute('data-product-stock'))
+                        };
+                        addToCart(product);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading recommendations:', error);
+                grid.innerHTML = '<div class="col-span-full text-center py-8 text-gray-500">Error loading recommendations</div>';
+            }
+        }
+    };
+    xhr.send();
+}
+
+function getStarRating(rating) {
+    var fullStars = Math.floor(rating);
+    var hasHalfStar = rating % 1 >= 0.5;
+    var stars = '';
+    for (var i = 0; i < 5; i++) {
+        if (i < fullStars) stars += '<i class="fas fa-star text-yellow-400"></i>';
+        else if (i === fullStars && hasHalfStar) stars += '<i class="fas fa-star-half-alt text-yellow-400"></i>';
+        else stars += '<i class="far fa-star text-gray-300"></i>';
+    }
+    return stars;
+}
+
+function updatePriceFilterDisplay() {
+    var minSlider = document.querySelector('[data-target="min-price"]');
+    var maxSlider = document.querySelector('[data-target="max-price"]');
+    var minDisplay = document.getElementById('min-price-display');
+    var maxDisplay = document.getElementById('max-price-display');
+    if (minSlider && minDisplay) minDisplay.textContent = minSlider.value;
+    if (maxSlider && maxDisplay) maxDisplay.textContent = maxSlider.value;
+}
+
+function applyPriceFilter() {
+    var minSlider = document.querySelector('[data-target="min-price"]');
+    var maxSlider = document.querySelector('[data-target="max-price"]');
+    var minInput = document.getElementById('min-price-input');
+    var maxInput = document.getElementById('max-price-input');
+    var form = document.getElementById('price-filter-form');
+    if (minSlider && maxSlider && minInput && maxInput && form) {
+        minInput.value = minSlider.value;
+        maxInput.value = maxSlider.value;
+        form.submit();
+    }
+}
+</script>
+<script>
+    function removeFromCart(productId) {
+        cart = cart.filter(item => item.id !== productId);
+        saveCart();
+        updateCartBadge();
+        renderCartItems();
+    }
+
+    function updateCartQuantity(productId, change) {
+        const item = cart.find(item => item.id === productId);
+        if (item) {
+            const newQty = item.quantity + change;
+            const product = { stock: item.stock };
+            if (newQty > 0 && newQty <= product.stock) {
+                item.quantity = newQty;
+            } else if (newQty <= 0) {
+                removeFromCart(productId);
+                return;
+            }
+            saveCart();
+            updateCartBadge();
+            renderCartItems();
+        }
+    }
+
+    function saveCart() {
+        localStorage.setItem('pawtech_cart', JSON.stringify(cart));
+    }
+
+    function updateCartBadge() {
+        const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+        document.getElementById('cartBadge').textContent = totalItems;
+    }
+
+    // Shipping calculation
+    const SHIPPING_RATES = {
+        'tunis': { cost: 8, days: '1-2', multiplier: 1 },
+        'north': { cost: 12, days: '2-3', multiplier: 1.5 },
+        'south': { cost: 16, days: '3-5', multiplier: 2 },
+        'international': { cost: 28, days: '7-14', multiplier: 3.5 }
+    };
+    const FREE_SHIPPING_THRESHOLD = 200;
+    const PER_PRODUCT_SURCHARGE = 2; // TND per product added to the cart
+
+    function getShippingCost(subtotal, zone, itemCount) {
+        const zoneData = SHIPPING_RATES[zone] ?? SHIPPING_RATES['tunis'];
+        if (subtotal >= FREE_SHIPPING_THRESHOLD) {
+            return 0;
+        }
+        return zoneData.cost + (itemCount * PER_PRODUCT_SURCHARGE);
+    }
+
+    function calculateShipping() {
+        const zone = document.getElementById('shippingZone')?.value || 'tunis';
+        const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        const itemCount = cart.reduce((count, item) => count + item.quantity, 0);
+        const shippingCostEl = document.getElementById('shippingCost');
+        const freeShippingProgress = document.getElementById('freeShippingProgress');
+        const freeShippingAmount = document.getElementById('freeShippingAmount');
+        const freeShippingBar = document.getElementById('freeShippingBar');
+        
+        const shippingCost = getShippingCost(subtotal, zone, itemCount);
+        
+        // Check for free shipping
+        if (subtotal >= FREE_SHIPPING_THRESHOLD) {
+            freeShippingProgress.classList.add('hidden');
+        } else {
+            freeShippingProgress.classList.remove('hidden');
+            const amountNeeded = FREE_SHIPPING_THRESHOLD - subtotal;
+            const progress = (subtotal / FREE_SHIPPING_THRESHOLD) * 100;
+            freeShippingAmount.textContent = amountNeeded.toFixed(2) + ' TND more for FREE shipping!';
+            freeShippingBar.style.width = progress + '%';
+        }
+        
+        shippingCostEl.textContent = shippingCost.toFixed(2) + ' TND';
+        
+        // Update total with shipping
+        updateCartTotal(subtotal, shippingCost);
+    }
+
+    function updateCartTotal(passedSubtotal = null, passedShippingCost = null) {
+        const subtotal = passedSubtotal !== null
+            ? passedSubtotal
+            : cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        const zone = document.getElementById('shippingZone')?.value || 'tunis';
+        const itemCount = cart.reduce((count, item) => count + item.quantity, 0);
+        const shippingCost = passedShippingCost !== null
+            ? passedShippingCost
+            : getShippingCost(subtotal, zone, itemCount);
+        const totalEl = document.getElementById('cartTotal');
+        
+        if (cart.length === 0) {
+            totalEl.textContent = '0.00 TND';
+        } else {
+            const total = subtotal + shippingCost;
+            totalEl.textContent = total.toFixed(2) + ' TND';
+        }
+        document.getElementById('checkoutBtn').disabled = cart.length === 0;
+    }
+
+    function renderCartItems() {
+        const cartItemsEl = document.getElementById('cartItems');
+        const cartTotalEl = document.getElementById('cartTotal');
+        const checkoutBtn = document.getElementById('checkoutBtn');
+
+        if (cart.length === 0) {
+            cartItemsEl.innerHTML = '<p class="text-gray-500 text-center py-8">Your cart is empty</p>';
+            cartTotalEl.textContent = '0.00 TND';
+            checkoutBtn.disabled = true;
+            calculateShipping();
+            return;
+        }
+        
+        let total = 0;
+        cartItemsEl.innerHTML = cart.map(item => {
+            const itemTotal = item.price * item.quantity;
+            total += itemTotal;
+            return `
+                <div class="flex items-center justify-between border-b border-gray-200 py-3">
+                    <div class="flex-1">
+                        <h4 class="font-semibold text-gray-900">${item.name}</h4>
+                        <p class="text-sm text-gray-500">${item.price} TND x ${item.quantity}</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="updateCartQuantity('${item.id}', -1)" class="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center">-</button>
+                        <span class="w-8 text-center">${item.quantity}</span>
+                        <button onclick="updateCartQuantity('${item.id}', 1)" class="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center">+</button>
+                        <button onclick="removeFromCart('${item.id}')" class="ml-2 text-red-500 hover:text-red-700">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        cartTotalEl.textContent = total.toFixed(2) + ' TND';
+        checkoutBtn.disabled = false;
+        
+        // Calculate shipping and update total
+        calculateShipping();
+    }
+
+    function openCartSidebar() {
+        document.getElementById('cartSidebar').classList.remove('-translate-y-full');
+        document.getElementById('cartOverlay').classList.remove('hidden');
+    }
+
+    function closeCartSidebar() {
+        document.getElementById('cartSidebar').classList.add('-translate-y-full');
+        document.getElementById('cartOverlay').classList.add('hidden');
+    }
+
+    function getSelectedPaymentMethod() {
+        var pmEl = document.getElementById('paymentMethod');
+        return pmEl ? pmEl.value : 'local';
+    }
+
+    function checkoutCart() {
+        if (cart.length === 0) return;
+
+        var checkoutBtn = document.getElementById('checkoutBtn');
+        checkoutBtn.disabled = true;
+        checkoutBtn.textContent = 'Processing...';
+
+        var paymentMethod = getSelectedPaymentMethod();
+        fetch('{{ path("app_eshop_produit_cart_checkout") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                items: cart,
+                payment_method: paymentMethod
+            })
+        })
+        .then(function(response) {
+            return response.json();
+        })
+        .then(function(data) {
+            if (data.success) {
+                if (data.checkout_url) {
+                    alert(data.message || 'Redirection vers le paiement...');
+                    window.open(data.checkout_url, '_blank');
+                } else if (data.payment_type === 'stripe') {
+                    // Redirect to Stripe checkout page with order details
+                    var orderId = data.order_id || '';
+                    var amount = data.total || data.amount || 0;
+                    window.location.href = '/stripe/checkout?order_id=' + orderId + '&amount=' + amount;
+                    return;
+                }
+
+                cart = [];
+                saveCart();
+                updateCartBadge();
+                renderCartItems();
+                closeCartSidebar();
+                alert(data.flashMessage || 'Order created successfully!');
+            } else {
+                alert(data.message || 'Error processing order');
+            }
+        })
+        .catch(function(error) {
+            console.error('Error:', error);
+            alert('Error processing order');
+        })
+        .then(function() {
+            if (checkoutBtn) {
+                checkoutBtn.disabled = false;
+                checkoutBtn.textContent = 'Buy Now';
+            }
+        });
+    }
+
+    async function loadRecommendations() {
+        try {
+            // Load popular recommendations (based on purchases and ratings)
+            const response = await fetch('{{ path("app_api_popular_recommendations", {limit: 6}) }}');
+            const products = await response.json();
+            
+            const grid = document.getElementById('recommendationsGrid');
+            
+            if (products.length === 0) {
+                grid.innerHTML = '<div class="col-span-full text-center py-8 text-gray-500">No recommendations available</div>';
+                return;
+            }
+            
+            grid.innerHTML = products.map(product => {
+                const imageSrc = product.image ? (product.image.startsWith('http') ? product.image : '/uploads/images/' + product.image) : '/default.png';
+                const isOutOfStock = product.quantite <= 0;
+                const rating = product.rating || 0;
+                const ratingCount = product.rating_count || 0;
+                const stars = getStarRating(rating);
+                
+                return `
+                    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                        <div class="aspect-[4/3] bg-gray-100 relative">
+                            <img src="${imageSrc}" alt="${product.nom}" class="w-full h-full object-cover">
+                            ${isOutOfStock ? '<div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center"><span class="text-white font-bold">OUT OF STOCK</span></div>' : ''}
+                        </div>
+                        <div class="p-4">
+                            <h3 class="font-semibold text-gray-900 truncate">${product.nom}</h3>
+                            <div class="flex items-center gap-1 mt-1">
+                                <span class="text-yellow-500 text-sm">${stars}</span>
+                                <span class="text-xs text-gray-500">(${ratingCount})</span>
+                            </div>
+                            <p class="text-orange-600 font-bold mt-1">${product.prix} EUR</p>
+                            <p class="text-sm text-gray-500 mt-1">Stock: ${product.quantite}</p>
+                            <button type="button"
+                                    class="mt-3 w-full px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition font-semibold add-to-cart-btn"
+                                    data-product-id="${product.id}"
+                                    data-product-name="${product.nom}"
+                                    data-product-price="${product.prix}"
+                                    data-product-stock="${product.quantite}"
+                                    ${isOutOfStock ? 'disabled' : ''}>
+                                ${isOutOfStock ? 'OUT OF STOCK' : 'Add to Cart'}
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            document.querySelectorAll('#recommendationsGrid .add-to-cart-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const product = {
+                        id: this.getAttribute('data-product-id'),
+                        name: this.getAttribute('data-product-name'),
+                        price: parseFloat(this.getAttribute('data-product-price')),
+                        stock: parseInt(this.getAttribute('data-product-stock'))
+                    };
+                    addToCart(product);
+                });
+            });
+            
+        } catch (error) {
+            console.error('Error loading recommendations:', error);
+            const grid = document.getElementById('recommendationsGrid');
+            grid.innerHTML = '<div class="col-span-full text-center py-8 text-gray-500">Error loading recommendations</div>';
+        }
+    }
+
+    function getStarRating(rating) {
+        const fullStars = Math.floor(rating);
+        const hasHalfStar = rating % 1 >= 0.5;
+        let stars = '';
+        
+        for (let i = 0; i < 5; i++) {
+            if (i < fullStars) {
+                stars += '<i class="fas fa-star text-yellow-400"></i>';
+            } else if (i === fullStars && hasHalfStar) {
+                stars += '<i class="fas fa-star-half-alt text-yellow-400"></i>';
+            } else {
+                stars += '<i class="far fa-star text-gray-300"></i>';
+            }
+        }
+        return stars;
+    }
+
+    function updatePriceFilter() {
+        const minSlider = document.querySelector('[data-target="min-price"]');
+        const maxSlider = document.querySelector('[data-target="max-price"]');
+        const minDisplay = document.getElementById('min-price-display');
+        const maxDisplay = document.getElementById('max-price-display');
+        
+        if (minSlider && minDisplay) {
+            minDisplay.textContent = minSlider.value;
+        }
+        if (maxSlider && maxDisplay) {
+            maxDisplay.textContent = maxSlider.value;
+        }
+        
+        // Auto-apply filter after a short delay
+        clearTimeout(window.priceFilterTimeout);
+        window.priceFilterTimeout = setTimeout(function() {
+            applyPriceFilter();
+        }, 500);
+    }
+    
+    function applyPriceFilter() {
+        const minSlider = document.querySelector('[data-target="min-price"]');
+        const maxSlider = document.querySelector('[data-target="max-price"]');
+        const minInput = document.getElementById('min-price-input');
+        const maxInput = document.getElementById('max-price-input');
+        const form = document.getElementById('price-filter-form');
+        
+        if (minSlider && maxSlider && minInput && maxInput && form) {
+            minInput.value = minSlider.value;
+            maxInput.value = maxSlider.value;
+            form.submit();
+        }
+    }
+    
+    let currentProductToBuy = null;
+    
+    function showCustomConfirm(productName, productPrice, productStock, productId) {
+        var messageElement = document.getElementById('confirmModalMessage');
+        messageElement.innerHTML = 'Are you sure you want to buy <strong class="text-orange-600">' + productName + '</strong> for <strong>' + productPrice + '</strong>?<br><span class="text-sm text-gray-500 mt-2 block">Available stock: ' + productStock + '</span>';
+        
+        currentProductToBuy = productId;
+        
+        var modal = document.getElementById('customConfirmModal');
+        var modalContent = document.getElementById('customConfirmModalContent');
+        
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        
+        // Animate in
+        setTimeout(function() {
+            modalContent.classList.remove('scale-95', 'opacity-0');
+            modalContent.classList.add('scale-100', 'opacity-100');
+        }, 10);
+    }
+    
+    function closeCustomConfirm() {
+        var modal = document.getElementById('customConfirmModal');
+        var modalContent = document.getElementById('customConfirmModalContent');
+        
+        // Animate out
+        modalContent.classList.remove('scale-100', 'opacity-100');
+        modalContent.classList.add('scale-95', 'opacity-0');
+        
+        setTimeout(function() {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }, 300);
+        
+        currentProductToBuy = null;
+    }
+    
+    function submitPurchaseForm() {
+        if (!currentProductToBuy) {
+            closeCustomConfirm();
+            return;
+        }
+        
+        var productId = currentProductToBuy;
+        var csrfToken = document.querySelector('#buy-form-' + productId + ' input[name="_token"]').value;
+        
+        // Build URL dynamically
+        var url = '/produit/' + productId + '/buy';
+        
+        // Use AJAX to submit the purchase
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: '_token=' + encodeURIComponent(csrfToken)
+        })
+        .then(function(response) {
+            // Redirect to shop page - server will show flash message
+            window.location.href = '/pages/shop';
+        })
+        .catch(function(error) {
+            console.error('Error:', error);
+            showNotification('Error processing purchase', 'error');
+        });
+        
+        closeCustomConfirm();
+    }
+    
+    function showNotification(message, type) {
+        var toast = document.createElement('div');
+        var bgClass = type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white';
+        toast.className = 'fixed top-4 right-4 px-4 py-2 rounded-lg shadow-lg z-50 ' + bgClass;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        
+        setTimeout(function() {
+            toast.remove();
+        }, 3000);
+    }
+</script>
+{% endblock %}

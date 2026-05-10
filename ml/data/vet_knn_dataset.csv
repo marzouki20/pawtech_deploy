@@ -1,0 +1,47 @@
+symptoms;affected_parts;consultation_type;emergency_level;condition_label
+seizure disorientation head tilt collapse;brain;Neurology;critical;neurological_issue
+seizure circling confusion loss of balance;brain;Neurology;high;neurological_issue
+head tilt behavioral change weakness;brain;General;medium;neurological_issue
+cough wheezing severe breathing distress blue gums;lungs;Emergency;critical;respiratory_issue
+cough wheezing rapid breathing fatigue;lungs;Pulmonary;high;respiratory_issue
+mild cough exertion intolerance;lungs;General;medium;respiratory_issue
+collapse rapid heart rate breathing difficulty weakness;heart;Cardiology;critical;cardiac_issue
+fatigue cough reduced activity exercise intolerance;heart;Cardiology;high;cardiac_issue
+intermittent cough mild fatigue;heart;General;medium;cardiac_issue
+jaundice vomiting appetite loss abdominal swelling;liver;Internal;high;hepatic_issue
+weight loss increased thirst vomiting lethargy;liver;Internal;high;hepatic_issue
+mild appetite loss digestive discomfort;liver;General;medium;hepatic_issue
+vomiting regurgitation abdominal pain bloating nausea;stomach;Gastro;high;gastric_issue
+intermittent vomiting appetite reduction nausea;stomach;Gastro;medium;gastric_issue
+occasional nausea reduced appetite;stomach;General;low;gastric_issue
+diarrhea abdominal pain vomiting bloating;guts;Gastro;high;intestinal_issue
+diarrhea appetite loss mild dehydration;guts;Gastro;medium;intestinal_issue
+soft stool occasional abdominal discomfort;guts;General;low;intestinal_issue
+increased thirst frequent urination vomiting lethargy;kidney;Internal;high;renal_issue
+bad breath appetite loss weakness dehydration;kidney;Internal;high;renal_issue
+increased urination mild fatigue;kidney;General;medium;renal_issue
+blood in urine straining to urinate pain;bladder;Urology;high;urinary_issue
+frequent urination incontinence discomfort;bladder;Urology;medium;urinary_issue
+mild urinary frequency;bladder;General;low;urinary_issue
+fever weakness not eating pain;heart;Emergency;high;systemic_infection
+fever vomiting diarrhea dehydration;guts;Emergency;high;systemic_infection
+high fever severe weakness collapse;lungs;Emergency;critical;systemic_infection
+chest pain breathing distress cyanosis;lungs;Emergency;critical;respiratory_issue
+cannot breathe panic cyanosis collapse;lungs;Emergency;critical;respiratory_issue
+abdominal pain repeated vomiting dehydration;stomach;Emergency;high;gastric_issue
+abdominal pain diarrhea blood stool;guts;Emergency;high;intestinal_issue
+confusion tremor seizures not eating;brain;Emergency;critical;neurological_issue
+weakness reduced appetite mild pain;kidney;General;medium;renal_issue
+urination accidents straining occasional blood urine;bladder;General;medium;urinary_issue
+weight loss chronic cough fatigue;heart;Internal;high;cardiac_issue
+dry cough mild wheeze low energy;lungs;General;medium;respiratory_issue
+intermittent jaundice poor appetite;liver;Internal;medium;hepatic_issue
+vomiting nausea mild abdominal discomfort;stomach;General;medium;gastric_issue
+diarrhea cramps appetite loss;guts;General;medium;intestinal_issue
+mild disorientation occasional head tilt;brain;General;medium;neurological_issue
+follow-up stable no anomaly continue routine treatment mild appetite fluctuation;stomach;Normal;low;gastric_issue
+routine checkup stable digestion no alarming signs continue routine treatment;stomach;Routine;low;gastric_issue
+follow-up normal condition no abnormal finding maintain current treatment;stomach;Normal;low;gastric_issue
+routine control stable respiratory status no acute symptom maintain care;lungs;Routine;low;respiratory_issue
+routine follow-up stable cardiac status no collapse no distress continue treatment;heart;Routine;low;cardiac_issue
+normal checkup stable urinary status mild frequency no pain continue support;bladder;Normal;low;urinary_issue

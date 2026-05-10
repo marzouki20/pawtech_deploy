@@ -1,0 +1,95 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}{{ page_title }} | PawTech{% endblock %}
+
+{% set active = 'map' %}
+
+{% block main %}
+<div class="px-4 sm:px-6 lg:px-8 py-8 max-w-7xl mx-auto">
+    <!-- Page Header -->
+    <div class="bg-white rounded-2xl border border-gray-200 p-6 mb-8 shadow-sm">
+        <div class="flex items-center justify-between">
+            <div>
+                <nav class="flex items-center gap-2 text-sm text-gray-500 mb-1">
+                    <a href="{{ path('app_admin_stations') }}" class="hover:text-gray-700 transition">Stations</a>
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    <span class="text-gray-900 font-medium">Map</span>
+                </nav>
+                <h1 class="text-2xl font-bold text-gray-900">Station Map</h1>
+                <p class="mt-1 text-sm text-gray-600">View all station locations</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Map Container -->
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden" style="height: 600px;">
+        <div id="station-map" class="w-full h-full"></div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+let map;
+let markers = {};
+
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('/admin/map/data')
+        .then(response => response.json())
+        .then(stations => {
+            if (stations.length > 0) {
+                map = L.map('station-map').setView([stations[0].lat, stations[0].lng], 12);
+                
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors',
+                    maxZoom: 19
+                }).addTo(map);
+                
+                stations.forEach(station => {
+                    const color = station.status === 'active' ? '#22c55e' : 
+                                 station.status === 'inactive' ? '#ef4444' : '#eab308';
+                    
+                    const marker = L.circleMarker([station.lat, station.lng], {
+                        radius: 10,
+                        fillColor: color,
+                        color: '#fff',
+                        weight: 2,
+                        opacity: 1,
+                        fillOpacity: 0.8
+                    })
+                    .bindPopup(`
+                        <div class="text-center">
+                            <h3 class="font-bold text-lg">${station.code}</h3>
+                            <p class="text-gray-600">${station.zone}</p>
+                            <p class="text-sm mt-1">
+                                <span class="px-2 py-0.5 rounded-full text-xs
+                                    ${station.status === 'active' ? 'bg-green-100 text-green-700' : 
+                                      station.status === 'inactive' ? 'bg-red-100 text-red-700' : 
+                                      'bg-yellow-100 text-yellow-700'}">
+                                    ${station.status}
+                                </span>
+                            </p>
+                        </div>
+                    `)
+                    .addTo(map);
+                    
+                    markers[station.id] = marker;
+                });
+                
+                // Fit bounds
+                const bounds = L.latLngBounds(stations.map(s => [s.lat, s.lng]));
+                map.fitBounds(bounds, { padding: [20, 20] });
+            } else {
+                document.getElementById('station-map').innerHTML = 
+                    '<div class="flex items-center justify-center h-full text-gray-500">No stations with location data</div>';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading map:', error);
+            document.getElementById('station-map').innerHTML = 
+                '<div class="flex items-center justify-center h-full text-gray-500">Error loading map</div>';
+        });
+});
+</script>
+{% endblock %}

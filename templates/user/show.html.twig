@@ -1,0 +1,301 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}User Profile{% endblock %}
+
+{% block main %}
+<div class="max-w-6xl mx-auto py-8 px-4">
+    <!-- Action Buttons OUTSIDE the card -->
+    <div class="flex justify-between items-center mb-4">
+        <nav class="flex items-center gap-2 text-sm text-gray-500">
+            <a href="{{ path('app_users_index') }}" class="hover:text-gray-700 transition flex items-center gap-1">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                Back to list
+            </a>
+        </nav>
+        <div class="flex gap-2">
+            <form method="post" action="{{ path('app_user_delete', {'id': user.id}) }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ user.id) }}">
+                <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 border border-red-300 bg-white text-red-500 hover:bg-red-50 text-sm font-medium rounded-lg transition">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    Delete
+                </button>
+            </form>
+            <a href="{{ path('app_user_edit', {'id': user.id}) }}" class="inline-flex items-center gap-2 px-4 py-2 bg-paw-orange text-white rounded-lg hover:bg-paw-orange-hover font-medium shadow-sm transition">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                Edit Profile
+            </a>
+        </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-gray-200 shadow flex flex-col md:flex-row">
+        <!-- Left: Profile Image with Status Dot -->
+        <div class="md:w-1/2 w-full flex flex-col items-center justify-center p-8 relative">
+            <div class="w-full aspect-square rounded-2xl overflow-hidden bg-gray-100 border border-gray-200 flex items-center justify-center relative">
+                {% if user.userImage %}
+                    <img src="{{ asset(user.userImage) }}" alt="{{ user.nom }} {{ user.prenom }}" class="object-cover w-full h-full">
+                {% else %}
+                    <div class="w-full h-full flex items-center justify-center bg-paw-orange text-white text-6xl font-bold">
+                        {{ user.nom|default('U')|slice(0, 1) }}{{ user.prenom|default('')|slice(0, 1) }}
+                    </div>
+                {% endif %}
+                <!-- Status Dot -->
+                <span class="absolute top-4 left-4 flex items-center">
+                    <span class="relative flex h-4 w-4">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full {{ user.status|lower in ['actif','active'] ? 'bg-green-400' : 'bg-red-400' }} opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-4 w-4 {{ user.status|lower in ['actif','active'] ? 'bg-green-500' : 'bg-red-500' }}"></span>
+                    </span>
+                </span>
+            </div>
+            <!-- Role Icon -->
+            <span class="mt-4 px-4 py-1 rounded-full text-sm font-semibold flex items-center gap-2 {{ user.status|lower in ['actif','active'] ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }}">
+                {% if user.role|lower == 'admin' %}
+                    <svg class="h-5 w-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c1.104 0 2-.896 2-2s-.896-2-2-2-2 .896-2 2 .896 2 2 2zm0 2c-2.21 0-4 1.79-4 4v1h8v-1c0-2.21-1.79-4-4-4z"/></svg>
+                {% elseif user.role|lower == 'veterinaire' %}
+                    <svg class="h-5 w-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                {% else %}
+                    <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2"/></svg>
+                {% endif %}
+                {{ user.role|title }}
+            </span>
+        </div>
+        <!-- Right: Info -->
+
+
+
+
+
+
+
+
+        <div class="md:w-1/2 w-full flex flex-col p-8">
+
+            <!-- User Name -->
+            <h1 class="text-3xl font-bold text-gray-900 mb-8">
+                {{ user.nom }} {{ user.prenom }}
+            </h1>
+
+            <!-- Info Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+
+                {% if user.role|lower == 'client' %}
+
+                    <!-- Phone -->
+                    <div class="flex flex-col items-center justify-center
+                                bg-gray-50 rounded-2xl px-6 py-5
+                                shadow-sm border border-gray-100
+                                hover:shadow-md hover:-translate-y-1
+                                transition-all duration-300">
+                        <span class="text-xs uppercase tracking-wide text-gray-400 mb-1">
+                            Phone
+                        </span>
+                        <span class="font-semibold text-gray-800 text-lg text-center">
+                            {{ user.telephone }}
+                        </span>
+                    </div>
+
+                    <!-- Email (Full Width) -->
+                    <div class="col-span-1 sm:col-span-2 md:col-span-3
+                                flex flex-col items-center justify-center
+                                bg-gray-50 rounded-2xl px-6 py-5
+                                shadow-sm border border-gray-100
+                                hover:shadow-md transition-all duration-300">
+                        <span class="text-xs uppercase tracking-wide text-gray-400 mb-1">
+                            Email
+                        </span>
+                        <span class="font-semibold text-gray-800 text-lg break-all text-center">
+                            {{ user.email }}
+                        </span>
+                    </div>
+
+                {% elseif user.role|lower == 'veterinaire' %}
+
+                    <!-- Order -->
+                    <div class="flex flex-col items-center justify-center
+                                bg-gray-50 rounded-2xl px-6 py-5
+                                shadow-sm border border-gray-100
+                                hover:shadow-md hover:-translate-y-1
+                                transition-all duration-300">
+                        <span class="text-xs uppercase tracking-wide text-gray-400 mb-1">
+                            Order #
+                        </span>
+                        <span class="font-semibold text-gray-800 text-lg">
+                            {{ user.orderNumber }}
+                        </span>
+                    </div>
+
+                    <!-- Phone -->
+                    <div class="flex flex-col items-center justify-center
+                                bg-gray-50 rounded-2xl px-6 py-5
+                                shadow-sm border border-gray-100
+                                hover:shadow-md hover:-translate-y-1
+                                transition-all duration-300">
+                        <span class="text-xs uppercase tracking-wide text-gray-400 mb-1">
+                            Phone
+                        </span>
+                        <span class="font-semibold text-gray-800 text-lg">
+                            {{ user.telephone }}
+                        </span>
+                    </div>
+
+                    <!-- Email (Full Width Below) -->
+                    <div class="col-span-1 sm:col-span-2 md:col-span-3
+                                flex flex-col items-center justify-center
+                                bg-gray-50 rounded-2xl px-6 py-5
+                                shadow-sm border border-gray-100
+                                hover:shadow-md transition-all duration-300">
+                        <span class="text-xs uppercase tracking-wide text-gray-400 mb-1">
+                            Email
+                        </span>
+                        <span class="font-semibold text-gray-800 text-lg break-all text-center">
+                            {{ user.email }}
+                        </span>
+                    </div>
+
+                {% elseif user.role|lower == 'agent' %}
+
+                    <!-- Matricule -->
+                    <div class="flex flex-col items-center justify-center
+                                bg-gray-50 rounded-2xl px-6 py-5
+                                shadow-sm border border-gray-100
+                                hover:shadow-md hover:-translate-y-1
+                                transition-all duration-300">
+                        <span class="text-xs uppercase tracking-wide text-gray-400 mb-1">
+                            Matricule
+                        </span>
+                        <span class="font-semibold text-gray-800 text-lg">
+                            {{ user.matricule }}
+                        </span>
+                    </div>
+
+                    <!-- Zone -->
+                    <div class="flex flex-col items-center justify-center
+                                bg-gray-50 rounded-2xl px-6 py-5
+                                shadow-sm border border-gray-100
+                                hover:shadow-md hover:-translate-y-1
+                                transition-all duration-300">
+                        <span class="text-xs uppercase tracking-wide text-gray-400 mb-1">
+                            Zone Affectée
+                        </span>
+                        <span class="font-semibold text-gray-800 text-lg">
+                            {{ user.zoneAffectee }}
+                        </span>
+                    </div>
+
+                    <!-- Email (Full Width) -->
+                    <div class="col-span-1 sm:col-span-2 md:col-span-3
+                                flex flex-col items-center justify-center
+                                bg-gray-50 rounded-2xl px-6 py-5
+                                shadow-sm border border-gray-100
+                                hover:shadow-md transition-all duration-300">
+                        <span class="text-xs uppercase tracking-wide text-gray-400 mb-1">
+                            Email
+                        </span>
+                        <span class="font-semibold text-gray-800 text-lg break-all text-center">
+                            {{ user.email }}
+                        </span>
+                    </div>
+
+                {% else %}
+
+                    <!-- Matricule -->
+                    <div class="flex flex-col items-center justify-center
+                                bg-gray-50 rounded-2xl px-6 py-5
+                                shadow-sm border border-gray-100
+                                hover:shadow-md transition-all duration-300">
+                        <span class="text-xs uppercase tracking-wide text-gray-400 mb-1">
+                            Matricule
+                        </span>
+                        <span class="font-semibold text-gray-800 text-lg">
+                            {{ user.matricule }}
+                        </span>
+                    </div>
+                    
+                    <!-- Zone -->
+                    <div class="flex flex-col items-center justify-center
+                                bg-gray-50 rounded-2xl px-6 py-5
+                                shadow-sm border border-gray-100
+                                hover:shadow-md hover:-translate-y-1
+                                transition-all duration-300">
+                        <span class="text-xs uppercase tracking-wide text-gray-400 mb-1">
+                            Zone Affectée
+                        </span>
+                        <span class="font-semibold text-gray-800 text-lg">
+                            {{ user.zoneAffectee }}
+                        </span>
+                    </div>
+                    
+
+                    <!-- Phone -->
+                    <div class="flex flex-col items-center justify-center
+                                bg-gray-50 rounded-2xl px-6 py-5
+                                shadow-sm border border-gray-100
+                                hover:shadow-md transition-all duration-300">
+                        <span class="text-xs uppercase tracking-wide text-gray-400 mb-1">
+                            Phone
+                        </span>
+                        <span class="font-semibold text-gray-800 text-lg">
+                            {{ user.telephone }}
+                        </span>
+                    </div>
+
+                    <!-- Email -->
+                    <div class="col-span-1 sm:col-span-2 md:col-span-3
+                                flex flex-col items-center justify-center
+                                bg-gray-50 rounded-2xl px-6 py-5
+                                shadow-sm border border-gray-100
+                                hover:shadow-md transition-all duration-300">
+                        <span class="text-xs uppercase tracking-wide text-gray-400 mb-1">
+                            Email
+                        </span>
+                        <span class="font-semibold text-gray-800 text-lg break-all text-center">
+                            {{ user.email }}
+                        </span>
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            <br>
+            {% if user.role|lower == 'agent' %}
+                <div class="text-gray-600 text-sm mb-2">Zone Affectée: <span class="font-semibold">{{ user.zoneAffectee }}</span></div>
+            {% endif %}
+            <div class="text-gray-600 text-sm flex items-center gap-2">
+                Status:
+                <span class="relative flex h-3 w-3">
+                    <span class="absolute inline-flex h-full w-full rounded-full {{ user.status|lower in ['actif','active'] ? 'bg-green-400' : 'bg-red-400' }} opacity-75 animate-ping"></span>
+                    <span class="relative inline-flex rounded-full h-3 w-3 {{ user.status|lower in ['actif','active'] ? 'bg-green-500' : 'bg-red-500' }}"></span>
+                </span>
+                <span class="font-semibold {{ user.status|lower in ['actif','active'] ? 'text-green-600' : 'text-red-600' }}">{{ user.status|title }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+<style>
+/* Make sidebar unscrollable */
+.flex > aside {
+    position: fixed;
+    height: 100vh;
+    overflow: hidden;
+    z-index: 40;
+}
+.flex > .flex-1 {
+    margin-left: 16rem;
+}
+</style>
+{% endblock %}

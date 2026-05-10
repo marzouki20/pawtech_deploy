@@ -3,10 +3,8 @@ nixPkgs = ["php82", "php82Extensions.pdo", "php82Extensions.pdo_mysql", "php82Ex
 
 [phases.build]
 cmds = [
-  "composer install --no-dev --optimize-autoloader",
-  "php bin/console cache:clear --env=prod --no-debug",
-  "php bin/console cache:warmup --env=prod --no-debug"
+  "cd /app && composer install --no-dev --optimize-autoloader --no-scripts"
 ]
 
 [start]
-cmd = "php -S 0.0.0.0:$PORT public/index.php"
+cmd = "frankenphp run --config /app/Caddyfile"

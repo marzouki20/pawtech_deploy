@@ -1,0 +1,9 @@
+{
+    admin off
+    frankenphp
+}
+
+:{$PORT} {
+    root * /app/public
+    php_server
+}
